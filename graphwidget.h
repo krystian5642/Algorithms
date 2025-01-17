@@ -2,6 +2,7 @@
 #define GRAPHWIDGET_H
 
 #include <QWidget>
+#include "graph.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -9,6 +10,7 @@ namespace Ui
 class GraphWidget;
 }
 QT_END_NAMESPACE
+
 
 class GraphWidget : public QWidget
 {
@@ -18,8 +20,14 @@ public:
     GraphWidget(QWidget *parent = nullptr);
     ~GraphWidget();
 
+    // QWidget interface
+protected:
+    void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+
 private:
     Ui::GraphWidget *ui;
+    Graph<int> graph;
 };
 
 #endif // GRAPHWIDGET_H
