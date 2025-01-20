@@ -1,9 +1,10 @@
 #include "graphwidget.h"
-#include "./ui_graphwidget.h"
-#include "addgraphedgedialog.h"
 
 #include <QMouseEvent>
 #include <QPainter>
+
+#include "./ui_graphwidget.h"
+#include "addgraphedgedialog.h"
 
 GraphWidget::GraphWidget(QWidget *parent)
     : QWidget(parent)
@@ -28,7 +29,7 @@ void GraphWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(nodePen);
 
-    graph.paint(painter);
+    paintGraph(painter);
 }
 
 void GraphWidget::mousePressEvent(QMouseEvent *event)
@@ -40,28 +41,24 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
 
         if(returnCode == QDialog::DialogCode::Accepted)
         {
-            GraphNode startNode(0, event->pos());
-            GraphNode endNode(0, event->pos() + QPoint(40, 40));
-
             bool startValueOk = false;
             const int startValue = addGraphEdgeDialog.getStartValue<int>(&startValueOk);
             if(startValueOk)
             {
-                startNode.setValue(startValue);
-                graph.addNode(startNode);
+                addNode(startValue, event->pos());
             }
 
             bool endValueOk = false;
             const int endValue = addGraphEdgeDialog.getEndValue<int>(&endValueOk);
             if(endValueOk)
             {
-                endNode.setValue(endValue);
-                graph.addNode(endNode);
+                addNode(endValue, event->pos() + QPoint(50, 50));
             }
 
             if(startValueOk && endValueOk)
             {
-                graph.addEdge(startNode, endNode, 10.f);
+                const float weightValue = addGraphEdgeDialog.getEdgeWeight();
+                addEdge(startValue, endValue, weightValue);
             }
 
             update();
@@ -69,5 +66,51 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
     }
 }
 
+void GraphWidget::addNode(int value, const QPoint& location)
+{
+    if(!graphVisualData.contains(value))
+    {
+        graphVisualData[value] = location;
+        graph.addNode(value);
+    }
+}
 
+void GraphWidget::addEdge(int startValue, int endValue, float weight)
+{
+    graph.addEdge(startValue, endValue, weight);
+}
 
+void GraphWidget::paintGraph(QPainter &painter)
+{
+    painter.save();
+
+    const auto& graphContainer = graph.getGraphContainer();
+
+    for (auto it = graphContainer.constBegin(); it != graphContainer.constEnd(); ++it)
+    {
+        const auto& value = it.key();
+        const auto& neighbours = it.value();
+
+        painter.drawEllipse(graphVisualData[value].location, 15, 15);
+
+        for(const auto& neighbour : neighbours)
+        {
+            painter.drawLine(graphVisualData[value].location, graphVisualData[neighbour.getEndValue()].location);
+        }
+    }
+
+    QPen textPen;
+    textPen.setBrush(Qt::white);
+
+    painter.setPen(textPen);
+
+    for (auto it = graphContainer.constBegin(); it != graphContainer.constEnd(); ++it)
+    {
+        const auto& value = it.key();
+        const auto& neighbours = it.value();
+
+        painter.drawText(graphVisualData[value].location + QPointF(-3.5, 3), QString("%1").arg(value));
+    }
+
+    painter.restore();
+}

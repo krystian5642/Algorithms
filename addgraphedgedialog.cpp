@@ -5,8 +5,8 @@ AddGraphEdgeDialog::AddGraphEdgeDialog(QWidget *parent)
     , ui(new Ui::AddGraphEdgeDialog)
 {
     ui->setupUi(this);
-
-    adjustWidgetPositionToCenter();
+    ui->weightLineEdit->setText("0");
+    adjustLayoutWidgetPositionToCenter();
 }
 
 AddGraphEdgeDialog::~AddGraphEdgeDialog()
@@ -14,7 +14,7 @@ AddGraphEdgeDialog::~AddGraphEdgeDialog()
     delete ui;
 }
 
-void AddGraphEdgeDialog::adjustWidgetPositionToCenter()
+void AddGraphEdgeDialog::adjustLayoutWidgetPositionToCenter()
 {
     const auto& widgetGeometry = ui->layoutWidget->geometry();
     const int newX = geometry().size().width() / 2 - widgetGeometry.size().width() / 2;

@@ -26,7 +26,7 @@ private slots:
     void on_addEdgeButton_clicked();
 
 private:
-    void adjustWidgetPositionToCenter();
+    void adjustLayoutWidgetPositionToCenter();
 
     Ui::AddGraphEdgeDialog *ui;
 };
