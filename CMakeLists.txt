@@ -24,6 +24,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         graph.h graph.cpp
+        algorithmsmainwindow.h algorithmsmainwindow.cpp algorithmsmainwindow.ui
+        addgraphedgedialog.h addgraphedgedialog.cpp addgraphedgedialog.ui
+
+
+
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Algorithms APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

@@ -4,6 +4,8 @@
 #include <QWidget>
 #include "graph.h"
 
+class GraphNodePropertiesWidget;
+
 QT_BEGIN_NAMESPACE
 namespace Ui
 {

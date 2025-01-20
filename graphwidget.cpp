@@ -1,10 +1,9 @@
 #include "graphwidget.h"
 #include "./ui_graphwidget.h"
+#include "addgraphedgedialog.h"
 
-#include <QLabel>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QRandomGenerator>
 
 GraphWidget::GraphWidget(QWidget *parent)
     : QWidget(parent)
@@ -35,23 +34,38 @@ void GraphWidget::paintEvent(QPaintEvent *event)
 void GraphWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
-    {       
-        const GraphNode<int> newNode(QRandomGenerator::global()->bounded(30), event->pos());
+    {
+        AddGraphEdgeDialog addGraphEdgeDialog;
+        const int returnCode = addGraphEdgeDialog.exec();
 
-        const auto& graphContainer = graph.getGraphContainer();
-        if(graphContainer.empty())
+        if(returnCode == QDialog::DialogCode::Accepted)
         {
-            graph.addNode(newNode);
-        }
-        else
-        {
-            const auto nodes = graphContainer.keys();
-            const int randomIndex = QRandomGenerator::global()->bounded(nodes.size());
+            GraphNode startNode(0, event->pos());
+            GraphNode endNode(0, event->pos() + QPoint(40, 40));
 
-            graph.addEdge(newNode, nodes[randomIndex], 10.f);
-        }
+            bool startValueOk = false;
+            const int startValue = addGraphEdgeDialog.getStartValue<int>(&startValueOk);
+            if(startValueOk)
+            {
+                startNode.setValue(startValue);
+                graph.addNode(startNode);
+            }
 
-        update();
+            bool endValueOk = false;
+            const int endValue = addGraphEdgeDialog.getEndValue<int>(&endValueOk);
+            if(endValueOk)
+            {
+                endNode.setValue(endValue);
+                graph.addNode(endNode);
+            }
+
+            if(startValueOk && endValueOk)
+            {
+                graph.addEdge(startNode, endNode, 10.f);
+            }
+
+            update();
+        }
     }
 }
 

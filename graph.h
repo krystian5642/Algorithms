@@ -10,20 +10,18 @@ class GraphNode
 public:
     friend struct std::hash<GraphNode>;
 
-    GraphNode(const ValueType& inValue, const QPoint& inLocation)
+    explicit GraphNode(const ValueType& inValue)
         : value(inValue)
-        , location(inLocation)
     {
     }
 
     bool operator==(const GraphNode& other) const;
 
+    void setValue(const ValueType& inValue) { value = inValue; };
     const ValueType& getValue() const { return value; };
-    const QPoint& getLocation() const { return location; };
 
 protected:
     ValueType value;
-    QPoint location;
 };
 
 namespace std
@@ -41,7 +39,7 @@ struct hash<GraphNode<ValueType>>
 template<class ValueType>
 inline bool GraphNode<ValueType>::operator==(const GraphNode &other) const
 {
-    return value == other.value && location == other.location;
+    return value == other.value;
 }
 
 template <class ValueType>
@@ -50,11 +48,13 @@ class GraphEdge
 public:
     using GraphNode = GraphNode<ValueType>;
 
-    GraphEdge(float inWeight, const GraphNode& inEndNode)
+    explicit GraphEdge(float inWeight, const GraphNode& inEndNode)
         : weight(inWeight)
         , endNode(inEndNode)
     {
     }
+
+    bool operator==(const GraphEdge& other) const;
 
     float getWeight() const { return weight; }
     const GraphNode& getEndNode() const { return endNode; };
@@ -62,6 +62,12 @@ protected:
     float weight = 0;
     GraphNode endNode;
 };
+
+template<class ValueType>
+inline bool GraphEdge<ValueType>::operator==(const GraphEdge &other) const
+{
+    return weight == other.weight && endNode == other.endNode;
+}
 
 template <class ValueType>
 class Graph
@@ -92,11 +98,19 @@ protected:
 template<class ValueType>
 void Graph<ValueType>::addEdge(const GraphNode& start, const GraphNode& end, float weight)
 {
-    graphContainer[start].emplaceBack(weight, end);
+    const GraphEdge endEdge(weight, end);
+    if(!graphContainer[start].contains(endEdge))
+    {
+        graphContainer[start].emplaceBack(endEdge);
+    }
 
     if(!isDirected)
     {
-        graphContainer[end].emplaceBack(weight, start);
+        const GraphEdge startEdge(weight, start);
+        if(!graphContainer[end].contains(startEdge))
+        {
+            graphContainer[end].emplaceBack(startEdge);
+        }
     }
     else
     {
