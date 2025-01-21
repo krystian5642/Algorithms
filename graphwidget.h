@@ -32,6 +32,9 @@ public:
     GraphWidget(QWidget *parent = nullptr);
     ~GraphWidget();
 
+    const Graph<int>& getGraph() const { return graph; };
+    Graph<int>& getGraphMutable() { return graph; };
+
     // QWidget interface
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -41,7 +44,6 @@ protected:
 
     void addNode(int value, const QPoint& location);
     void addEdge(int startValue, int endValue, float weight = 0.f);
-
 private:
     void paintGraph(QPainter& painter);
 

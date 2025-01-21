@@ -20,7 +20,7 @@ public:
     template<class ValueType>
     ValueType getEndValue(bool* ok = nullptr) const;
 
-    float getEdgeWeight(bool* ok = nullptr) const;
+    double getEdgeWeight(bool* ok = nullptr) const;
 
 private slots:
     void on_addEdgeButton_clicked();

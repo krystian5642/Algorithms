@@ -28,7 +28,7 @@ void AddGraphEdgeDialog::on_addEdgeButton_clicked()
     accept();
 }
 
-float AddGraphEdgeDialog::getEdgeWeight(bool* ok) const
+double AddGraphEdgeDialog::getEdgeWeight(bool* ok) const
 {
     return ui->weightLineEdit->text().toFloat(ok);
 }

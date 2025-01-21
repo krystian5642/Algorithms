@@ -57,7 +57,7 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
 
             if(startValueOk && endValueOk)
             {
-                const float weightValue = addGraphEdgeDialog.getEdgeWeight();
+                const double weightValue = addGraphEdgeDialog.getEdgeWeight();
                 addEdge(startValue, endValue, weightValue);
             }
 
