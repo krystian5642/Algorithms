@@ -44,7 +44,7 @@ QJsonValue GraphEdge<ValueType>::toJsonValue() const
 {
     QJsonObject jsonObject;
     jsonObject["weight"] = weight;
-    jsonObject["endNode"] = endValue;
+    jsonObject["endValue"] = endValue;
     return jsonObject;
 }
 
@@ -52,7 +52,7 @@ template<class ValueType>
 void GraphEdge<ValueType>::fromJsonValue(const QJsonValue &jsonValue)
 {
     weight = jsonValue["weight"].toDouble();
-    endValue = jsonValue["endValue"].toVariant().value<ValueType>();
+    endValue = jsonValue["endValue"].toInt();
 }
 
 template <class ValueType>

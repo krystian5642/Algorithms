@@ -22,6 +22,14 @@ private slots:
     void on_actionSave_triggered();
     void on_actionLoad_triggered();
 
+    bool saveGraph();
+    bool loadGraph();
+
+    bool saveGraphNodeLocations();
+    bool loadGraphNodeLocations();
+
+    void on_actionClear_triggered();
+
 private:
     Ui::AlgorithmsMainWindow *ui;
     GraphWidget* graphWidget;

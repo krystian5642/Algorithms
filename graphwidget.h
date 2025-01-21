@@ -13,17 +13,6 @@ class GraphWidget;
 }
 QT_END_NAMESPACE
 
-struct GraphNodeVisualData
-{
-    GraphNodeVisualData() = default;
-    GraphNodeVisualData(const QPoint& inLocation)
-        : location(inLocation)
-    {
-    }
-
-    QPoint location;
-};
-
 class GraphWidget : public QWidget
 {
     Q_OBJECT
@@ -32,15 +21,20 @@ public:
     GraphWidget(QWidget *parent = nullptr);
     ~GraphWidget();
 
+    void clearGraph();
+
     const Graph<int>& getGraph() const { return graph; };
     Graph<int>& getGraphMutable() { return graph; };
+
+    const QHash<int, QPoint>& getGraphNodeLocations() const { return graphNodeLocations; }
+    QHash<int, QPoint>& getGraphNodeLocationsMutable() { return graphNodeLocations; }
 
     // QWidget interface
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
 
-    QHash<int, GraphNodeVisualData> graphVisualData;
+    QHash<int, QPoint> graphNodeLocations;
 
     void addNode(int value, const QPoint& location);
     void addEdge(int startValue, int endValue, float weight = 0.f);

@@ -35,6 +35,7 @@
     </property>
     <addaction name="actionSave"/>
     <addaction name="actionLoad"/>
+    <addaction name="actionClear"/>
    </widget>
    <addaction name="menuGraph"/>
   </widget>
@@ -51,6 +52,7 @@
    </attribute>
    <addaction name="actionSave"/>
    <addaction name="actionLoad"/>
+   <addaction name="actionClear"/>
   </widget>
   <action name="actionSave">
    <property name="icon">
@@ -74,6 +76,18 @@
    </property>
    <property name="toolTip">
     <string>Load a graph from a file</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/clear.png</normaloff>:/icons/clear.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear a graph</string>
    </property>
   </action>
  </widget>
