@@ -21,7 +21,7 @@ GraphWidget::~GraphWidget()
 void GraphWidget::clearGraph()
 {
     graph.clear();
-    graphNodeLocations.clear();
+    graphNodeVisualData.clear();
     update();
 }
 
@@ -75,9 +75,9 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
 
 void GraphWidget::addNode(int value, const QPoint& location)
 {
-    if(!graphNodeLocations.contains(value))
+    if(!graphNodeVisualData.contains(value))
     {
-        graphNodeLocations[value] = location;
+        graphNodeVisualData[value].location = location;
         graph.addNode(value);
     }
 }
@@ -94,15 +94,20 @@ void GraphWidget::paintGraph(QPainter &painter)
     const auto& graphContainer = graph.getGraphContainer();
 
     for (auto it = graphContainer.constBegin(); it != graphContainer.constEnd(); ++it)
-    {
+    {    
         const auto& value = it.key();
         const auto& neighbours = it.value();
 
-        painter.drawEllipse(graphNodeLocations[value], 15, 15);
+        QPen edgePen;
+        edgePen.setBrush(graphNodeVisualData[value].color);
+        painter.setPen(edgePen);
+        painter.setBrush(graphNodeVisualData[value].color);
+
+        painter.drawEllipse(graphNodeVisualData[value].location, 15, 15);
 
         for(const auto& neighbour : neighbours)
         {
-            painter.drawLine(graphNodeLocations[value], graphNodeLocations[neighbour.getEndValue()]);
+            painter.drawLine(graphNodeVisualData[value].location, graphNodeVisualData[neighbour.getEndValue()].location);
         }
     }
 
@@ -116,7 +121,7 @@ void GraphWidget::paintGraph(QPainter &painter)
         const auto& value = it.key();
         const auto& neighbours = it.value();
 
-        painter.drawText(graphNodeLocations[value] + QPointF(-3.5, 3), QString("%1").arg(value));
+        painter.drawText(graphNodeVisualData[value].location + QPointF(-3.5, 3), QString("%1").arg(value));
     }
 
     painter.restore();

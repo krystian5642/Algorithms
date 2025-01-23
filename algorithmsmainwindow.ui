@@ -36,6 +36,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionLoad"/>
     <addaction name="actionClear"/>
+    <addaction name="actionRun_algorithm"/>
    </widget>
    <addaction name="menuGraph"/>
   </widget>
@@ -53,6 +54,8 @@
    <addaction name="actionSave"/>
    <addaction name="actionLoad"/>
    <addaction name="actionClear"/>
+   <addaction name="separator"/>
+   <addaction name="actionRun_algorithm"/>
   </widget>
   <action name="actionSave">
    <property name="icon">
@@ -88,6 +91,15 @@
    </property>
    <property name="toolTip">
     <string>Clear a graph</string>
+   </property>
+  </action>
+  <action name="actionRun_algorithm">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run algorithm</string>
    </property>
   </action>
  </widget>

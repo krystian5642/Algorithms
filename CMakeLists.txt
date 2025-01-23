@@ -27,6 +27,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         algorithmsmainwindow.h algorithmsmainwindow.cpp algorithmsmainwindow.ui
         addgraphedgedialog.h addgraphedgedialog.cpp addgraphedgedialog.ui
         icons.qrc
+        graphalgorithms.h graphalgorithms.cpp
 
 
 

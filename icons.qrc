@@ -3,5 +3,6 @@
         <file>icons/load.png</file>
         <file>icons/save.png</file>
         <file>icons/clear.png</file>
+        <file>icons/play.png</file>
     </qresource>
 </RCC>
