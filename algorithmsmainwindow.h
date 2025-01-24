@@ -26,6 +26,7 @@ private slots:
     void on_actionLoad_triggered();
     void on_actionClear_triggered();
     void on_actionRun_algorithm_triggered();
+    void on_actionGenerateRandomGraph_triggered();
 
 private:
     bool saveGraph();
@@ -39,15 +40,19 @@ private:
     Ui::AlgorithmsMainWindow *ui;
     GraphWidget* graphWidget;
 
-    struct AlgorithmResultAnimation
+    struct ProcessedGraphAlgorithResult
     {
-        int index = 0;
-        QList<GraphEdge<int>> resultEdgeList;
+        using ConstNodeIterator = QList<int>::const_iterator;
+        using ConstEdgeIterator = QSet<QPair<int, int>>::const_iterator;
 
-        void reset();
+        ConstNodeIterator nodeIt;
+        ConstEdgeIterator edgeIt;
     };
 
-    AlgorithmResultAnimation currentProcesedAlgorithmRes;
+    ProcessedGraphAlgorithResult processedGraphAlgorithResult;
 };
+
+
+
 
 #endif // ALGORITHMSMAINWINDOW_H

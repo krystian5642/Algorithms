@@ -12,47 +12,23 @@ class Graph;
 template <class ValueType>
 class GraphEdge;
 
-template <class ValueType>
 class GraphAlgorithm
 {
 public:
-    GraphAlgorithm() = default;
-    virtual ~GraphAlgorithm() = default;
+    explicit GraphAlgorithm();
+    virtual ~GraphAlgorithm();
 
-    virtual void Execute(const ValueType& start, const Graph<ValueType>& graph, QList<GraphEdge<ValueType>>& result) const = 0;
+    virtual void Execute(int start, const Graph<int>& graph, QList<int>& visitedNodes, QSet<QPair<int, int>>& visitedEdges) = 0;
+
+signals:
+    void onNodeVisited(int value);
+    void onEdgeVisited(int start, int end);
 };
 
-template <class ValueType>
-class BFSGraphAlgorithm : public GraphAlgorithm<ValueType>
+class BFSGraphAlgorithm : public GraphAlgorithm
 {
 public:
-    virtual void Execute(const ValueType& start, const Graph<ValueType>& graph, QList<GraphEdge<ValueType>>& result) const override;
+    virtual void Execute(int start, const Graph<int>& graph, QList<int>& visitedNodes, QSet<QPair<int, int>>& visitedEdges) override;
 };
-
-template<class ValueType>
-void BFSGraphAlgorithm<ValueType>::Execute(const ValueType &start, const Graph<ValueType> &graph, QList<GraphEdge<ValueType>> &result) const
-{
-    QQueue<ValueType> nodeQueue;
-    nodeQueue.enqueue(start);
-
-    QHash<ValueType, bool> visited;
-    visited[start] = true;
-
-    while(!nodeQueue.empty())
-    {
-        const ValueType first = nodeQueue.dequeue();
-        const auto& graphContainer = graph.getGraphContainer();
-
-        for(const auto& edge : graphContainer[first])
-        {
-            if(!visited[edge.getEndValue()])
-            {
-                visited[edge.getEndValue()] = true;
-                nodeQueue.enqueue(edge.getEndValue());
-                result.append(edge);
-            }
-        }
-    }
-}
 
 #endif // GRAPHALGORITHMS_H

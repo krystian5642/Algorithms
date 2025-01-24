@@ -56,6 +56,7 @@
    <addaction name="actionClear"/>
    <addaction name="separator"/>
    <addaction name="actionRun_algorithm"/>
+   <addaction name="actionGenerateRandomGraph"/>
   </widget>
   <action name="actionSave">
    <property name="icon">
@@ -66,7 +67,7 @@
     <string>Save</string>
    </property>
    <property name="toolTip">
-    <string>Save a graph to a file</string>
+    <string>Save graph to file</string>
    </property>
   </action>
   <action name="actionLoad">
@@ -78,7 +79,7 @@
     <string>Load</string>
    </property>
    <property name="toolTip">
-    <string>Load a graph from a file</string>
+    <string>Load graph from file</string>
    </property>
   </action>
   <action name="actionClear">
@@ -90,7 +91,7 @@
     <string>Clear</string>
    </property>
    <property name="toolTip">
-    <string>Clear a graph</string>
+    <string>Clear graph</string>
    </property>
   </action>
   <action name="actionRun_algorithm">
@@ -100,6 +101,21 @@
    </property>
    <property name="text">
     <string>Run algorithm</string>
+   </property>
+  </action>
+  <action name="actionGenerateRandomGraph">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/random.png</normaloff>:/icons/random.png</iconset>
+   </property>
+   <property name="text">
+    <string>generateRandomGraph</string>
+   </property>
+   <property name="toolTip">
+    <string>Generate random graph</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>

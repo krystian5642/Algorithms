@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QList>
+#include <QRandomGenerator>
 
 template <class ValueType>
 class Graph;
@@ -28,6 +29,7 @@ public:
 
     double getWeight() const { return weight; }
     const ValueType& getEndValue() const { return endValue; };
+
 protected:
     double weight = 0;
     ValueType endValue;
@@ -60,8 +62,8 @@ class Graph
 {
 public:
     using GraphEdge = GraphEdge<ValueType>;
-    using GraphContainer = QHash<ValueType, QList<GraphEdge>>;
-    using NodeNeighbour = QList<GraphEdge>;
+    using Neighbours = QList<GraphEdge>;
+    using GraphContainer = QHash<ValueType, Neighbours>;
 
     explicit Graph(bool inIsDirected = false)
         : isDirected(inIsDirected)
@@ -72,16 +74,30 @@ public:
     void addEdge(const ValueType& start, const GraphEdge& graphEdge);
     void addNode(const ValueType& value);
 
+    inline qsizetype getEdgesNum() const { return 2 * (qMax(0, getNodesNum()) - 1); };
+    inline qsizetype getNodesNum() const { return graphContainer.size(); };
+
     void clear();
+    ValueType getRandomValue(bool* found = nullptr) const;
 
     QJsonObject toJsonObject() const;
     void fromJsonObject(const QJsonObject& jsonObj);
 
-    const GraphContainer& getGraphContainer() const { return graphContainer; };
-    const QList<NodeNeighbour>& getNeighbours(int value) const;
+    const Neighbours& getNeighbourEdges(const ValueType& value) const;
+    QList<ValueType> getNeighbourValues(const ValueType& value) const;
+
+    inline bool getIsDirected() const { return isDirected; }
+
 protected:
     GraphContainer graphContainer;
     bool isDirected;
+
+public:
+    // to support range-based operation for loop
+    inline GraphContainer::iterator        begin() { return graphContainer.begin(); }
+    inline GraphContainer::const_iterator  constBegin() const { return graphContainer.constBegin(); }
+    inline GraphContainer::iterator        end() { return graphContainer.end(); }
+    inline GraphContainer::const_iterator  constEnd() const { return graphContainer.constEnd(); }
 };
 
 template<class ValueType>
@@ -129,6 +145,28 @@ inline void Graph<ValueType>::clear()
 }
 
 template<class ValueType>
+ValueType Graph<ValueType>::getRandomValue(bool* found) const
+{
+    if (!graphContainer.isEmpty())
+    {
+        if (found)
+        {
+            *found = true;
+        }
+
+        const auto keys = graphContainer.keys();
+        const int randomIndex = QRandomGenerator::global()->bounded(keys.size());
+        return keys[randomIndex];
+    }
+
+    if (found)
+    {
+        *found = false;
+    }
+    return {};
+}
+
+template<class ValueType>
 QJsonObject Graph<ValueType>::toJsonObject() const
 {
     QJsonObject jsonObj;
@@ -166,15 +204,33 @@ void Graph<ValueType>::fromJsonObject(const QJsonObject& jsonObj)
 }
 
 template<class ValueType>
-const QList<typename Graph<ValueType>::NodeNeighbour>& Graph<ValueType>::getNeighbours(int value) const
+const Graph<ValueType>::Neighbours &Graph<ValueType>::getNeighbourEdges(const ValueType &value) const
 {
-    static const QList<GraphEdge> empty;
+    static const Neighbours empty;
 
-    if(graphContainer.contains(value))
+    auto it = graphContainer.constFind(value);
+    if(it != graphContainer.constEnd())
     {
-        return graphContainer.at(value);
+        return it.value();
     }
     return empty;
+}
+
+template<class ValueType>
+QList<ValueType> Graph<ValueType>::getNeighbourValues(const ValueType &value) const
+{
+    QList<ValueType> neighbourValues;
+
+    auto it = graphContainer.constFind(value);
+    if(it != graphContainer.constEnd())
+    {
+        for(const auto& edge : it.value())
+        {
+            neighbourValues.append(edge.getEndValue());
+        }
+        return neighbourValues;
+    }
+    return neighbourValues;
 }
 
 #endif // GRAPH_H
