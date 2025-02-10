@@ -50,6 +50,8 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
     QHash<int, GraphNodeVisualData> graphNodeVisualData;
     QHash<QPair<int, int>, GraphEdgeVisualData> graphEdgeVisualData;
@@ -63,6 +65,10 @@ private:
 
     Ui::GraphWidget *ui;
     Graph<int> graph;
+
+    bool isDragging;
+    QPointF dragDelta;
+    QPointF lastMousePos;
 };
 
 #endif // GRAPHWIDGET_H

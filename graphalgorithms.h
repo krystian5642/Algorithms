@@ -18,7 +18,7 @@ public:
     explicit GraphAlgorithm();
     virtual ~GraphAlgorithm();
 
-    virtual void Execute(int start, const Graph<int>& graph, QList<int>& visitedNodes, QSet<QPair<int, int>>& visitedEdges) = 0;
+    virtual void Execute(int start, const Graph<int>& graph, QList<QPair<int, int>>& visitedEdges) = 0;
 
 signals:
     void onNodeVisited(int value);
@@ -28,7 +28,7 @@ signals:
 class BFSGraphAlgorithm : public GraphAlgorithm
 {
 public:
-    virtual void Execute(int start, const Graph<int>& graph, QList<int>& visitedNodes, QSet<QPair<int, int>>& visitedEdges) override;
+    virtual void Execute(int start, const Graph<int>& graph, QList<QPair<int, int>>& visitedEdges) override;
 };
 
 #endif // GRAPHALGORITHMS_H

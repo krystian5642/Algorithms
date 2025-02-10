@@ -42,10 +42,8 @@ private:
 
     struct ProcessedGraphAlgorithResult
     {
-        using ConstNodeIterator = QList<int>::const_iterator;
-        using ConstEdgeIterator = QSet<QPair<int, int>>::const_iterator;
+        using ConstEdgeIterator = QList<QPair<int, int>>::const_iterator;
 
-        ConstNodeIterator nodeIt;
         ConstEdgeIterator edgeIt;
     };
 

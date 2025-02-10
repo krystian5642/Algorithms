@@ -12,7 +12,7 @@ GraphAlgorithm::~GraphAlgorithm()
 
 }
 
-void BFSGraphAlgorithm::Execute(int start, const Graph<int>& graph, QList<int>& visitedNodes, QSet<QPair<int, int>>& visitedEdges)
+void BFSGraphAlgorithm::Execute(int start, const Graph<int>& graph, QList<QPair<int, int>>& visitedEdges)
 {
     QQueue<int> nodeQueue;
     nodeQueue.enqueue(start);
@@ -20,21 +20,29 @@ void BFSGraphAlgorithm::Execute(int start, const Graph<int>& graph, QList<int>& 
     QHash<int, bool> visited;
     visited[start] = true;
 
+    QSet<QPair<int, int>> helperEdgeSet;
+    auto addToVisitedEdges = [&](const QPair<int, int> edge)
+    {
+        if(!helperEdgeSet.contains(edge))
+        {
+            visitedEdges.append(edge);
+            helperEdgeSet.insert(edge);
+        }
+    };
+
     while(!nodeQueue.empty())
     {
         const int first = nodeQueue.dequeue();
         const auto& neighbourValues = graph.getNeighbourValues(first);
 
-        visitedNodes.push_back(first);
-
         for(const auto& value : neighbourValues)
         {
             const QPair<int, int> edge(qMin(first, value), qMax(first, value));
-            visitedEdges.insert(edge);
+            addToVisitedEdges(edge);
 
             if(!visited[value])
             {
-                visited[value] = true;
+                visited[value] = true;               
                 nodeQueue.enqueue(value);
             }
         }

@@ -52,35 +52,21 @@ void AlgorithmsMainWindow::on_actionRun_algorithm_triggered()
     if(valueFound)
     {
         std::unique_ptr<GraphAlgorithm> bfs = std::make_unique<BFSGraphAlgorithm>();
+        QList<QPair<int, int>> visitedEdges;
 
-        QList<int> visitedNodes;
-        QSet<QPair<int, int>> visitedEdges;
+        bfs->Execute(randomValue, graph, visitedEdges);
 
-        bfs->Execute(randomValue, graph, visitedNodes, visitedEdges);
-
-        processedGraphAlgorithResult.nodeIt = visitedNodes.constBegin();
         processedGraphAlgorithResult.edgeIt = visitedEdges.constBegin();
 
-        constexpr float paintInterval = 1.f;
-
-        QTimer* paintNodeTimer = new QTimer;
-        paintNodeTimer->setInterval(paintInterval);
-        connect(paintNodeTimer, &QTimer::timeout, this, [this, visitedNodes, paintNodeTimer]()
-        {
-            graphWidget->setNodeColor(*processedGraphAlgorithResult.nodeIt, Qt::red);
-            processedGraphAlgorithResult.nodeIt++;
-
-            if(processedGraphAlgorithResult.nodeIt == visitedNodes.constEnd())
-            {
-                paintNodeTimer->stop();
-                paintNodeTimer->deleteLater();
-            }
-        });
+        graphWidget->setNodeColor(randomValue, Qt::red);
 
         QTimer* paintEdgeTimer = new QTimer;
-        paintEdgeTimer->setInterval(paintInterval + 100);
+        paintEdgeTimer->setInterval(1);
         connect(paintEdgeTimer, &QTimer::timeout, this, [this, visitedEdges, paintEdgeTimer]()
         {
+            graphWidget->setNodeColor(processedGraphAlgorithResult.edgeIt->first, Qt::red);
+            graphWidget->setNodeColor(processedGraphAlgorithResult.edgeIt->second, Qt::red);
+
             graphWidget->setEdgeColor(processedGraphAlgorithResult.edgeIt->first, processedGraphAlgorithResult.edgeIt->second, Qt::red);
             processedGraphAlgorithResult.edgeIt++;
 
@@ -91,7 +77,6 @@ void AlgorithmsMainWindow::on_actionRun_algorithm_triggered()
             }
         });
 
-        paintNodeTimer->start();
         paintEdgeTimer->start();
     }
 }

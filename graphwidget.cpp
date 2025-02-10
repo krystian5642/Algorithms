@@ -9,6 +9,7 @@
 GraphWidget::GraphWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::GraphWidget)
+    , isDragging(false)
 {
     ui->setupUi(this);
 }
@@ -99,6 +100,8 @@ void GraphWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(nodePen);
 
+    painter.translate(dragDelta);
+
     paintGraph(painter);
 }
 
@@ -136,6 +139,29 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
 
             update();
         }
+    }
+    else if(event->button() == Qt::RightButton)
+    {
+        isDragging = true;
+        lastMousePos = event->position();
+    }
+}
+
+void GraphWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    if(event->button() == Qt::RightButton)
+    {
+        isDragging = false;
+    }
+}
+
+void GraphWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if(isDragging)
+    {
+        dragDelta += event->position() - lastMousePos;
+        lastMousePos = event->position();
+        update();
     }
 }
 
