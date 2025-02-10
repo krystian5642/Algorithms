@@ -9,7 +9,6 @@
 GraphWidget::GraphWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::GraphWidget)
-    , isDragging(false)
 {
     ui->setupUi(this);
 }
@@ -57,7 +56,7 @@ void GraphWidget::fromJsonObject(const QJsonObject &jsonObj)
 void GraphWidget::setNodeColor(int value, const QColor& color)
 {
     auto it = graphNodeVisualData.find(value);
-    if(it != graphNodeVisualData.end())
+    if(it != graphNodeVisualData.end() && it->color != color)
     {
         it->color = color;
         update();
@@ -68,7 +67,7 @@ void GraphWidget::setEdgeColor(int start, int end, const QColor &color)
 {
     const QPair<int, int> edge(qMin(start, end), qMax(start, end));
     auto it = graphEdgeVisualData.find(edge);
-    if(it != graphEdgeVisualData.end())
+    if(it != graphEdgeVisualData.end() && it->color != color)
     {
         it->color = color;
         update();
@@ -101,6 +100,8 @@ void GraphWidget::paintEvent(QPaintEvent *event)
     painter.setPen(nodePen);
 
     painter.translate(dragDelta);
+    painter.scale(currentScaleData.currentScale, currentScaleData.currentScale);
+    painter.translate(scaleOffset);
 
     paintGraph(painter);
 }
@@ -163,6 +164,23 @@ void GraphWidget::mouseMoveEvent(QMouseEvent *event)
         lastMousePos = event->position();
         update();
     }
+}
+
+void GraphWidget::wheelEvent(QWheelEvent *event)
+{
+    const int angleDelta = event->angleDelta().y();
+    if(angleDelta > 0)
+    {
+        currentScaleData.currentScale *= currentScaleData.scaleMultiplier;
+    }
+    else
+    {
+        currentScaleData.currentScale /= currentScaleData.scaleMultiplier;
+    }
+
+    scaleOffset = QPointF(event->position().x() * (1 - currentScaleData.currentScale), event->position().y() * (1 - currentScaleData.currentScale));
+
+    update();
 }
 
 void GraphWidget::paintGraph(QPainter &painter)

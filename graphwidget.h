@@ -24,6 +24,14 @@ struct GraphEdgeVisualData
     QColor color = Qt::black;
 };
 
+struct ScaleData
+{
+    qreal currentScale = 1;
+    qreal minScale = 0.1;
+    qreal maxScale = 15.0;
+    qreal scaleMultiplier = 1.1;
+};
+
 class GraphWidget : public QWidget
 {
     Q_OBJECT
@@ -52,6 +60,7 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 
     QHash<int, GraphNodeVisualData> graphNodeVisualData;
     QHash<QPair<int, int>, GraphEdgeVisualData> graphEdgeVisualData;
@@ -66,9 +75,15 @@ private:
     Ui::GraphWidget *ui;
     Graph<int> graph;
 
-    bool isDragging;
+    // dragging
+    bool isDragging = false;
     QPointF dragDelta;
     QPointF lastMousePos;
+
+    // scale
+    ScaleData currentScaleData;
+
+    QPointF scaleOffset;
 };
 
 #endif // GRAPHWIDGET_H
