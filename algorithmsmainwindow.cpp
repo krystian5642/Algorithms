@@ -13,6 +13,7 @@
 AlgorithmsMainWindow::AlgorithmsMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AlgorithmsMainWindow)
+    , paintGraphTimer(nullptr)
 {
     setupUi();
 }
@@ -32,6 +33,8 @@ void AlgorithmsMainWindow::on_actionSave_triggered()
 
 void AlgorithmsMainWindow::on_actionLoad_triggered()
 {
+    clearPaintGraphTimer();
+
     if(loadGraph())
     {
         loadGraphNodeLocations();
@@ -41,11 +44,14 @@ void AlgorithmsMainWindow::on_actionLoad_triggered()
 
 void AlgorithmsMainWindow::on_actionClear_triggered()
 {
+    clearPaintGraphTimer();
     graphWidget->clearGraph();
 }
 
 void AlgorithmsMainWindow::on_actionRun_algorithm_triggered()
 {
+    clearPaintGraphTimer();
+
     bool valueFound = false;
     const auto& graph = graphWidget->getGraph();
     const int randomValue = graph.getRandomValue(&valueFound);
@@ -60,9 +66,9 @@ void AlgorithmsMainWindow::on_actionRun_algorithm_triggered()
 
         graphWidget->setNodeColor(randomValue, Qt::red);
 
-        QTimer* paintEdgeTimer = new QTimer;
-        paintEdgeTimer->setInterval(1);
-        connect(paintEdgeTimer, &QTimer::timeout, this, [this, visitedEdges, paintEdgeTimer]()
+        paintGraphTimer = new QTimer;
+        paintGraphTimer->setInterval(1);
+        connect(paintGraphTimer, &QTimer::timeout, this, [this, visitedEdges]()
         {
             graphWidget->setNodeColor(processedGraphAlgorithResult.edgeIt->first, Qt::red);
             graphWidget->setNodeColor(processedGraphAlgorithResult.edgeIt->second, Qt::red);
@@ -72,17 +78,17 @@ void AlgorithmsMainWindow::on_actionRun_algorithm_triggered()
 
             if(processedGraphAlgorithResult.edgeIt == visitedEdges.constEnd())
             {
-                paintEdgeTimer->stop();
-                paintEdgeTimer->deleteLater();
+                clearPaintGraphTimer();
             }
         });
 
-        paintEdgeTimer->start();
+        paintGraphTimer->start();
     }
 }
 
 void AlgorithmsMainWindow::on_actionGenerateRandomGraph_triggered()
 {
+    clearPaintGraphTimer();
     graphWidget->clearGraph();
     for(int i=0; i<=1000; i++)
     {
@@ -181,4 +187,14 @@ void AlgorithmsMainWindow::setupUi()
 
     graphWidget = new GraphWidget(this);
     setCentralWidget(graphWidget);
+}
+
+void AlgorithmsMainWindow::clearPaintGraphTimer()
+{
+    if(paintGraphTimer)
+    {
+        paintGraphTimer->stop();
+        paintGraphTimer->deleteLater();
+        paintGraphTimer = nullptr;
+    }
 }

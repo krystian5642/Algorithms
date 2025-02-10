@@ -1,7 +1,5 @@
 #include "graphalgorithms.h"
 
-#include <QThread>
-
 GraphAlgorithm::GraphAlgorithm()
 {
 

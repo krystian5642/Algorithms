@@ -48,6 +48,9 @@ private:
     };
 
     ProcessedGraphAlgorithResult processedGraphAlgorithResult;
+
+    void clearPaintGraphTimer();
+    QTimer* paintGraphTimer;
 };
 
 
