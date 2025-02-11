@@ -74,7 +74,7 @@ public:
     void addEdge(const ValueType& start, const GraphEdge& graphEdge);
     void addNode(const ValueType& value);
 
-    inline qsizetype getEdgesNum() const { return 2 * (qMax(0, getNodesNum()) - 1); };
+    inline qsizetype getEdgesNum() const { return isDirected ? 2 * (qMax(0, getNodesNum()) - 1) : (qMax(0, getNodesNum()) - 1); };
     inline qsizetype getNodesNum() const { return graphContainer.size(); };
 
     void clear();

@@ -26,7 +26,7 @@ struct GraphEdgeVisualData
 
 struct ScaleData
 {
-    qreal currentScale = 1;
+    qreal currentScale = 1.0;
     qreal minScale = 0.1;
     qreal maxScale = 15.0;
     qreal scaleMultiplier = 1.1;

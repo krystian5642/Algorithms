@@ -1,5 +1,15 @@
 #include "graphalgorithms.h"
 
+void VisitedEdges::insert(int start, int end)
+{
+    const QPair<int, int> edge(qMin(start, end), qMax(start, end));
+    if(!helperSet.contains(edge))
+    {
+        edges.append(edge);
+        helperSet.insert(edge);
+    }
+}
+
 GraphAlgorithm::GraphAlgorithm()
 {
 
@@ -10,23 +20,13 @@ GraphAlgorithm::~GraphAlgorithm()
 
 }
 
-void BFSGraphAlgorithm::Execute(int start, const Graph<int>& graph, QList<QPair<int, int>>& visitedEdges)
+void BFSGraphAlgorithm::Execute(int start, const Graph<int>& graph, VisitedEdges& visitedEdges)
 {
     QQueue<int> nodeQueue;
     nodeQueue.enqueue(start);
 
     QHash<int, bool> visited;
     visited[start] = true;
-
-    QSet<QPair<int, int>> helperEdgeSet;
-    auto addToVisitedEdges = [&](const QPair<int, int> edge)
-    {
-        if(!helperEdgeSet.contains(edge))
-        {
-            visitedEdges.append(edge);
-            helperEdgeSet.insert(edge);
-        }
-    };
 
     while(!nodeQueue.empty())
     {
@@ -35,8 +35,7 @@ void BFSGraphAlgorithm::Execute(int start, const Graph<int>& graph, QList<QPair<
 
         for(const auto& value : neighbourValues)
         {
-            const QPair<int, int> edge(qMin(first, value), qMax(first, value));
-            addToVisitedEdges(edge);
+            visitedEdges.insert(first, value);
 
             if(!visited[value])
             {
@@ -47,10 +46,35 @@ void BFSGraphAlgorithm::Execute(int start, const Graph<int>& graph, QList<QPair<
     }
 }
 
+void DFSGraphAlgorithm::Execute(int start, const Graph<int> &graph, VisitedEdges& visitedEdges)
+{
+    QHash<int, bool> visited;
+    visited[start] = true;
 
+    const auto& neighbourValues = graph.getNeighbourValues(start);
+    for(const auto& value : neighbourValues)
+    {
+        visitedEdges.insert(start, value);
 
+        if(!visited[value])
+        {
+            visited[value] = true;
+            DFSHelper(value, graph, visited, visitedEdges);
+        }
+    }
+}
 
+void DFSGraphAlgorithm::DFSHelper(int start, const Graph<int> &graph, QHash<int, bool> &visited, VisitedEdges& visitedEdges)
+{
+    const auto& neighbourValues = graph.getNeighbourValues(start);
+    for(const auto& value : neighbourValues)
+    {
+        visitedEdges.insert(start, value);
 
-
-
-
+        if(!visited[value])
+        {
+            visited[value] = true;
+            DFSHelper(value, graph, visited, visitedEdges);
+        }
+    }
+}

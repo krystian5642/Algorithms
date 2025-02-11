@@ -4,6 +4,8 @@
 #include <QMainWindow>
 
 class GraphWidget;
+class GraphAlgorithm;
+class QComboBox;
 
 namespace Ui
 {
@@ -38,6 +40,7 @@ private:
     void setupUi();
 
     Ui::AlgorithmsMainWindow *ui;
+    QComboBox* algorithmComboBox;
     GraphWidget* graphWidget;
 
     struct ProcessedGraphAlgorithResult
@@ -51,6 +54,9 @@ private:
 
     void clearPaintGraphTimer();
     QTimer* paintGraphTimer;
+
+private:
+    std::unique_ptr<GraphAlgorithm> getAlgorithmToExecute() const;
 };
 
 

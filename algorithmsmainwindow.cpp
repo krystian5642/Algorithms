@@ -57,17 +57,17 @@ void AlgorithmsMainWindow::on_actionRun_algorithm_triggered()
     const int randomValue = graph.getRandomValue(&valueFound);
     if(valueFound)
     {
-        std::unique_ptr<GraphAlgorithm> bfs = std::make_unique<BFSGraphAlgorithm>();
-        QList<QPair<int, int>> visitedEdges;
+        std::unique_ptr<GraphAlgorithm> algorithm = getAlgorithmToExecute();
+        VisitedEdges visitedEdges;
 
-        bfs->Execute(randomValue, graph, visitedEdges);
+        algorithm->Execute(randomValue, graph, visitedEdges);
 
         processedGraphAlgorithResult.edgeIt = visitedEdges.constBegin();
 
         graphWidget->setNodeColor(randomValue, Qt::red);
 
         paintGraphTimer = new QTimer;
-        paintGraphTimer->setInterval(1);
+        paintGraphTimer->setInterval(1000);
         connect(paintGraphTimer, &QTimer::timeout, this, [this, visitedEdges]()
         {
             graphWidget->setNodeColor(processedGraphAlgorithResult.edgeIt->first, Qt::red);
@@ -179,7 +179,9 @@ void AlgorithmsMainWindow::setupUi()
 {
     ui->setupUi(this);
 
-    QComboBox* algorithmComboBox = new QComboBox;
+    algorithmComboBox = new QComboBox;
+    algorithmComboBox->addItem("BFS");
+    algorithmComboBox->addItem("DFS");
     algorithmComboBox->setMaximumWidth(100);
 
     const QList<QAction*> actions = ui->toolBar->actions();
@@ -197,4 +199,18 @@ void AlgorithmsMainWindow::clearPaintGraphTimer()
         paintGraphTimer->deleteLater();
         paintGraphTimer = nullptr;
     }
+}
+
+std::unique_ptr<GraphAlgorithm> AlgorithmsMainWindow::getAlgorithmToExecute() const
+{
+    const auto currentText = algorithmComboBox->currentText();
+    if(currentText == "BFS")
+    {
+        return std::make_unique<BFSGraphAlgorithm>();
+    }
+    else if(currentText == "DFS")
+    {
+        return std::make_unique<DFSGraphAlgorithm>();
+    }
+    return nullptr;
 }

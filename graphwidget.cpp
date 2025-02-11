@@ -197,7 +197,7 @@ void GraphWidget::paintGraph(QPainter &painter)
 void GraphWidget::paintEdges(QPainter &painter)
 {
     QSet<QPair<int, int>> drawnEdges;
-    drawnEdges.reserve(qMax(0, graph.getIsDirected() ? graph.getEdgesNum() : graph.getEdgesNum() / 2));
+    drawnEdges.reserve(qMax(0, graph.getEdgesNum()));
 
     for (auto it = graph.constBegin(); it != graph.constEnd(); ++it)
     {
@@ -227,7 +227,6 @@ void GraphWidget::paintNodes(QPainter &painter)
     for (auto it = graph.constBegin(); it != graph.constEnd(); ++it)
     {
         const auto& value = it.key();
-        const auto& neighbours = it.value();
 
         QPen nodePen;
         nodePen.setBrush(graphNodeVisualData[value].color);
