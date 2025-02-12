@@ -24,10 +24,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         graph.h graph.cpp
-        algorithmsmainwindow.h algorithmsmainwindow.cpp algorithmsmainwindow.ui
+        Algorithmsmainwindow.h Algorithmsmainwindow.cpp Algorithmsmainwindow.ui
         addgraphedgedialog.h addgraphedgedialog.cpp addgraphedgedialog.ui
         icons.qrc
-        graphalgorithms.h graphalgorithms.cpp
+        graphAlgorithms.h graphAlgorithms.cpp
+        edgelist.h edgelist.cpp
+
 
 
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1504</width>
+    <height>1037</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1504</width>
      <height>21</height>
     </rect>
    </property>
@@ -36,7 +36,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionLoad"/>
     <addaction name="actionClear"/>
-    <addaction name="actionRun_algorithm"/>
+    <addaction name="actionRun_Algorithm"/>
    </widget>
    <addaction name="menuGraph"/>
   </widget>
@@ -55,7 +55,7 @@
    <addaction name="actionLoad"/>
    <addaction name="actionClear"/>
    <addaction name="separator"/>
-   <addaction name="actionRun_algorithm"/>
+   <addaction name="actionRun_Algorithm"/>
    <addaction name="actionGenerateRandomGraph"/>
   </widget>
   <action name="actionSave">
@@ -94,13 +94,13 @@
     <string>Clear graph</string>
    </property>
   </action>
-  <action name="actionRun_algorithm">
+  <action name="actionRun_Algorithm">
    <property name="icon">
     <iconset resource="icons.qrc">
      <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
    </property>
    <property name="text">
-    <string>Run algorithm</string>
+    <string>Run Algorithm</string>
    </property>
   </action>
   <action name="actionGenerateRandomGraph">

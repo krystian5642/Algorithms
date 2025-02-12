@@ -1,10 +1,12 @@
-#ifndef GRAPHALGORITHMS_H
-#define GRAPHALGORITHMS_H
+#ifndef GRAPHAlgorithmS_H
+#define GRAPHAlgorithmS_H
 
 #include "graph.h"
+#include "edgelist.h"
 
 #include <QList>
 #include <QQueue>
+#include <QObject>
 
 template <class ValueType>
 class Graph;
@@ -12,49 +14,77 @@ class Graph;
 template <class ValueType>
 class GraphEdge;
 
-struct VisitedEdges
-{
-    void insert(int start, int end);
-private:
-    using GraphEdge = QPair<int, int>;
+class GraphWidget;
+class QTimer;
 
-    QSet<GraphEdge> helperSet;
-    QList<GraphEdge> edges;
+class GraphAlgorithm : public QObject
+{
+    Q_OBJECT
 
 public:
-    // to support range-based operation for loop
-    inline QList<GraphEdge>::iterator        begin() { return edges.begin(); }
-    inline QList<GraphEdge>::const_iterator  constBegin() const { return edges.constBegin(); }
-    inline QList<GraphEdge>::iterator        end() { return edges.end(); }
-    inline QList<GraphEdge>::const_iterator  constEnd() const { return edges.constEnd(); }
-};
-
-class GraphAlgorithm
-{
-public:
-    explicit GraphAlgorithm();
+    explicit GraphAlgorithm(const Graph<int>& inGraph);
+    explicit GraphAlgorithm(int inStart, const Graph<int>& inGraph);
     virtual ~GraphAlgorithm();
 
-    virtual void Execute(int start, const Graph<int>& graph, VisitedEdges& visitedEdges) = 0;
+    virtual void execute() = 0;
+    virtual void showResult(GraphWidget* widget);
+    void stop();
 
 signals:
-    void onNodeVisited(int value);
-    void onEdgeVisited(int start, int end);
+    void onShowResultFinished();
+
+protected:
+    int start;
+    const Graph<int>& graph;
+
+    QTimer* showEdgesTimer;
+    int showEdgeInterval;
+
+    // result
+    EdgeList visitedEdges;
+    qsizetype resultIndex;
 };
 
-class BFSGraphAlgorithm : public GraphAlgorithm
+class BFS : public GraphAlgorithm
 {
+    Q_OBJECT
+
 public:
-    virtual void Execute(int start, const Graph<int>& graph, VisitedEdges& visitedEdges) override;
+    explicit BFS(const Graph<int>& inGraph);
+
+    virtual void execute() override;
 };
 
-class DFSGraphAlgorithm : public GraphAlgorithm
+class DFS : public GraphAlgorithm
 {
+    Q_OBJECT
+
 public:
-    virtual void Execute(int start, const Graph<int>& graph, VisitedEdges& visitedEdges) override;
+    explicit DFS(const Graph<int>& inGraph);
+
+    virtual void execute() override;
 
 private:
-    void DFSHelper(int start, const Graph<int>& graph, QHash<int, bool>& visited, VisitedEdges& visitedEdges);
+    void DFSHelper(int begin);
+
+    QHash<int, bool> visited;
 };
 
-#endif // GRAPHALGORITHMS_H
+class BFSShortestPath : public GraphAlgorithm
+{
+    Q_OBJECT
+
+public:
+    explicit BFSShortestPath(const Graph<int>& inGraph);
+
+    virtual void execute() override;
+    virtual void showResult(GraphWidget* widget) override;
+
+protected:
+    int end;
+
+    // result
+    EdgeList path;
+};
+
+#endif // GRAPHAlgorithmS_H

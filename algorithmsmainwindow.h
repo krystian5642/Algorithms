@@ -1,5 +1,5 @@
-#ifndef ALGORITHMSMAINWINDOW_H
-#define ALGORITHMSMAINWINDOW_H
+#ifndef AlgorithmsMAINWINDOW_H
+#define AlgorithmsMAINWINDOW_H
 
 #include <QMainWindow>
 
@@ -27,7 +27,7 @@ private slots:
     void on_actionSave_triggered();
     void on_actionLoad_triggered();
     void on_actionClear_triggered();
-    void on_actionRun_algorithm_triggered();
+    void on_actionRun_Algorithm_triggered();
     void on_actionGenerateRandomGraph_triggered();
 
 private:
@@ -40,26 +40,17 @@ private:
     void setupUi();
 
     Ui::AlgorithmsMainWindow *ui;
-    QComboBox* algorithmComboBox;
+    QComboBox* AlgorithmComboBox;
     GraphWidget* graphWidget;
 
-    struct ProcessedGraphAlgorithResult
-    {
-        using ConstEdgeIterator = QList<QPair<int, int>>::const_iterator;
-
-        ConstEdgeIterator edgeIt;
-    };
-
-    ProcessedGraphAlgorithResult processedGraphAlgorithResult;
-
-    void clearPaintGraphTimer();
-    QTimer* paintGraphTimer;
-
 private:
-    std::unique_ptr<GraphAlgorithm> getAlgorithmToExecute() const;
+    GraphAlgorithm* getAlgorithmToExecute() const;
+    void clearAlgorithm();
+
+    GraphAlgorithm* algorithm;
 };
 
 
 
 
-#endif // ALGORITHMSMAINWINDOW_H
+#endif // AlgorithmsMAINWINDOW_H

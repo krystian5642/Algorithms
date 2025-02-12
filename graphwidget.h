@@ -32,6 +32,13 @@ struct ScaleData
     qreal scaleMultiplier = 1.1;
 };
 
+struct RuntimeMouseDragData
+{
+    bool isDragging = false;
+    QPointF dragDelta;
+    QPointF lastMousePos;
+};
+
 class GraphWidget : public QWidget
 {
     Q_OBJECT
@@ -48,8 +55,8 @@ public:
     QJsonObject toJsonObject() const;
     void fromJsonObject(const QJsonObject& jsonObj);
 
-    void setNodeColor(int value, const QColor& color);
-    void setEdgeColor(int start, int end, const QColor& color);
+    void setNodeColor(int value, const QColor& color, bool callUpdate = true);
+    void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
 
     void addNode(int value, const QPoint& location);
     void addEdge(int startValue, int endValue, float weight = 0.f);
@@ -75,13 +82,9 @@ private:
     Ui::GraphWidget *ui;
     Graph<int> graph;
 
-    // dragging
-    bool isDragging = false;
-    QPointF dragDelta;
-    QPointF lastMousePos;
+    RuntimeMouseDragData dragData;
 
-    // scale
-    ScaleData currentScaleData;
+    ScaleData scaleData;
 
     QPointF scaleOffset;
 };

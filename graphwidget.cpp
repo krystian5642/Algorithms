@@ -53,24 +53,32 @@ void GraphWidget::fromJsonObject(const QJsonObject &jsonObj)
     update();
 }
 
-void GraphWidget::setNodeColor(int value, const QColor& color)
+void GraphWidget::setNodeColor(int value, const QColor& color, bool callUpdate)
 {
     auto it = graphNodeVisualData.find(value);
     if(it != graphNodeVisualData.end() && it->color != color)
     {
         it->color = color;
-        update();
+
+        if(callUpdate)
+        {
+            update();
+        }
     }
 }
 
-void GraphWidget::setEdgeColor(int start, int end, const QColor &color)
+void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool callUpdate)
 {
     const QPair<int, int> edge(qMin(start, end), qMax(start, end));
     auto it = graphEdgeVisualData.find(edge);
     if(it != graphEdgeVisualData.end() && it->color != color)
     {
         it->color = color;
-        update();
+
+        if(callUpdate)
+        {
+            update();
+        }
     }
 }
 
@@ -99,8 +107,8 @@ void GraphWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(nodePen);
 
-    painter.translate(dragDelta);
-    painter.scale(currentScaleData.currentScale, currentScaleData.currentScale);
+    painter.translate(dragData.dragDelta);
+    painter.scale(scaleData.currentScale, scaleData.currentScale);
     painter.translate(scaleOffset);
 
     paintGraph(painter);
@@ -143,8 +151,8 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
     }
     else if(event->button() == Qt::RightButton)
     {
-        isDragging = true;
-        lastMousePos = event->position();
+        dragData.isDragging = true;
+        dragData.lastMousePos = event->position();
     }
 }
 
@@ -152,16 +160,16 @@ void GraphWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::RightButton)
     {
-        isDragging = false;
+        dragData.isDragging = false;
     }
 }
 
 void GraphWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if(isDragging)
+    if(dragData.isDragging)
     {
-        dragDelta += event->position() - lastMousePos;
-        lastMousePos = event->position();
+        dragData.dragDelta += event->position() - dragData.lastMousePos;
+        dragData.lastMousePos = event->position();
         update();
     }
 }
@@ -171,14 +179,14 @@ void GraphWidget::wheelEvent(QWheelEvent *event)
     const int angleDelta = event->angleDelta().y();
     if(angleDelta > 0)
     {
-        currentScaleData.currentScale *= currentScaleData.scaleMultiplier;
+        scaleData.currentScale *= scaleData.scaleMultiplier;
     }
     else
     {
-        currentScaleData.currentScale /= currentScaleData.scaleMultiplier;
+        scaleData.currentScale /= scaleData.scaleMultiplier;
     }
 
-    scaleOffset = QPointF(event->position().x() * (1 - currentScaleData.currentScale), event->position().y() * (1 - currentScaleData.currentScale));
+    scaleOffset = QPointF(event->position().x() * (1 - scaleData.currentScale), event->position().y() * (1 - scaleData.currentScale));
 
     update();
 }
