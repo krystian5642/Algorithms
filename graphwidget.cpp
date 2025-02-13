@@ -9,6 +9,7 @@
 GraphWidget::GraphWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::GraphWidget)
+    , lastPaintTime(0)
 {
     ui->setupUi(this);
 }
@@ -174,6 +175,8 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
             }
 
             update();
+
+            updateGraphProperites();
         }
     }
     else if(event->button() == Qt::RightButton)
@@ -220,7 +223,8 @@ void GraphWidget::wheelEvent(QWheelEvent *event)
 
 void GraphWidget::paintGraph(QPainter &painter)
 {
-    const auto startTime = QTime::currentTime();
+    QElapsedTimer executionTime;
+    executionTime.start();
 
     painter.save();
 
@@ -230,9 +234,7 @@ void GraphWidget::paintGraph(QPainter &painter)
 
     painter.restore();
 
-    const auto endTime = QTime::currentTime();
-
-    lastPaintTime = startTime.msecsTo(endTime);
+    lastPaintTime = executionTime.elapsed();
 }
 
 void GraphWidget::paintEdges(QPainter &painter)
@@ -290,5 +292,21 @@ void GraphWidget::paintNodeValues(QPainter &painter)
         const auto& neighbours = it.value();
 
         painter.drawText(graphNodeVisualData[value].location + QPointF(-3.5, 3), QString("%1").arg(value));
+    }
+}
+
+void GraphWidget::updateGraphProperites()
+{
+    ui->listWidget->clear();
+
+    QList<QString> properties;
+    properties.reserve(3);
+
+    properties.append(QString("Number of nodes : %1").arg(graph.getNodesNum()));
+    properties.append(QString("Number of edges : %1").arg(graph.getEdgesNum()));
+
+    for(const auto& property : properties)
+    {
+        ui->listWidget->addItem(property);
     }
 }

@@ -64,6 +64,8 @@ public:
 
     int getLastPaintTime() const;
 
+    void updateGraphProperites();
+
     // QWidget interface
 protected:
     void paintEvent(QPaintEvent *event) override;

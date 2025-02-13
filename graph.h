@@ -70,11 +70,11 @@ public:
     {
     }
 
-    void addEdge(const ValueType& start, const ValueType& end, double weight);
+    void addEdge(const ValueType& start, const ValueType& end, double weight = 0.0);
     void addEdge(const ValueType& start, const GraphEdge& graphEdge);
     bool addNode(const ValueType& value);
 
-    inline qsizetype getEdgesNum() const { return isDirected ? 2 * (qMax(0, getNodesNum()) - 1) : (qMax(0, getNodesNum()) - 1); };
+    inline qsizetype getEdgesNum() const { return countEdges(); };
     inline qsizetype getNodesNum() const { return graphContainer.size(); };
 
     void clear();
@@ -88,6 +88,7 @@ public:
 
     inline bool getIsDirected() const { return isDirected; }
 
+
 protected:
     GraphContainer graphContainer;
     bool isDirected;
@@ -98,6 +99,9 @@ public:
     inline GraphContainer::const_iterator  constBegin() const { return graphContainer.constBegin(); }
     inline GraphContainer::iterator        end() { return graphContainer.end(); }
     inline GraphContainer::const_iterator  constEnd() const { return graphContainer.constEnd(); }
+
+private:
+    qsizetype countEdges() const;
 };
 
 template<class ValueType>
@@ -233,6 +237,23 @@ QList<ValueType> Graph<ValueType>::getNeighbourValues(const ValueType &value) co
         return neighbourValues;
     }
     return neighbourValues;
+}
+
+template<class ValueType>
+qsizetype Graph<ValueType>::countEdges() const
+{
+    qsizetype edgesNum = 0;
+    for (auto it = graphContainer.constBegin(); it != graphContainer.constEnd(); ++it)
+    {
+        edgesNum += it.value().size();
+    }
+
+    if(!isDirected)
+    {
+        edgesNum /= 2;
+    }
+
+    return edgesNum;
 }
 
 #endif // GRAPH_H

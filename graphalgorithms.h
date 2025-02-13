@@ -28,7 +28,8 @@ public:
 
     virtual void execute() = 0;
     virtual void showResult(GraphWidget* widget);
-    void stop();
+    void close();
+    void setPause(bool pause);
 
 signals:
     void onShowResultFinished();
@@ -37,7 +38,7 @@ protected:
     int start;
     const Graph<int>& graph;
 
-    QTimer* showEdgesTimer;
+    QTimer* showResultTimer;
     int showEdgeInterval;
 
     // result

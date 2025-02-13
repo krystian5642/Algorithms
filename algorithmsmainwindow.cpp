@@ -3,15 +3,21 @@
 #include "graphwidget.h"
 #include "graphAlgorithms.h"
 
+#include <QMessageBox>
 #include <QFile>
 #include <QJsonDocument>
 #include <QComboBox>
 #include <QTimer>
+#include <QElapsedTimer>
+#include <QLineSeries>
+#include <QChartView>
 
 AlgorithmsMainWindow::AlgorithmsMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AlgorithmsMainWindow)
     , algorithm(nullptr)
+    , algorithmExecutionTime(0)
+    , hardRunWindow(nullptr)
 {
     setupUi();
 }
@@ -23,14 +29,22 @@ AlgorithmsMainWindow::~AlgorithmsMainWindow()
 
 void AlgorithmsMainWindow::paintEvent(QPaintEvent *event)
 {
-    ui->statusbar->showMessage(QString("Last paint time : %1 ms").arg(graphWidget->getLastPaintTime()));
+    ui->statusbar->showMessage(QString("Last paint time : %1 ms. Last algorithm execution time : %2 ms")
+                                   .arg(graphWidget->getLastPaintTime())
+                                   .arg(algorithmExecutionTime));
 }
 
 void AlgorithmsMainWindow::on_actionSave_triggered()
 {
-    if(saveGraph())
+    const auto reply = QMessageBox::question(this, "Confirmation", "Do you want to save this graph and override the saved graph?"
+                                             , QMessageBox::Yes | QMessageBox::No);
+
+    if(reply == QMessageBox::Yes)
     {
-        saveGraphNodeLocations();
+        if(saveGraph())
+        {
+            saveGraphNodeLocations();
+        }
     }
 }
 
@@ -41,6 +55,7 @@ void AlgorithmsMainWindow::on_actionLoad_triggered()
 
     if(loadGraph())
     {
+        graphWidget->updateGraphProperites();
         loadGraphNodeLocations();
         graphWidget->update();
     }
@@ -50,21 +65,42 @@ void AlgorithmsMainWindow::on_actionClear_triggered()
 {
     clearAlgorithm();
     graphWidget->clearGraph();
+    graphWidget->updateGraphProperites();
 }
 
-void AlgorithmsMainWindow::on_actionRun_Algorithm_triggered()
+void AlgorithmsMainWindow::on_actionRun_Algorithm_triggered(bool isOn)
 {
-    clearAlgorithm();
-    graphWidget->SetNodesAndEdgesToBlack();
-
-    algorithm = getAlgorithmToExecute();
-    connect(algorithm, &GraphAlgorithm::onShowResultFinished, this, [this] ()
+    if(isOn)
     {
-        clearAlgorithm();
-    });
+        if(algorithm)
+        {
+            algorithm->setPause(false);
+        }
+        else
+        {
+            clearAlgorithm();
+            graphWidget->SetNodesAndEdgesToBlack();
 
-    algorithm->execute();
-    algorithm->showResult(graphWidget);
+            algorithm = getAlgorithmToExecute(graphWidget->getGraph());
+            connect(algorithm, &GraphAlgorithm::onShowResultFinished, this, [this] ()
+            {
+                clearAlgorithm();
+            });
+
+            QElapsedTimer executionTime;
+            executionTime.start();
+
+            algorithm->execute();
+
+            algorithmExecutionTime = executionTime.elapsed();
+
+            algorithm->showResult(graphWidget);
+        }
+    }
+    else if(algorithm)
+    {
+        algorithm->setPause(true);
+    }
 }
 
 void AlgorithmsMainWindow::on_actionGenerateRandomGraph_triggered()
@@ -99,6 +135,7 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGraph_triggered()
     graphWidget->addEdge(randomValueY, graphWidget->getGraph().getRandomValue());
 
     graphWidget->update();
+    graphWidget->updateGraphProperites();
 }
 
 void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
@@ -107,8 +144,8 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
     graphWidget->clearGraph();
 
     // this info will be taken from UI later
-    constexpr int columns = 90;
-    constexpr int rows = 90;
+    constexpr int columns = 80;
+    constexpr int rows = 80;
     constexpr int nodeSpace = 50;   
     constexpr QPoint startLoc(50, 50);
 
@@ -143,6 +180,57 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
         }
     }
     graphWidget->update();
+    graphWidget->updateGraphProperites();
+}
+
+void AlgorithmsMainWindow::on_actionAlgorithm_hard_run_triggered()
+{
+    QLineSeries *series = new QLineSeries();
+    series->setName("T(V+E)");
+
+    Graph<int> testGraph;
+    for(int i = 1; i < 600; i++)
+    {
+        for(int j = 0; j < i; j++)
+        {
+            const int randomValueX = QRandomGenerator::global()->bounded(60000);
+            const int randomValueY = QRandomGenerator::global()->bounded(60000);
+
+            testGraph.addEdge(randomValueX, testGraph.getRandomValue());
+            testGraph.addEdge(randomValueY, testGraph.getRandomValue());
+        }
+
+        GraphAlgorithm* testAlgorithm = getAlgorithmToExecute(testGraph);
+
+        QElapsedTimer executionTime;
+        executionTime.start();
+
+        testAlgorithm->execute();
+
+        series->append(testGraph.getEdgesNum() + testGraph.getNodesNum(), executionTime.nsecsElapsed());
+
+        testGraph.clear();
+        testAlgorithm->deleteLater();
+    }
+
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->setTitle(algorithmComboBox->currentText());
+
+    QFont titleFont;
+    titleFont.setBold(true);
+    titleFont.setPointSize(30);
+
+    chart->setTitleFont(titleFont);
+    chart->createDefaultAxes();
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+
+    hardRunWindow = new QMainWindow(this);
+    hardRunWindow->setCentralWidget(chartView);
+    hardRunWindow->resize(1200, 800);
+    hardRunWindow->show();
 }
 
 bool AlgorithmsMainWindow::saveGraph()
@@ -218,33 +306,32 @@ void AlgorithmsMainWindow::setupUi()
 {
     ui->setupUi(this);
 
-    AlgorithmComboBox = new QComboBox;
-    AlgorithmComboBox->addItem("BFS");
-    AlgorithmComboBox->addItem("DFS");
-    AlgorithmComboBox->addItem("BFS Shortest Path");
-    AlgorithmComboBox->setMaximumWidth(200);
+    algorithmComboBox = new QComboBox;
+    algorithmComboBox->addItem("Breadth First Search");
+    algorithmComboBox->addItem("Depth First Search");
+    algorithmComboBox->addItem("Breadth First Search : Shortest Path");
 
     const QList<QAction*> actions = ui->toolBar->actions();
-    ui->toolBar->insertWidget(actions[4], AlgorithmComboBox);
+    ui->toolBar->insertWidget(actions[4], algorithmComboBox);
 
     graphWidget = new GraphWidget(this);
     setCentralWidget(graphWidget);
 }
 
-GraphAlgorithm* AlgorithmsMainWindow::getAlgorithmToExecute() const
+GraphAlgorithm* AlgorithmsMainWindow::getAlgorithmToExecute(const Graph<int>& graph) const
 {
-    const auto currentText = AlgorithmComboBox->currentText();
-    if(currentText == "BFS")
+    const auto currentText = algorithmComboBox->currentText();
+    if(currentText == "Breadth First Search")
     {
-        return new BFS(graphWidget->getGraph());
+        return new BFS(graph);
     }
-    else if(currentText == "DFS")
+    else if(currentText == "Depth First Search")
     {
-        return new DFS(graphWidget->getGraph());
+        return new DFS(graph);
     }
-    else if(currentText == "BFS Shortest Path")
+    else if(currentText == "Breadth First Search : Shortest Path")
     {
-        return new BFSShortestPath(graphWidget->getGraph());
+        return new BFSShortestPath(graph);
     }
     return nullptr;
 }
@@ -253,7 +340,7 @@ void AlgorithmsMainWindow::clearAlgorithm()
 {
     if(algorithm)
     {
-        algorithm->stop();
+        algorithm->close();
         algorithm->deleteLater();
         algorithm = nullptr;
     }

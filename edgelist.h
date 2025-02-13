@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QPair>
+#include <QSet>
 
 class EdgeList
 {
@@ -13,11 +14,12 @@ public:
 
     EdgeList();
 
-    void insert(int start, int end);
+    void add(int start, int end);
     bool isValidIndex(qsizetype index);
 
 private:
     QList<GraphEdge> edges;
+    QSet<GraphEdge> helperSet;
 
 public:
     QPair<int, int>& operator[](qsizetype index);

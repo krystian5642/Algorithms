@@ -10,8 +10,8 @@ GraphAlgorithm::GraphAlgorithm(const Graph<int> &inGraph)
 {
     start = graph.getRandomValue();
 
-    showEdgesTimer = new QTimer(this);
-    showEdgesTimer->setInterval(showEdgeInterval);
+    showResultTimer = new QTimer(this);
+    showResultTimer->setInterval(showEdgeInterval);
 }
 
 GraphAlgorithm::GraphAlgorithm(int inStart, const Graph<int>& inGraph)
@@ -20,19 +20,18 @@ GraphAlgorithm::GraphAlgorithm(int inStart, const Graph<int>& inGraph)
     , showEdgeInterval(1)
     , resultIndex(0)
 {
-    showEdgesTimer = new QTimer(this);
-    showEdgesTimer->setInterval(showEdgeInterval);
+    showResultTimer = new QTimer(this);
+    showResultTimer->setInterval(showEdgeInterval);
 }
 
 GraphAlgorithm::~GraphAlgorithm()
 {
-
 }
 
 void GraphAlgorithm::showResult(GraphWidget *widget)
 {
     widget->setNodeColor(start, Qt::red);
-    connect(showEdgesTimer, &QTimer::timeout, this, [this, widget]()
+    connect(showResultTimer, &QTimer::timeout, this, [this, widget]()
     {
         if(visitedEdges.isValidIndex(resultIndex))
         {
@@ -49,16 +48,31 @@ void GraphAlgorithm::showResult(GraphWidget *widget)
         }
     });
 
-    showEdgesTimer->start();
+    showResultTimer->start();
 }
 
-void GraphAlgorithm::stop()
+void GraphAlgorithm::close()
 {
-    if(showEdgesTimer)
+    if(showResultTimer)
     {
-        showEdgesTimer->stop();
-        showEdgesTimer->deleteLater();
-        showEdgesTimer = nullptr;
+        showResultTimer->stop();
+        showResultTimer->deleteLater();
+        showResultTimer = nullptr;
+    }
+}
+
+void GraphAlgorithm::setPause(bool pause)
+{
+    if(showResultTimer)
+    {
+        if(pause)
+        {
+            showResultTimer->stop();
+        }
+        else
+        {
+            showResultTimer->start();
+        }
     }
 }
 
@@ -83,7 +97,7 @@ void BFS::execute()
 
         for(const auto& value : neighbourValues)
         {
-            visitedEdges.insert(first, value);
+            visitedEdges.add(first, value);
 
             if(!visited[value])
             {
@@ -101,13 +115,13 @@ DFS::DFS(const Graph<int> &inGraph)
 }
 
 void DFS::execute()
-{
+{  
     visited[start] = true;
 
     const auto& neighbourValues = graph.getNeighbourValues(start);
     for(const auto& value : neighbourValues)
     {
-        visitedEdges.insert(start, value);
+        visitedEdges.add(start, value);
 
         if(!visited[value])
         {
@@ -122,7 +136,7 @@ void DFS::DFSHelper(int begin)
     const auto& neighbourValues = graph.getNeighbourValues(begin);
     for(const auto& value : neighbourValues)
     {
-        visitedEdges.insert(begin, value);
+        visitedEdges.add(begin, value);
 
         if(!visited[value])
         {
@@ -159,7 +173,7 @@ void BFSShortestPath::execute()
 
         for(const auto& value : neighbourValues)
         {
-            visitedEdges.insert(first, value);
+            visitedEdges.add(first, value);
 
             if(!visited[value])
             {
@@ -169,7 +183,7 @@ void BFSShortestPath::execute()
                 prev[value] = first;
                 if(value == end)
                 {
-                    nodeQueue = QQueue<int>{};
+                    nodeQueue.clear();
                     break;
                 }
             }
@@ -181,16 +195,18 @@ void BFSShortestPath::execute()
         int step = end;
         while(step != intMin)
         {
-            path.insert(step, prev[step]);
+            path.add(step, prev[step]);
             step = prev[step];
         }
+
+        std::reverse(path.begin(), path.end());
     }
 }
 
 void BFSShortestPath::showResult(GraphWidget *widget)
 {
     widget->setNodeColor(start, Qt::red);
-    connect(showEdgesTimer, &QTimer::timeout, this, [this, widget]()
+    connect(showResultTimer, &QTimer::timeout, this, [this, widget]()
     {
         if(visitedEdges.isValidIndex(resultIndex))
         {
@@ -221,7 +237,7 @@ void BFSShortestPath::showResult(GraphWidget *widget)
         }
     });
 
-    showEdgesTimer->start();
+    showResultTimer->start();
 }
 
 

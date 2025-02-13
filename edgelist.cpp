@@ -5,12 +5,17 @@ EdgeList::EdgeList()
 
 }
 
-void EdgeList::insert(int start, int end)
+void EdgeList::add(int start, int end)
 {
     const QPair<int, int> edge(qMin(start, end), qMax(start, end));
-    if(!edges.contains(edge))
+    // if(!edges.contains(edge))
+    // {
+    //     edges.append(edge);
+    // }
+    if(!helperSet.contains(edge))
     {
         edges.append(edge);
+        helperSet.insert(edge);
     }
 }
 

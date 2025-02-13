@@ -13,6 +13,9 @@ class AlgorithmsMainWindow;
 }
 
 template <class ValueType>
+class Graph;
+
+template <class ValueType>
 class GraphEdge;
 
 class AlgorithmsMainWindow : public QMainWindow
@@ -31,9 +34,10 @@ private slots:
     void on_actionSave_triggered();
     void on_actionLoad_triggered();
     void on_actionClear_triggered();
-    void on_actionRun_Algorithm_triggered();
+    void on_actionRun_Algorithm_triggered(bool isOn);
     void on_actionGenerateRandomGraph_triggered();
     void on_actionGenerateRandomGridGraph_triggered();
+    void on_actionAlgorithm_hard_run_triggered();
 
 private:
     bool saveGraph();
@@ -45,14 +49,18 @@ private:
     void setupUi();
 
     Ui::AlgorithmsMainWindow *ui;
-    QComboBox* AlgorithmComboBox;
+    QComboBox* algorithmComboBox;
     GraphWidget* graphWidget;
 
 private:
-    GraphAlgorithm* getAlgorithmToExecute() const;
+    GraphAlgorithm* getAlgorithmToExecute(const Graph<int>& graph) const;
     void clearAlgorithm();
 
     GraphAlgorithm* algorithm;
+    int algorithmExecutionTime;
+
+    // hard run
+    QMainWindow* hardRunWindow;
 };
 
 
