@@ -88,4 +88,22 @@ protected:
     EdgeList path;
 };
 
+class TreeCenters : public GraphAlgorithm
+{
+    Q_OBJECT
+
+public:
+    explicit TreeCenters(const Graph<int>& inGraph);
+
+    virtual void execute() override;
+    virtual void showResult(GraphWidget* widget) override;
+
+private:
+    void showResultImplementation();
+
+    //result
+    QList<int> centers;
+    QList<QList<int>> leavesLayerOrder;
+};
+
 #endif // GRAPHAlgorithmS_H

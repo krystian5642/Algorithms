@@ -144,8 +144,8 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
     graphWidget->clearGraph();
 
     // this info will be taken from UI later
-    constexpr int columns = 80;
-    constexpr int rows = 80;
+    constexpr int columns = 20;
+    constexpr int rows = 20;
     constexpr int nodeSpace = 50;   
     constexpr QPoint startLoc(50, 50);
 
@@ -189,7 +189,7 @@ void AlgorithmsMainWindow::on_actionAlgorithm_hard_run_triggered()
     series->setName("T(V+E)");
 
     Graph<int> testGraph;
-    for(int i = 1; i < 600; i++)
+    for(int i = 1; i < 1000; i++)
     {
         for(int j = 0; j < i; j++)
         {
@@ -307,9 +307,11 @@ void AlgorithmsMainWindow::setupUi()
     ui->setupUi(this);
 
     algorithmComboBox = new QComboBox;
+
     algorithmComboBox->addItem("Breadth First Search");
     algorithmComboBox->addItem("Depth First Search");
     algorithmComboBox->addItem("Breadth First Search : Shortest Path");
+    algorithmComboBox->addItem("Tree Centers");
 
     const QList<QAction*> actions = ui->toolBar->actions();
     ui->toolBar->insertWidget(actions[4], algorithmComboBox);
@@ -332,6 +334,10 @@ GraphAlgorithm* AlgorithmsMainWindow::getAlgorithmToExecute(const Graph<int>& gr
     else if(currentText == "Breadth First Search : Shortest Path")
     {
         return new BFSShortestPath(graph);
+    }
+    else if(currentText == "Tree Centers")
+    {
+        return new TreeCenters(graph);
     }
     return nullptr;
 }

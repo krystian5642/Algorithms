@@ -5,7 +5,7 @@
 
 GraphAlgorithm::GraphAlgorithm(const Graph<int> &inGraph)
     : graph(inGraph)
-    , showEdgeInterval(1)
+    , showEdgeInterval(1000)
     , resultIndex(0)
 {
     start = graph.getRandomValue();
@@ -17,7 +17,7 @@ GraphAlgorithm::GraphAlgorithm(const Graph<int> &inGraph)
 GraphAlgorithm::GraphAlgorithm(int inStart, const Graph<int>& inGraph)
     : start(inStart)
     , graph(inGraph)
-    , showEdgeInterval(1)
+    , showEdgeInterval(1000)
     , resultIndex(0)
 {
     showResultTimer = new QTimer(this);
@@ -240,6 +240,127 @@ void BFSShortestPath::showResult(GraphWidget *widget)
     showResultTimer->start();
 }
 
+TreeCenters::TreeCenters(const Graph<int> &inGraph)
+    : GraphAlgorithm(inGraph)
+{
+
+}
+
+void TreeCenters::execute()
+{
+    const qsizetype nodesNum = graph.getNodesNum();
+
+    QHash<int, qsizetype> nodeDegrees;
+    nodeDegrees.reserve(nodesNum);
+
+    QList<int> leaves;
+
+    for(auto it = graph.constBegin(); it != graph.constEnd(); it++)
+    {
+        const auto& nodeValue = it.key();
+        const auto& nodeNeighbours = it.value();
+
+        qsizetype degree = nodeNeighbours.size();
+        if(degree == 0 || degree == 1)
+        {
+            leaves.append(nodeValue);
+            degree = 0;
+        }
+
+        nodeDegrees[nodeValue] = degree;
+    }
+
+    qsizetype count = leaves.size();
+    bool canFindCenters = count != 0;
+
+    while(count < nodesNum)
+    {
+        if(!canFindCenters)
+        {
+            return;
+        }
+
+        leavesLayerOrder.append(leaves);
+
+        QList<int> newLeaves;
+        for(const auto& leaf : leaves)
+        {
+            const auto& nodeNeighbours = graph.getNeighbourValues(leaf);
+            for(const auto& neighbour : nodeNeighbours)
+            {
+                auto& degree = nodeDegrees[neighbour];
+                if(degree > 0)
+                {
+                    degree--;
+
+                    if(degree == 1)
+                    {
+                        newLeaves.append(neighbour);
+                    }
+                }
+            }
+            nodeDegrees[leaf] = 0;
+        }
+        leaves = newLeaves;
+        count += leaves.size();
+
+        canFindCenters = leaves.size() != 0;
+    }
+    centers = leaves;
+}
+
+void TreeCenters::showResult(GraphWidget *widget)
+{
+    auto timeoutShowResult = [this, widget]()
+    {
+        if(leavesLayerOrder.size() > resultIndex)
+        {
+            for(const auto& leaf : leavesLayerOrder[resultIndex])
+            {
+                widget->setNodeColor(leaf, Qt::gray, false);
+
+                const auto& nodeNeighbours = graph.getNeighbourValues(leaf);
+                for(const auto& neighbour : nodeNeighbours)
+                {
+                    widget->setEdgeColor(leaf, neighbour, Qt::gray, false);
+                }
+            }
+
+            resultIndex++;
+            widget->update();
+        }
+        else if(!centers.empty())
+        {
+            for(const auto& center : centers)
+            {
+                widget->setNodeColor(center, Qt::green, false);
+            }
+
+            if(centers.size() == 2)
+            {
+                widget->setEdgeColor(centers[0], centers[1], Qt::green, false);
+            }
+
+            widget->update();
+
+            emit onShowResultFinished();
+        }
+        else
+        {
+            emit onShowResultFinished();
+        }
+    };
+
+    connect(showResultTimer, &QTimer::timeout, this, timeoutShowResult);
+
+    timeoutShowResult();
+    showResultTimer->start();
+}
+
+void TreeCenters::showResultImplementation()
+{
+
+}
 
 
 
