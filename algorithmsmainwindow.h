@@ -57,7 +57,7 @@ private:
     void clearAlgorithm();
 
     GraphAlgorithm* algorithm;
-    int algorithmExecutionTime;
+    int lastAlgorithmExecutionTime;
 
     // hard run
     QMainWindow* hardRunResultWindow;

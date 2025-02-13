@@ -16,7 +16,7 @@ AlgorithmsMainWindow::AlgorithmsMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::AlgorithmsMainWindow)
     , algorithm(nullptr)
-    , algorithmExecutionTime(0)
+    , lastAlgorithmExecutionTime(0)
     , hardRunResultWindow(nullptr)
 {
     setupUi();
@@ -31,7 +31,7 @@ void AlgorithmsMainWindow::paintEvent(QPaintEvent *event)
 {
     ui->statusbar->showMessage(QString("Last paint time : %1 ms. Last algorithm execution time : %2 ms")
                                    .arg(graphWidget->getLastPaintTime())
-                                   .arg(algorithmExecutionTime));
+                                   .arg(lastAlgorithmExecutionTime));
 }
 
 void AlgorithmsMainWindow::on_actionSave_triggered()
@@ -92,7 +92,7 @@ void AlgorithmsMainWindow::on_actionRun_Algorithm_triggered(bool isOn)
 
             algorithm->execute();
 
-            algorithmExecutionTime = executionTime.elapsed();
+            lastAlgorithmExecutionTime = executionTime.elapsed();
 
             algorithm->showResult(graphWidget);
         }
