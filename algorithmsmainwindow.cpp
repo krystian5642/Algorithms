@@ -21,6 +21,11 @@ AlgorithmsMainWindow::~AlgorithmsMainWindow()
     delete ui;
 }
 
+void AlgorithmsMainWindow::paintEvent(QPaintEvent *event)
+{
+    ui->statusbar->showMessage(QString("Last paint time : %1 ms").arg(graphWidget->getLastPaintTime()));
+}
+
 void AlgorithmsMainWindow::on_actionSave_triggered()
 {
     if(saveGraph())
@@ -50,6 +55,7 @@ void AlgorithmsMainWindow::on_actionClear_triggered()
 void AlgorithmsMainWindow::on_actionRun_Algorithm_triggered()
 {
     clearAlgorithm();
+    graphWidget->SetNodesAndEdgesToBlack();
 
     algorithm = getAlgorithmToExecute();
     connect(algorithm, &GraphAlgorithm::onShowResultFinished, this, [this] ()
@@ -100,26 +106,25 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
     clearAlgorithm();
     graphWidget->clearGraph();
 
-    constexpr int columns = 60;
-    constexpr int rows = 60;
-    constexpr int nodeSpace = 50;
+    // this info will be taken from UI later
+    constexpr int columns = 90;
+    constexpr int rows = 90;
+    constexpr int nodeSpace = 50;   
+    constexpr QPoint startLoc(50, 50);
 
     QList<int> prevRow(columns);
-
-    QPoint startLoc(50, 50);
-
     for(int i = 0; i < rows; i++)
     {
-        int prevX = -1;
+        int prevValue = -1;
         for(int j = 0; j < columns; j++)
         {
             const int randomValue = QRandomGenerator::global()->bounded(10000);
 
             if(graphWidget->addNode(randomValue, QPoint(startLoc.x()  + nodeSpace * j, startLoc.y() + nodeSpace * i)))
             {
-                if(j > 0 && prevX != -1)
+                if(j > 0 && prevValue != -1)
                 {
-                    graphWidget->addEdge(prevX, randomValue);
+                    graphWidget->addEdge(prevValue, randomValue);
                 }
 
                 if(i > 0 && prevRow[j] != -1)
@@ -129,7 +134,7 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
 
                 prevRow[j] = randomValue;
 
-                prevX = randomValue;
+                prevValue = randomValue;
             }
             else
             {

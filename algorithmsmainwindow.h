@@ -23,6 +23,10 @@ public:
     explicit AlgorithmsMainWindow(QWidget *parent = nullptr);
     ~AlgorithmsMainWindow();
 
+    // QWidget interface
+protected:
+    void paintEvent(QPaintEvent *event) override;
+
 private slots:
     void on_actionSave_triggered();
     void on_actionLoad_triggered();

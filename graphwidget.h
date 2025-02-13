@@ -57,9 +57,12 @@ public:
 
     void setNodeColor(int value, const QColor& color, bool callUpdate = true);
     void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
+    void SetNodesAndEdgesToBlack();
 
     bool addNode(int value, const QPoint& location);
     void addEdge(int startValue, int endValue, float weight = 0.f);
+
+    int getLastPaintTime() const;
 
     // QWidget interface
 protected:
@@ -87,6 +90,9 @@ private:
     ScaleData scaleData;
 
     QPointF scaleOffset;
+
+    //paint time in ms
+    int lastPaintTime;
 };
 
 #endif // GRAPHWIDGET_H

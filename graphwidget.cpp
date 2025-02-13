@@ -82,6 +82,27 @@ void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool cal
     }
 }
 
+void GraphWidget::SetNodesAndEdgesToBlack()
+{
+    for(auto it = graphNodeVisualData.begin(); it != graphNodeVisualData.end(); it++)
+    {
+        if(it->color != Qt::black)
+        {
+            it->color = Qt::black;
+        }
+    }
+
+    for(auto it = graphEdgeVisualData.begin(); it != graphEdgeVisualData.end(); it++)
+    {
+        if(it->color != Qt::black)
+        {
+            it->color = Qt::black;
+        }
+    }
+
+    update();
+}
+
 bool GraphWidget::addNode(int value, const QPoint& location)
 {
     if(graph.addNode(value))
@@ -95,6 +116,11 @@ bool GraphWidget::addNode(int value, const QPoint& location)
 void GraphWidget::addEdge(int startValue, int endValue, float weight)
 {
     graph.addEdge(startValue, endValue, weight);
+}
+
+int GraphWidget::getLastPaintTime() const
+{
+    return lastPaintTime;
 }
 
 void GraphWidget::paintEvent(QPaintEvent *event)
@@ -194,6 +220,8 @@ void GraphWidget::wheelEvent(QWheelEvent *event)
 
 void GraphWidget::paintGraph(QPainter &painter)
 {
+    const auto startTime = QTime::currentTime();
+
     painter.save();
 
     paintEdges(painter);
@@ -201,6 +229,10 @@ void GraphWidget::paintGraph(QPainter &painter)
     paintNodeValues(painter);
 
     painter.restore();
+
+    const auto endTime = QTime::currentTime();
+
+    lastPaintTime = startTime.msecsTo(endTime);
 }
 
 void GraphWidget::paintEdges(QPainter &painter)
