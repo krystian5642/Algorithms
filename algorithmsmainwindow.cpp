@@ -17,7 +17,7 @@ AlgorithmsMainWindow::AlgorithmsMainWindow(QWidget *parent)
     , ui(new Ui::AlgorithmsMainWindow)
     , algorithm(nullptr)
     , algorithmExecutionTime(0)
-    , hardRunWindow(nullptr)
+    , hardRunResultWindow(nullptr)
 {
     setupUi();
 }
@@ -227,10 +227,10 @@ void AlgorithmsMainWindow::on_actionAlgorithm_hard_run_triggered()
     QChartView *chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
 
-    hardRunWindow = new QMainWindow(this);
-    hardRunWindow->setCentralWidget(chartView);
-    hardRunWindow->resize(1200, 800);
-    hardRunWindow->show();
+    hardRunResultWindow = new QMainWindow(this);
+    hardRunResultWindow->setCentralWidget(chartView);
+    hardRunResultWindow->resize(1200, 800);
+    hardRunResultWindow->show();
 }
 
 bool AlgorithmsMainWindow::saveGraph()

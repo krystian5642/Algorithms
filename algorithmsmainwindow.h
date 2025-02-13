@@ -60,7 +60,7 @@ private:
     int algorithmExecutionTime;
 
     // hard run
-    QMainWindow* hardRunWindow;
+    QMainWindow* hardRunResultWindow;
 };
 
 
