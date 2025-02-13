@@ -99,8 +99,6 @@ public:
     virtual void showResult(GraphWidget* widget) override;
 
 private:
-    void showResultImplementation();
-
     //result
     QList<int> centers;
     QList<QList<int>> leavesLayerOrder;

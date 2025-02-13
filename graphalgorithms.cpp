@@ -357,11 +357,4 @@ void TreeCenters::showResult(GraphWidget *widget)
     showResultTimer->start();
 }
 
-void TreeCenters::showResultImplementation()
-{
-
-}
-
-
-
 
