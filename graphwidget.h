@@ -58,7 +58,7 @@ public:
     void setNodeColor(int value, const QColor& color, bool callUpdate = true);
     void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
 
-    void addNode(int value, const QPoint& location);
+    bool addNode(int value, const QPoint& location);
     void addEdge(int startValue, int endValue, float weight = 0.f);
 
     // QWidget interface

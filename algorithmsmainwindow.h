@@ -29,6 +29,7 @@ private slots:
     void on_actionClear_triggered();
     void on_actionRun_Algorithm_triggered();
     void on_actionGenerateRandomGraph_triggered();
+    void on_actionGenerateRandomGridGraph_triggered();
 
 private:
     bool saveGraph();

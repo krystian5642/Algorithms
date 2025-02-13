@@ -72,7 +72,7 @@ public:
 
     void addEdge(const ValueType& start, const ValueType& end, double weight);
     void addEdge(const ValueType& start, const GraphEdge& graphEdge);
-    void addNode(const ValueType& value);
+    bool addNode(const ValueType& value);
 
     inline qsizetype getEdgesNum() const { return isDirected ? 2 * (qMax(0, getNodesNum()) - 1) : (qMax(0, getNodesNum()) - 1); };
     inline qsizetype getNodesNum() const { return graphContainer.size(); };
@@ -130,12 +130,14 @@ inline void Graph<ValueType>::addEdge(const ValueType &start, const GraphEdge &g
 }
 
 template<class ValueType>
-void Graph<ValueType>::addNode(const ValueType& value)
+bool Graph<ValueType>::addNode(const ValueType& value)
 {
     if(!graphContainer.contains(value))
     {
         graphContainer[value] = QList<GraphEdge>();
+        return true;
     }
+    return false;
 }
 
 template<class ValueType>

@@ -5,10 +5,10 @@
 
 GraphAlgorithm::GraphAlgorithm(const Graph<int> &inGraph)
     : graph(inGraph)
-    , showEdgeInterval(1000)
+    , showEdgeInterval(1)
     , resultIndex(0)
 {
-    start = 1;//graph.getRandomValue();
+    start = graph.getRandomValue();
 
     showEdgesTimer = new QTimer(this);
     showEdgesTimer->setInterval(showEdgeInterval);
@@ -17,7 +17,7 @@ GraphAlgorithm::GraphAlgorithm(const Graph<int> &inGraph)
 GraphAlgorithm::GraphAlgorithm(int inStart, const Graph<int>& inGraph)
     : start(inStart)
     , graph(inGraph)
-    , showEdgeInterval(1000)
+    , showEdgeInterval(1)
     , resultIndex(0)
 {
     showEdgesTimer = new QTimer(this);
@@ -136,7 +136,7 @@ BFSShortestPath::BFSShortestPath(const Graph<int> &inGraph)
     : GraphAlgorithm(inGraph)
     , end(5)
 {
-    start = 1;
+    end = graph.getRandomValue();
 }
 
 void BFSShortestPath::execute()

@@ -95,6 +95,51 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGraph_triggered()
     graphWidget->update();
 }
 
+void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
+{
+    clearAlgorithm();
+    graphWidget->clearGraph();
+
+    constexpr int columns = 60;
+    constexpr int rows = 60;
+    constexpr int nodeSpace = 50;
+
+    QList<int> prevRow(columns);
+
+    QPoint startLoc(50, 50);
+
+    for(int i = 0; i < rows; i++)
+    {
+        int prevX = -1;
+        for(int j = 0; j < columns; j++)
+        {
+            const int randomValue = QRandomGenerator::global()->bounded(10000);
+
+            if(graphWidget->addNode(randomValue, QPoint(startLoc.x()  + nodeSpace * j, startLoc.y() + nodeSpace * i)))
+            {
+                if(j > 0 && prevX != -1)
+                {
+                    graphWidget->addEdge(prevX, randomValue);
+                }
+
+                if(i > 0 && prevRow[j] != -1)
+                {
+                    graphWidget->addEdge(prevRow[j], randomValue);
+                }
+
+                prevRow[j] = randomValue;
+
+                prevX = randomValue;
+            }
+            else
+            {
+                prevRow[j] = -1;
+            }
+        }
+    }
+    graphWidget->update();
+}
+
 bool AlgorithmsMainWindow::saveGraph()
 {
     QFile saveFile("graph.txt");

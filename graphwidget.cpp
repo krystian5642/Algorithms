@@ -82,13 +82,14 @@ void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool cal
     }
 }
 
-void GraphWidget::addNode(int value, const QPoint& location)
+bool GraphWidget::addNode(int value, const QPoint& location)
 {
-    if(!graphNodeVisualData.contains(value))
+    if(graph.addNode(value))
     {
         graphNodeVisualData[value].location = location;
-        graph.addNode(value);
+        return true;
     }
+    return false;
 }
 
 void GraphWidget::addEdge(int startValue, int endValue, float weight)

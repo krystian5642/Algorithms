@@ -57,6 +57,7 @@
    <addaction name="separator"/>
    <addaction name="actionRun_Algorithm"/>
    <addaction name="actionGenerateRandomGraph"/>
+   <addaction name="actionGenerateRandomGridGraph"/>
   </widget>
   <action name="actionSave">
    <property name="icon">
@@ -102,6 +103,9 @@
    <property name="text">
     <string>Run Algorithm</string>
    </property>
+   <property name="toolTip">
+    <string>Run algorithm</string>
+   </property>
   </action>
   <action name="actionGenerateRandomGraph">
    <property name="icon">
@@ -113,6 +117,21 @@
    </property>
    <property name="toolTip">
     <string>Generate random graph</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGenerateRandomGridGraph">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/gridgraph.png</normaloff>:/icons/gridgraph.png</iconset>
+   </property>
+   <property name="text">
+    <string>generateRandomGridGraph</string>
+   </property>
+   <property name="toolTip">
+    <string>Generate random grid graph</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
