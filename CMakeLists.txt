@@ -29,6 +29,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         icons.qrc
         graphAlgorithms.h graphAlgorithms.cpp
         edgelist.h edgelist.cpp
+        hardrunresultchartwindow.h hardrunresultchartwindow.cpp hardrunresultchartwindow.ui
 
 
 

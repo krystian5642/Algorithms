@@ -7,6 +7,8 @@ class GraphWidget;
 class GraphAlgorithm;
 class QComboBox;
 
+class HardRunResultChartWindow;
+
 namespace Ui
 {
 class AlgorithmsMainWindow;
@@ -60,7 +62,7 @@ private:
     int lastAlgorithmExecutionTime;
 
     // hard run
-    QMainWindow* hardRunResultWindow;
+    HardRunResultChartWindow* hardRunResultChartWindow;
 };
 
 

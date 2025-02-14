@@ -2,6 +2,7 @@
 #include "ui_Algorithmsmainwindow.h"
 #include "graphwidget.h"
 #include "graphAlgorithms.h"
+#include "hardrunresultchartwindow.h"
 
 #include <QMessageBox>
 #include <QFile>
@@ -17,7 +18,7 @@ AlgorithmsMainWindow::AlgorithmsMainWindow(QWidget *parent)
     , ui(new Ui::AlgorithmsMainWindow)
     , algorithm(nullptr)
     , lastAlgorithmExecutionTime(0)
-    , hardRunResultWindow(nullptr)
+    , hardRunResultChartWindow(nullptr)
 {
     setupUi();
 }
@@ -185,11 +186,14 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
 
 void AlgorithmsMainWindow::on_actionAlgorithm_hard_run_triggered()
 {
-    QLineSeries *series = new QLineSeries();
-    series->setName("T(V+E)");
+    constexpr int runNum = 1300;
 
     Graph<int> testGraph;
-    for(int i = 1; i < 1000; i++)
+
+    QList<QPointF> result;
+    result.reserve(runNum);
+
+    for(int i = 1; i <= runNum; i++)
     {
         for(int j = 0; j < i; j++)
         {
@@ -207,30 +211,17 @@ void AlgorithmsMainWindow::on_actionAlgorithm_hard_run_triggered()
 
         testAlgorithm->execute();
 
-        series->append(testGraph.getEdgesNum() + testGraph.getNodesNum(), executionTime.nsecsElapsed());
+        QLineSeries s;
+        result.append(QPointF(static_cast<qreal>(testGraph.getEdgesNum() + testGraph.getNodesNum()), static_cast<qreal>(executionTime.nsecsElapsed())));
 
         testGraph.clear();
         testAlgorithm->deleteLater();
     }
 
-    QChart *chart = new QChart();
-    chart->addSeries(series);
-    chart->setTitle(algorithmComboBox->currentText());
-
-    QFont titleFont;
-    titleFont.setBold(true);
-    titleFont.setPointSize(30);
-
-    chart->setTitleFont(titleFont);
-    chart->createDefaultAxes();
-
-    QChartView *chartView = new QChartView(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
-
-    hardRunResultWindow = new QMainWindow(this);
-    hardRunResultWindow->setCentralWidget(chartView);
-    hardRunResultWindow->resize(1200, 800);
-    hardRunResultWindow->show();
+    hardRunResultChartWindow = new HardRunResultChartWindow(this);
+    hardRunResultChartWindow->setChartTitle(algorithmComboBox->currentText());
+    hardRunResultChartWindow->setResult(result);
+    hardRunResultChartWindow->show();
 }
 
 bool AlgorithmsMainWindow::saveGraph()
