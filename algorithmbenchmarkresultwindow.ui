@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>HardRunResultChartWindow</class>
- <widget class="QMainWindow" name="HardRunResultChartWindow">
+ <class>AlgorithmBenchmarkResultWindow</class>
+ <widget class="QMainWindow" name="AlgorithmBenchmarkResultWindow">
   <property name="geometry">
    <rect>
     <x>0</x>

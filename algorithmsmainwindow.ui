@@ -55,7 +55,7 @@
    <addaction name="actionLoad"/>
    <addaction name="actionClear"/>
    <addaction name="separator"/>
-   <addaction name="actionAlgorithm_hard_run"/>
+   <addaction name="actionAlgorithm_benchmark"/>
    <addaction name="actionGenerateRandomGraph"/>
    <addaction name="actionGenerateRandomGridGraph"/>
    <addaction name="actionRun_Algorithm"/>
@@ -142,13 +142,16 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionAlgorithm_hard_run">
+  <action name="actionAlgorithm_benchmark">
    <property name="icon">
     <iconset resource="icons.qrc">
      <normaloff>:/icons/hardrun.png</normaloff>:/icons/hardrun.png</iconset>
    </property>
    <property name="text">
-    <string>Algorithm hard run</string>
+    <string>Algorithm benchamrk</string>
+   </property>
+   <property name="toolTip">
+    <string>Run algorithm benchmark</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

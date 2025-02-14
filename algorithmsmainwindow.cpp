@@ -1,8 +1,8 @@
 #include "Algorithmsmainwindow.h"
 #include "ui_Algorithmsmainwindow.h"
 #include "graphwidget.h"
-#include "graphAlgorithms.h"
-#include "hardrunresultchartwindow.h"
+#include "graphalgorithms.h"
+#include "algorithmbenchmarkresultwindow.h"
 
 #include <QMessageBox>
 #include <QFile>
@@ -18,7 +18,7 @@ AlgorithmsMainWindow::AlgorithmsMainWindow(QWidget *parent)
     , ui(new Ui::AlgorithmsMainWindow)
     , algorithm(nullptr)
     , lastAlgorithmExecutionTime(0)
-    , hardRunResultChartWindow(nullptr)
+    , algorithmBenchmarkResultWindow(nullptr)
 {
     setupUi();
 }
@@ -184,9 +184,9 @@ void AlgorithmsMainWindow::on_actionGenerateRandomGridGraph_triggered()
     graphWidget->updateGraphProperites();
 }
 
-void AlgorithmsMainWindow::on_actionAlgorithm_hard_run_triggered()
+void AlgorithmsMainWindow::on_actionAlgorithm_benchmark_triggered()
 {
-    constexpr int runNum = 1300;
+    constexpr int runNum = 1000;
 
     Graph<int> testGraph;
 
@@ -211,17 +211,16 @@ void AlgorithmsMainWindow::on_actionAlgorithm_hard_run_triggered()
 
         testAlgorithm->execute();
 
-        QLineSeries s;
         result.append(QPointF(static_cast<qreal>(testGraph.getEdgesNum() + testGraph.getNodesNum()), static_cast<qreal>(executionTime.nsecsElapsed())));
 
         testGraph.clear();
         testAlgorithm->deleteLater();
     }
 
-    hardRunResultChartWindow = new HardRunResultChartWindow(this);
-    hardRunResultChartWindow->setChartTitle(algorithmComboBox->currentText());
-    hardRunResultChartWindow->setResult(result);
-    hardRunResultChartWindow->show();
+    algorithmBenchmarkResultWindow = new AlgorithmBenchmarkResultWindow(this);
+    algorithmBenchmarkResultWindow->setChartTitle(algorithmComboBox->currentText());
+    algorithmBenchmarkResultWindow->setResult(result);
+    algorithmBenchmarkResultWindow->show();
 }
 
 bool AlgorithmsMainWindow::saveGraph()

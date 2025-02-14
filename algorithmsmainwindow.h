@@ -7,7 +7,7 @@ class GraphWidget;
 class GraphAlgorithm;
 class QComboBox;
 
-class HardRunResultChartWindow;
+class AlgorithmBenchmarkResultWindow;
 
 namespace Ui
 {
@@ -39,7 +39,7 @@ private slots:
     void on_actionRun_Algorithm_triggered(bool isOn);
     void on_actionGenerateRandomGraph_triggered();
     void on_actionGenerateRandomGridGraph_triggered();
-    void on_actionAlgorithm_hard_run_triggered();
+    void on_actionAlgorithm_benchmark_triggered();
 
 private:
     bool saveGraph();
@@ -61,8 +61,8 @@ private:
     GraphAlgorithm* algorithm;
     int lastAlgorithmExecutionTime;
 
-    // hard run
-    HardRunResultChartWindow* hardRunResultChartWindow;
+    // algorithm benchmark
+    AlgorithmBenchmarkResultWindow* algorithmBenchmarkResultWindow;
 };
 
 
