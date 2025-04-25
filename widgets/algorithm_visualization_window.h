@@ -1,8 +1,8 @@
 #ifndef ALGORITHM_VISUALIZATION_WINDOW_H
 #define ALGORITHM_VISUALIZATION_WINDOW_H
 
+#include <QHBoxLayout>
 #include <QMainWindow>
-#include <QVBoxLayout>
 
 class QTreeView;
 class AlgorithmVisualizer;
@@ -26,7 +26,7 @@ private slots:
 
 private:
     void setupUi();
-    void setupActions();
+    void setupActionsAndToolBar();
 
     void registerDataStructureWidgets();
 

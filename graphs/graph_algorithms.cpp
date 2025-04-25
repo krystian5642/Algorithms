@@ -2,10 +2,65 @@
 #include "graph_algorithms.h"
 #include "graph.h"
 
+#include <QElapsedTimer>
 #include <QQueue>
+#include <QRandomGenerator>
+
+GraphAlgorithm::GraphAlgorithm(QObject *parent)
+    : Algorithm(parent)
+{
+
+}
+
+void GraphAlgorithm::run()
+{
+    int runNum = 500;
+
+    QList<QPointF> result;
+    result.reserve(runNum);
+
+    static qreal timeout = 20000000000; //ns
+    qreal totalTime = 0;
+
+    for(int i = 1; i <= runNum; i++)
+    {
+        Graph testGraph;
+        for(int j = 0; j < i; j++)
+        {
+            const int randomValueX = QRandomGenerator::global()->bounded(1000000);
+            const int randomValueY = QRandomGenerator::global()->bounded(1000000);
+
+            testGraph.addEdge(randomValueX, testGraph.getRandomValue());
+            testGraph.addEdge(randomValueY, testGraph.getRandomValue());
+        }
+
+        setGraph(&testGraph);
+
+        QElapsedTimer executionTime;
+        executionTime.start();
+
+        execute();
+
+        const qreal elapsedTime = static_cast<qreal>(executionTime.nsecsElapsed());
+        const qreal edgesAndNodesNum = static_cast<qreal>(testGraph.getEdgesNum() + testGraph.getNodesNum());
+
+        const QPointF point(edgesAndNodesNum, elapsedTime);
+        result.append(point);
+
+        // timeout check
+        totalTime += elapsedTime;
+        if(totalTime > timeout)
+        {
+            break;
+        }
+    }
+
+    emit finished(result);
+}
 
 GraphAlgorithm::~GraphAlgorithm()
 {
+
 }
 
 const Graph *GraphAlgorithm::getGraph() const
@@ -18,7 +73,13 @@ void GraphAlgorithm::setGraph(const Graph *newGraph)
     graph = newGraph;
 }
 
-void BFS::run()
+BFSIterative::BFSIterative(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Breadth First Search (Iterative ?)");
+}
+
+void BFSIterative::execute()
 {
     const int start = graph->getRandomValue();
 
@@ -33,20 +94,27 @@ void BFS::run()
     while(!nodeQueue.empty())
     {
         const int first = nodeQueue.dequeue();
-        const QList<int>& neighbourValues = graph->getNeighbourValues(first);
+        const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(first);
 
-        for(int neighbour : neighbourValues)
+        for(const auto& neighbour : neighbourEdges)
         {
-            if(!visited.contains(neighbour))
+            const int value = neighbour.getEndValue();
+            if(!visited.contains(value))
             {
-                visited.insert(neighbour);
-                nodeQueue.enqueue(neighbour);
+                visited.insert(value);
+                nodeQueue.enqueue(value);
             }
         }
     }
 }
 
-void DFS::run()
+DFSRecursive::DFSRecursive(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Depth First Search (Recursive)");
+}
+
+void DFSRecursive::execute()
 {
     const int start = graph->getRandomValue();
 
@@ -57,15 +125,16 @@ void DFS::run()
     DFSHelper(start, visited);
 }
 
-void DFS::DFSHelper(int begin, QSet<int>& visited)
+void DFSRecursive::DFSHelper(int begin, QSet<int>& visited)
 {
-    const QList<int>& neighbourValues = graph->getNeighbourValues(begin);
-    for(int neighbour : neighbourValues)
+    const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(begin);
+    for(const auto& neighbour : neighbourEdges)
     {
-        if(!visited.contains(neighbour))
+        const int value = neighbour.getEndValue();
+        if(!visited.contains(value))
         {
-            visited.insert(neighbour);
-            DFSHelper(neighbour, visited);
+            visited.insert(value);
+            DFSHelper(value, visited);
         }
     }
 }

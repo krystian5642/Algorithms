@@ -1,6 +1,7 @@
 #include "main_window.h"
 
 #include "algorithm_visualization_window.h"
+#include "algorithm_benchmark_window.h"
 
 #include <QHBoxLayout>
 
@@ -27,6 +28,11 @@ void MainWindow::setupUi()
 
     AlgorithmVisualizationWindow* visualizationWindow = new AlgorithmVisualizationWindow;
     tabWidget->addTab(visualizationWindow, "Visualization");
+
+    AlgorithmBenchmarkWindow* banchmarkWindow = new AlgorithmBenchmarkWindow;
+    tabWidget->addTab(banchmarkWindow, "Benchmark");
+
+    tabWidget->setCurrentWidget(banchmarkWindow);
 
     horizontalLayout->addWidget(tabWidget);
 }

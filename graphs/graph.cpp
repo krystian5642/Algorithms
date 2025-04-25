@@ -163,22 +163,6 @@ const Graph::Neighbours& Graph::getNeighbourEdges(int value) const
     return empty;
 }
 
-QList<int> Graph::getNeighbourValues(int value) const
-{
-    QList<int> neighbourValues;
-
-    auto it = graphContainer.constFind(value);
-    if(it != graphContainer.constEnd())
-    {
-        for(const auto& edge : it.value())
-        {
-            neighbourValues.append(edge.endValue);
-        }
-        return neighbourValues;
-    }
-    return neighbourValues;
-}
-
 qsizetype Graph::countEdges() const
 {
     qsizetype edgesNum = 0;

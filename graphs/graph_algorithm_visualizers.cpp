@@ -88,16 +88,17 @@ void BFSVisualizer::run(QWidget *widget)
     while(!nodeQueue.empty())
     {
         const int first = nodeQueue.dequeue();
-        const QList<int>& neighbourValues = graph->getNeighbourValues(first);
+        const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(first);
 
-        for(int neighbour : neighbourValues)
+        for(const auto& neighbour : neighbourEdges)
         {
-            if(!visited.contains(neighbour))
+            const int value = neighbour.getEndValue();
+            if(!visited.contains(value))
             {
-                visited.insert(neighbour);
-                nodeQueue.enqueue(neighbour);
+                visited.insert(value);
+                nodeQueue.enqueue(value);
 
-                resultEdgeList.add(first, neighbour);
+                resultEdgeList.add(first, value);
             }
         }
     }
@@ -171,16 +172,17 @@ void DFSVisualizer::reset()
 
 void DFSVisualizer::DFSHelper(int begin)
 {
-    const QList<int>& neighbourValues = graph->getNeighbourValues(begin);
-    for(int neighbour : neighbourValues)
+    const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(begin);
+    for(const auto& neighbour : neighbourEdges)
     {
-        if(!visited.contains(neighbour))
+        const int value = neighbour.getEndValue();
+        if(!visited.contains(value))
         {
-            visited.insert(neighbour);
+            visited.insert(value);
 
-            resultEdgeList.add(begin, neighbour);
+            resultEdgeList.add(begin, value);
 
-            DFSHelper(neighbour);
+            DFSHelper(value);
         }
     }
 }

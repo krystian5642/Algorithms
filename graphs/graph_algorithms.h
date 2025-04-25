@@ -1,7 +1,7 @@
 #ifndef GRAPH_AlGORITHMS_H
 #define GRAPH_AlGORITHMS_H
 
-#include "../Core/algorithm.h"
+#include "../core/algorithm.h"
 
 #include <QSet>
 
@@ -9,8 +9,12 @@ class Graph;
 
 class GraphAlgorithm : public Algorithm
 {
+    Q_OBJECT
 public:
+    explicit GraphAlgorithm(QObject* parent = nullptr);
     virtual ~GraphAlgorithm() = 0;
+
+    void run() override;
 
     const Graph *getGraph() const;
     void setGraph(const Graph *newGraph);
@@ -19,18 +23,24 @@ protected:
     const Graph* graph = nullptr;
 };
 
-class BFS : public GraphAlgorithm
+class BFSIterative : public GraphAlgorithm
 {
+    Q_OBJECT
 public:
-    void run() override;
+    explicit BFSIterative(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
 };
 
-class DFS : public GraphAlgorithm
+class DFSRecursive : public GraphAlgorithm
 {
+    Q_OBJECT
 public:
-    void run() override;
+    explicit DFSRecursive(QObject* parent = nullptr);
 
-private:
+protected:
+    void execute() override;
     void DFSHelper(int begin, QSet<int>& visited);
 };
 

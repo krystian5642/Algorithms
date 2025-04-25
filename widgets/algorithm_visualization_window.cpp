@@ -105,7 +105,7 @@ void AlgorithmVisualizationWindow::onAlgorithmVisualizerTreeItemClicked(const QM
 
 void AlgorithmVisualizationWindow::setupUi()
 {
-    setupActions();
+    setupActionsAndToolBar();
 
     setIconSize(QSize(35, 35));
     setWindowTitle("Algorithm Visualization Window");
@@ -150,7 +150,7 @@ void AlgorithmVisualizationWindow::setupUi()
     algorithmsTreeView->expandAll();
 }
 
-void AlgorithmVisualizationWindow::setupActions()
+void AlgorithmVisualizationWindow::setupActionsAndToolBar()
 {
     QAction* actionSave = new QAction(this);
     QIcon icon;

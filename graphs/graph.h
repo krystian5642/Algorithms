@@ -49,7 +49,6 @@ public:
     void fromJsonObject(const QJsonObject& jsonObj);
 
     const Neighbours& getNeighbourEdges(int value) const;
-    QList<int> getNeighbourValues(int value) const;
 
     bool getIsDirected() const;
 

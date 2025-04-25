@@ -8,5 +8,6 @@
         <file>icons/play.png</file>
         <file>icons/random.png</file>
         <file>icons/save.png</file>
+        <file>icons/clear_spikes.png</file>
     </qresource>
 </RCC>
