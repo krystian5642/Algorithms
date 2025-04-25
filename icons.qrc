@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/clear.png</file>
+        <file>icons/gridgraph.png</file>
+        <file>icons/hardrun.png</file>
+        <file>icons/load.png</file>
+        <file>icons/pause.png</file>
+        <file>icons/play.png</file>
+        <file>icons/random.png</file>
+        <file>icons/save.png</file>
+    </qresource>
+</RCC>
