@@ -10,6 +10,11 @@
 #include <QLineSeries>
 #include <QThreadPool>
 #include <QCheckBox>
+#include <QMessageBox>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument.h>
 
 AlgorithmBenchmarkWindow::AlgorithmBenchmarkWindow(QWidget *parent)
     : QMainWindow{parent}
@@ -22,10 +27,26 @@ AlgorithmBenchmarkWindow::~AlgorithmBenchmarkWindow()
 {
 }
 
+void AlgorithmBenchmarkWindow::onActionSaveTriggered()
+{
+    const auto reply = QMessageBox::question(this, "Confirmation", "Do you want to save this result and override the existing one?"
+                                             , QMessageBox::Yes | QMessageBox::No);
+
+    if(reply == QMessageBox::Yes)
+    {
+        saveSeriesToFile();
+    }
+}
+
+void AlgorithmBenchmarkWindow::onActionLoadTriggered()
+{
+    loadSeriesFromFile();
+}
+
 void AlgorithmBenchmarkWindow::onActionClearTriggered()
 {
     defaultSeries->clear();
-    chart->removeSeries(defaultSeries);
+    //chart->removeAllSeries();
 }
 
 void AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered(bool isOn)
@@ -34,7 +55,8 @@ void AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered(bool isOn)
     if(algorithm)
     {
         connect(algorithm, &Algorithm::finished, this, &AlgorithmBenchmarkWindow::onAlgorithmFinished);
-        algorithm->run();
+
+        QThreadPool::globalInstance()->start(algorithm);
     }
 }
 
@@ -70,10 +92,12 @@ void AlgorithmBenchmarkWindow::onActionClearSpikesTriggered()
 
 void AlgorithmBenchmarkWindow::onAlgorithmFinished(const QList<QPointF>& result)
 {
-    defaultSeries->replace(result);
+    //defaultSeries->replace(result);
 
-    chart->removeSeries(defaultSeries);
-    chart->addSeries(defaultSeries);
+    QLineSeries* newSeries = new QLineSeries(this);
+    newSeries->append(result);
+
+    chart->addSeries(newSeries);
 
     chart->createDefaultAxes();
 }
@@ -139,11 +163,13 @@ void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/icons/save.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionSave->setIcon(icon);
+    connect(actionSave, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionSaveTriggered);
 
     QAction* actionLoad = new QAction(this);
     QIcon icon1;
     icon1.addFile(QString::fromUtf8(":/icons/load.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionLoad->setIcon(icon1);
+    connect(actionLoad, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionLoadTriggered);
 
     QAction* actionClear = new QAction(this);
     QIcon icon2;
@@ -192,12 +218,63 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     auto it = algorithms.insert("Graph algorthms", QList<Algorithm*>{});
     QList<Algorithm*>& algorithmsList = it.value();
 
-    algorithmsList.append(new BFSIterative(this));
-    algorithmsList.append(new DFSRecursive(this));
+    algorithmsList.append(new BFSIterative);
+    algorithmsList.append(new DFSRecursive);
 }
 
 Algorithm *AlgorithmBenchmarkWindow::getSelectedAlgorithm() const
 {
     const QModelIndex modelIndex = algorithmsTreeView->selectionModel()->currentIndex();
     return modelIndex.isValid() ? qvariant_cast<Algorithm*>(modelIndex.data(Qt::UserRole)) : nullptr;
+}
+
+void AlgorithmBenchmarkWindow::saveSeriesToFile()
+{
+    QFile saveFile("benchmark series.txt");
+    if(!saveFile.open(QIODevice::WriteOnly))
+    {
+        return;
+    }
+
+    QJsonArray resultArray;
+    const QList<QPointF> result = defaultSeries->points();
+    for(const auto& point : result)
+    {
+        QJsonObject pointAsJsonObject;
+        pointAsJsonObject["x"] = point.x();
+        pointAsJsonObject["y"] = point.y();
+        resultArray.append(pointAsJsonObject);
+    }
+
+    const QJsonDocument jsonDoc(resultArray);
+
+    saveFile.write(jsonDoc.toJson());
+    saveFile.close();
+}
+
+void AlgorithmBenchmarkWindow::loadSeriesFromFile()
+{
+    QFile loadFile("benchmark series.txt");
+    if(!loadFile.open(QIODevice::ReadOnly))
+    {
+        return;
+    }
+
+    const QByteArray jsonData = loadFile.readAll();
+    loadFile.close();
+
+    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+
+    const QJsonArray resultJsonArray = jsonDoc.array();
+
+    QLineSeries* newSeries = new QLineSeries;
+
+    for(const auto& value : resultJsonArray)
+    {
+        const QJsonObject jsonObj = value.toObject();
+        newSeries->append(QPointF(jsonObj["x"].toDouble(), jsonObj["y"].toDouble()));
+    }
+
+    chart->addSeries(newSeries);
+    chart->createDefaultAxes();
 }

@@ -3,8 +3,9 @@
 
 #include <QObject>
 #include <QPointF>
+#include <QRunnable>
 
-class Algorithm : public QObject
+class Algorithm : public QObject, public QRunnable
 {
     Q_OBJECT
 public:

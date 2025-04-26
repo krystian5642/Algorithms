@@ -14,17 +14,18 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
 
 void GraphAlgorithm::run()
 {
-    int runNum = 500;
+    int runNum = 800;
 
     QList<QPointF> result;
     result.reserve(runNum);
 
-    static qreal timeout = 20000000000; //ns
+    static qreal timeout = 30000000000; //ns
     qreal totalTime = 0;
 
     for(int i = 1; i <= runNum; i++)
     {
         Graph testGraph;
+
         for(int j = 0; j < i; j++)
         {
             const int randomValueX = QRandomGenerator::global()->bounded(1000000);
@@ -81,7 +82,7 @@ BFSIterative::BFSIterative(QObject *parent)
 
 void BFSIterative::execute()
 {
-    const int start = graph->getRandomValue();
+    const int start = graph->getFirstValue();
 
     QQueue<int> nodeQueue;
     nodeQueue.reserve(graph->getNodesNum());
@@ -116,7 +117,7 @@ DFSRecursive::DFSRecursive(QObject *parent)
 
 void DFSRecursive::execute()
 {
-    const int start = graph->getRandomValue();
+    const int start = graph->getFirstValue();
 
     QSet<int> visited;
     visited.reserve(graph->getNodesNum());

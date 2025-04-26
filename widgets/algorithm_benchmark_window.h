@@ -22,6 +22,8 @@ public:
     ~AlgorithmBenchmarkWindow();
 
 private slots:
+    void onActionSaveTriggered();
+    void onActionLoadTriggered();
     void onActionClearTriggered();
     void onActionRunBenchmarkTriggered(bool isOn);
     void onActionClearSpikesTriggered();
@@ -37,6 +39,9 @@ private:
     void cancelAlgorithms(bool deleteAll);
 
     Algorithm* getSelectedAlgorithm() const;
+
+    void saveSeriesToFile();
+    void loadSeriesFromFile();
 
     QTreeView* algorithmsTreeView;
 

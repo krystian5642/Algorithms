@@ -43,6 +43,7 @@ public:
 
     void clear();
     int getRandomValue(bool* found = nullptr) const;
+    int getFirstValue(bool* found = nullptr) const;
 
     // serialization
     QJsonObject toJsonObject() const;

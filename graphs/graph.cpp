@@ -109,12 +109,31 @@ int Graph::getRandomValue(bool* found) const
         const qint64 randomIndex = QRandomGenerator::global()->bounded(keys.size());
         return keys[randomIndex];
     }
-
-    if (found)
+    else if (found)
     {
         *found = false;
     }
     return 0;
+}
+
+int Graph::getFirstValue(bool *found) const
+{
+    int value = 0;
+    if(!graphContainer.isEmpty())
+    {
+        value = graphContainer.constBegin().key();
+
+        if(found)
+        {
+            *found = true;
+        }
+    }
+    else if(found)
+    {
+        *found = false;
+    }
+
+    return value;
 }
 
 QJsonObject Graph::toJsonObject() const

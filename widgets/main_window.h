@@ -13,5 +13,6 @@ public:
 
 private:
     void setupUi();
+    void warmUp();
 };
 #endif // MAIN_WINDOW_H
