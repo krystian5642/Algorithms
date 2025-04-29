@@ -3,8 +3,10 @@
 
 #include "../core/algorithm.h"
 
+#include <QQueue>
 #include <QSet>
 
+class GraphNode;
 class Graph;
 
 class GraphAlgorithm : public Algorithm
@@ -15,6 +17,7 @@ public:
     virtual ~GraphAlgorithm() = 0;
 
     void run() override;
+    void clear() override;
 
     const Graph *getGraph() const;
     void setGraph(const Graph *newGraph);
@@ -29,8 +32,14 @@ class BFSIterative : public GraphAlgorithm
 public:
     explicit BFSIterative(QObject* parent = nullptr);
 
+    void init() override;
+    void clear() override;
+
 protected:
     void execute() override;
+
+    QQueue<const GraphNode*> nodeQueue;
+    QList<bool> visited;
 };
 
 class DFSRecursive : public GraphAlgorithm

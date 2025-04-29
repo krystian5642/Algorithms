@@ -92,12 +92,13 @@ void AlgorithmBenchmarkWindow::onActionClearSpikesTriggered()
 
 void AlgorithmBenchmarkWindow::onAlgorithmFinished(const QList<QPointF>& result)
 {
-    //defaultSeries->replace(result);
+    defaultSeries->replace(result);
 
-    QLineSeries* newSeries = new QLineSeries(this);
-    newSeries->append(result);
+    //QLineSeries* newSeries = new QLineSeries(this);
+    //newSeries->append(result);
 
-    chart->addSeries(newSeries);
+    chart->removeSeries(defaultSeries);
+    chart->addSeries(defaultSeries);
 
     chart->createDefaultAxes();
 }

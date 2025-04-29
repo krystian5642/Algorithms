@@ -13,6 +13,8 @@ public:
     virtual ~Algorithm() = 0;
 
     virtual void run() = 0;
+    virtual void init() {};
+    virtual void clear() {};
 
 signals:
     void finished(const QList<QPointF>& result);
