@@ -108,23 +108,23 @@ void BFSIterative::clear()
 
 void BFSIterative::execute()
 {
-    const GraphNode* start = graph->getFirstNode();
+    const int start = graph->getFirstValue();
 
     nodeQueue.enqueue(start);
-    visited[start->getValue()] = true;
+    visited[start] = true;
 
     while(!nodeQueue.empty())
     {
-        const GraphNode* first = nodeQueue.dequeue();
-        const auto& children = first->getChildren();
+        const int first = nodeQueue.dequeue();
+        const auto& neighbours = graph->getNeighbourEdges(first);
 
-        for(const auto& child : children)
+        for(const auto& neighbour : neighbours)
         {
-            const GraphNode* endNode = child->getEndNode();
-            if(!visited[endNode->getValue()])
+            const int value = neighbour.getEndValue();
+            if(!visited[value])
             {
-                visited[endNode->getValue()] = true;
-                nodeQueue.enqueue(endNode);
+                visited[value] = true;
+                nodeQueue.enqueue(value);
             }
         }
     }

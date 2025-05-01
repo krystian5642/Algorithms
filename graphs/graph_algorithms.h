@@ -38,7 +38,7 @@ public:
 protected:
     void execute() override;
 
-    QQueue<const GraphNode*> nodeQueue;
+    QQueue<int> nodeQueue;
     QList<bool> visited;
 };
 
