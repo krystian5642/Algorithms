@@ -6,23 +6,40 @@
 #include <QQueue>
 #include <QSet>
 
+class DataStructure;
 class GraphNode;
 class Graph;
 
 class GraphAlgorithm : public Algorithm
 {
     Q_OBJECT
+
+    Q_PROPERTY(double addEdgePropability READ getAddEdgePropability WRITE setAddEdgePropability NOTIFY addEdgePropabilityChanged FINAL)
 public:
     explicit GraphAlgorithm(QObject* parent = nullptr);
     virtual ~GraphAlgorithm() = 0;
+
+    QWidget* createPropertiesWidget(QWidget* parent = nullptr, bool addStretch = true) override;
 
     void run() override;
 
     Graph *getGraph() const;
     void setGraph(Graph *newGraph);
 
+    double getAddEdgePropability() const;
+    void setAddEdgePropability(double newAddEdgePropability);
+
+    DataStructure* createSelectedDataStructure() const;
+
+signals:
+    void addEdgePropabilityChanged();
+
 protected:
-    Graph* graph = nullptr;
+    Graph* graph;
+
+    double addEdgePropability;
+
+    QString selectedImplementation;
 };
 
 class BFSIterative : public GraphAlgorithm

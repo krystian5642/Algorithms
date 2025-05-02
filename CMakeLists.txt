@@ -30,6 +30,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graphs/widgets/add_graph_edge_dialog.h graphs/widgets/add_graph_edge_dialog.cpp
         graphs/widgets/random_graph_properties_dialog.h graphs/widgets/random_graph_properties_dialog.cpp
         widgets/algorithm_benchmark_window.h widgets/algorithm_benchmark_window.cpp
+        core/data_structure_builder.h core/data_structure_builder.cpp
+        core/data_structure.h core/data_structure.cpp
+        graphs/general_graph_builder.h graphs/general_graph_builder.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Algorithms APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

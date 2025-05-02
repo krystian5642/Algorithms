@@ -8,7 +8,6 @@
 #include <QPointF>
 #include <QString>
 #include <QHash>
-#include <QComboBox>
 
 class Algorithm : public QObject, public QRunnable
 {
@@ -16,8 +15,8 @@ class Algorithm : public QObject, public QRunnable
 
     Q_PROPERTY(int iterationsNumber READ getIterationsNumber WRITE setIterationsNumber NOTIFY iterationsNumberChanged FINAL)
 public:
-    using ComplexityPair = QPair<QString, std::function<int(int, int, int)>>;
-    using ComplexityList = QList<ComplexityPair>;
+    using StringToFunction = QPair<QString, std::function<int(int, int, int)>>;
+    using StringFunctionPairs = QList<StringToFunction>;
 
     explicit Algorithm(QObject* parent = nullptr);
     virtual ~Algorithm() = 0;
@@ -26,9 +25,7 @@ public:
     virtual void init() {};
     virtual void clear() {};
 
-    virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
-
-    QString getSelectedComplexity() const;
+    virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr, bool addStretch = true);
 
     void requestEnd();
 
@@ -45,15 +42,13 @@ protected:
     virtual void execute() = 0;
 
     int iterationsNumber;
+    QString selectedComplexity;
 
 protected:
     bool requestedEnd;
 
 protected:
-    ComplexityList complexityList;
-
-private:
-    QComboBox* complexityComboBox;
+    StringFunctionPairs complexityList;
 };
 
 #endif // ALGORITHM_H

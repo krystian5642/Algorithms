@@ -1,6 +1,7 @@
 #include "property_layout_factory.h"
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QIntValidator>
 #include <QLabel>
@@ -81,6 +82,32 @@ QWidget *PropertyLayoutFactory::createPropertiesWidget(QObject *object, QWidget*
     }
 
     return propertiesWidget;
+}
+
+void PropertyLayoutFactory::addComboBox(QWidget *propertiesWidget, const QStringList &values, const QString& title, QString &changedValue)
+{
+    QBoxLayout* layout = qobject_cast<QBoxLayout*>(propertiesWidget->layout());
+
+    QLabel* label = new QLabel(title, propertiesWidget);
+    QComboBox* comboBox = new QComboBox(propertiesWidget);
+
+    for(const auto& value : values)
+    {
+        comboBox->addItem(value);
+    }
+
+    changedValue = comboBox->currentText();
+    QObject::connect(comboBox, &QComboBox::currentTextChanged, propertiesWidget, [&changedValue](const QString& currentText)
+    {
+        changedValue = currentText;
+    });
+
+    QHBoxLayout* horizontalLayout = new QHBoxLayout;
+
+    horizontalLayout->addWidget(label);
+    horizontalLayout->addWidget(comboBox);
+
+    layout->addLayout(horizontalLayout);
 }
 
 PropertyLayoutFactory::PropertyLayoutFactory()

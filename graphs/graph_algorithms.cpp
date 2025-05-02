@@ -2,14 +2,43 @@
 #include "graph_algorithms.h"
 #include "graph.h"
 
+#include "../core/property_layout_factory.h"
+
+#include "general_graph_builder.h"
+
 #include <windows.h>
 
+#include <QBoxLayout>
 #include <QElapsedTimer>
 #include <QRandomGenerator>
+#include <QWidget>
 
 GraphAlgorithm::GraphAlgorithm(QObject *parent)
     : Algorithm(parent)
+    , graph(nullptr)
+    , addEdgePropability(0.5)
 {
+}
+
+GraphAlgorithm::~GraphAlgorithm()
+{
+
+}
+
+QWidget *GraphAlgorithm::createPropertiesWidget(QWidget *parent, bool addStretch)
+{
+    QWidget* propertiesWidget = Algorithm::createPropertiesWidget(parent, false);
+
+    QStringList implementationsStringList;
+    implementationsStringList.push_back("Adjacency List");
+    implementationsStringList.push_back("Adjacency Matrix");
+
+    PropertyLayoutFactory::get().addComboBox(propertiesWidget, implementationsStringList, "implementation", selectedImplementation);
+
+    QBoxLayout* layout = qobject_cast<QBoxLayout*>(propertiesWidget->layout());
+    layout->addStretch(1);
+
+    return propertiesWidget;
 }
 
 void GraphAlgorithm::run()
@@ -20,25 +49,28 @@ void GraphAlgorithm::run()
     QList<QPointF> result;
     result.reserve(iterationsNumber);
 
-    QScopedPointer<Graph> testGraph(new AdjacencyListGraph);
-    setGraph(testGraph.get());
+    QScopedPointer<GeneralGraphBuilder> graphBuilder(new GeneralGraphBuilder);
+    graphBuilder->addEdgePropability = addEdgePropability;
 
-    for(int i = 1; i <= iterationsNumber; ++i)
-    {      
-        for(int j = 0; j < i; ++j)
-        {         
-            if(requestedEnd)
-            {
-                break;
-            }
-            testGraph->addEdge(j, testGraph->getRandomValue());
-        }
+    auto complexityFunc = std::find_if(complexityList.begin(), complexityList.end(), [&](const StringToFunction& pair)
+    {
+        return pair.first == selectedComplexity;
+    })->second;
 
+    for(int i = 0; i < iterationsNumber; ++i)
+    {
         if(requestedEnd)
         {
             clear();
             break;
         }
+
+        graphBuilder->buildIterations = i + 1;
+
+        graphBuilder->setGraph(dynamic_cast<Graph*>(createSelectedDataStructure())); // temp
+
+        QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->buildDataStructure()));
+        setGraph(testGraph.get());
 
         init();
 
@@ -50,13 +82,7 @@ void GraphAlgorithm::run()
         ULONG64 end;
         QueryThreadCycleTime(GetCurrentThread(), &end);
 
-        const QString selectedComplexity = getSelectedComplexity();
-        auto it = std::find_if(complexityList.begin(), complexityList.end(), [&](const ComplexityPair& pair)
-        {
-            return pair.first == selectedComplexity;
-        });
-
-        const QPointF point((it->second)(i - 1, testGraph->getVerticesNum(), testGraph->getEdgesNum()), end - start);
+        const QPointF point(complexityFunc(i, testGraph->getVerticesNum(), testGraph->getEdgesNum()), end - start);
         result.append(point);
 
         clear();
@@ -67,11 +93,6 @@ void GraphAlgorithm::run()
     emit finished(result);
 }
 
-GraphAlgorithm::~GraphAlgorithm()
-{
-
-}
-
 Graph *GraphAlgorithm::getGraph() const
 {
     return graph;
@@ -80,6 +101,35 @@ Graph *GraphAlgorithm::getGraph() const
 void GraphAlgorithm::setGraph(Graph *newGraph)
 {
     graph = newGraph;
+}
+
+double GraphAlgorithm::getAddEdgePropability() const
+{
+    return addEdgePropability;
+}
+
+void GraphAlgorithm::setAddEdgePropability(double newAddEdgePropability)
+{
+    if (qFuzzyCompare(addEdgePropability, newAddEdgePropability))
+    {
+        return;
+    }
+
+    addEdgePropability = newAddEdgePropability;
+    emit addEdgePropabilityChanged();
+}
+
+DataStructure *GraphAlgorithm::createSelectedDataStructure() const
+{
+    if(selectedImplementation == "Adjacency List")
+    {
+        return new AdjacencyListGraph;
+    }
+    else if(selectedImplementation == "Adjacency Matrix")
+    {
+        return new AdjacencyMatrixGraph;
+    }
+    return nullptr;
 }
 
 BFSIterative::BFSIterative(QObject *parent)

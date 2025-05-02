@@ -25,33 +25,29 @@ Algorithm::~Algorithm()
 
 }
 
-QWidget *Algorithm::createPropertiesWidget(QWidget* parent)
+QWidget *Algorithm::createPropertiesWidget(QWidget* parent, bool addStretch)
 {
-    QWidget* propertiesWidget = PropertyLayoutFactory::get().createPropertiesWidget(this, parent, false);
-    QBoxLayout* layout = qobject_cast<QBoxLayout*>(propertiesWidget->layout());
-
-    QHBoxLayout* horizontalLayout = new QHBoxLayout(propertiesWidget);
-
-    QLabel* complexityLabel = new QLabel("complexity");
-    complexityComboBox = new QComboBox(propertiesWidget);
+    QStringList complexityStringList;
+    complexityStringList.reserve(complexityList.size());
 
     for(const auto& complexity : complexityList)
     {
-        complexityComboBox->addItem(complexity.first);
+        complexityStringList.push_back(complexity.first);
     }
 
-    horizontalLayout->addWidget(complexityLabel);
-    horizontalLayout->addWidget(complexityComboBox);
+    PropertyLayoutFactory& propertyLayoutFactory = PropertyLayoutFactory::get();
 
-    layout->addLayout(horizontalLayout);
-    layout->addStretch(1);
+    QWidget* propertiesWidget = propertyLayoutFactory.createPropertiesWidget(this, parent, addStretch);
+    QBoxLayout* layout = qobject_cast<QBoxLayout*>(propertiesWidget->layout());
+
+    propertyLayoutFactory.addComboBox(propertiesWidget, complexityStringList, "complexity", selectedComplexity);
+
+    if(addStretch)
+    {
+        layout->addStretch(1);
+    }
 
     return propertiesWidget;
-}
-
-QString Algorithm::getSelectedComplexity() const
-{
-    return complexityComboBox->currentText();
 }
 
 void Algorithm::requestEnd()

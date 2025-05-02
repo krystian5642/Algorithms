@@ -173,6 +173,12 @@ qsizetype AdjacencyMatrixGraph::getEdgesNum() const
             }
         }
     }
+
+    if(!isDirected)
+    {
+        edgesNum /= 2;
+    }
+
     return edgesNum;
 }
 

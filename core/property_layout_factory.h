@@ -22,6 +22,7 @@ public:
     QBoxLayout* createLayoutForProperty(const QMetaProperty& property, QObject* propertyObject, QWidget* parent);
 
     QWidget* createPropertiesWidget(QObject *object, QWidget* parent = nullptr, bool addStretch = true);
+    void addComboBox(QWidget *propertiesWidget, const QStringList &values, const QString& title, QString &changedValue);
 
 private:
     PropertyLayoutFactory();

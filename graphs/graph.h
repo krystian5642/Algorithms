@@ -1,11 +1,13 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include "../core/data_structure.h"
+
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QList>
 
-class Graph
+class Graph : public DataStructure
 {
 public:
     explicit Graph(bool inIsDirected = false);
