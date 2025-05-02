@@ -14,7 +14,7 @@
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QJsonDocument.h>
+#include <QJsonDocument>
 
 AlgorithmBenchmarkWindow::AlgorithmBenchmarkWindow(QWidget *parent)
     : QMainWindow{parent}
@@ -25,6 +25,7 @@ AlgorithmBenchmarkWindow::AlgorithmBenchmarkWindow(QWidget *parent)
 
 AlgorithmBenchmarkWindow::~AlgorithmBenchmarkWindow()
 {
+    endBenchmarkRun(true);
 }
 
 void AlgorithmBenchmarkWindow::onActionSaveTriggered()
@@ -51,12 +52,23 @@ void AlgorithmBenchmarkWindow::onActionClearTriggered()
 
 void AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered(bool isOn)
 {
-    Algorithm* algorithm = getSelectedAlgorithm();
-    if(algorithm)
+    if(isOn)
     {
-        connect(algorithm, &Algorithm::finished, this, &AlgorithmBenchmarkWindow::onAlgorithmFinished);
+        Algorithm* algorithm = getSelectedAlgorithm();
+        if(algorithm)
+        {
+            QThreadPool::globalInstance()->start(algorithm);
+        }
+        else
+        {
+            actionRunBenchmark->setChecked(false);
+        }
 
-        QThreadPool::globalInstance()->start(algorithm);
+    }
+    else
+    {
+        actionRunBenchmark->setEnabled(false);
+        endBenchmarkRun(false);
     }
 }
 
@@ -90,8 +102,16 @@ void AlgorithmBenchmarkWindow::onActionClearSpikesTriggered()
     chart->createDefaultAxes();
 }
 
+void AlgorithmBenchmarkWindow::onAlgorithmStarted()
+{
+    actionRunBenchmark->setChecked(true);
+}
+
 void AlgorithmBenchmarkWindow::onAlgorithmFinished(const QList<QPointF>& result)
 {
+    actionRunBenchmark->setChecked(false);
+    actionRunBenchmark->setEnabled(true);
+
     defaultSeries->replace(result);
 
     //QLineSeries* newSeries = new QLineSeries(this);
@@ -160,33 +180,34 @@ void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
 {
     setIconSize(QSize(35, 35));
 
-    QAction* actionSave = new QAction(this);
+    actionSave = new QAction(this);
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/icons/save.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionSave->setIcon(icon);
     connect(actionSave, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionSaveTriggered);
 
-    QAction* actionLoad = new QAction(this);
+    actionLoad = new QAction(this);
     QIcon icon1;
     icon1.addFile(QString::fromUtf8(":/icons/load.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionLoad->setIcon(icon1);
     connect(actionLoad, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionLoadTriggered);
 
-    QAction* actionClear = new QAction(this);
+    actionClear = new QAction(this);
     QIcon icon2;
     icon2.addFile(QString::fromUtf8(":/icons/clear.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionClear->setIcon(icon2);
     connect(actionClear, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionClearTriggered);
 
-    QAction* actionRunBenchmark = new QAction(this);
+    actionRunBenchmark = new QAction(this);
     actionRunBenchmark->setCheckable(true);
+    actionRunBenchmark->setChecked(false);
     QIcon icon4;
     icon4.addFile(QString::fromUtf8(":/icons/play.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     icon4.addFile(QString::fromUtf8(":/icons/pause.png"), QSize(), QIcon::Mode::Normal, QIcon::State::On);
     actionRunBenchmark->setIcon(icon4);
     connect(actionRunBenchmark, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered);
 
-    QAction* actionClearSpikes = new QAction(this);
+    actionClearSpikes = new QAction(this);
     QIcon icon5;
     icon5.addFile(QString::fromUtf8(":/icons/clear_spikes.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionClearSpikes->setIcon(icon5);
@@ -216,11 +237,40 @@ void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
 
 void AlgorithmBenchmarkWindow::registerAlgorithms()
 {
-    auto it = algorithms.insert("Graph algorthms", QList<Algorithm*>{});
+    auto it = algorithms.insert("Graph", QList<Algorithm*>{});
     QList<Algorithm*>& algorithmsList = it.value();
 
     algorithmsList.append(new BFSIterative);
     algorithmsList.append(new DFSRecursive);
+
+    for(auto* algorithm : algorithmsList)
+    {
+        connect(algorithm, &Algorithm::started, this, &AlgorithmBenchmarkWindow::onAlgorithmStarted);
+        connect(algorithm, &Algorithm::finished, this, &AlgorithmBenchmarkWindow::onAlgorithmFinished);
+    }
+}
+
+void AlgorithmBenchmarkWindow::endBenchmarkRun(bool deleteAllAlgorithms)
+{
+    for(auto it = algorithms.constBegin(); it != algorithms.constEnd(); ++it)
+    {
+        const QList<Algorithm*>& algorithmsList = it.value();
+        for(auto* algorithm : algorithmsList)
+        {
+            algorithm->requestEnd();
+        }
+    }
+
+    QThreadPool::globalInstance()->waitForDone();
+
+    if(deleteAllAlgorithms)
+    {
+        for(auto it = algorithms.constBegin(); it != algorithms.constEnd(); ++it)
+        {
+            const QList<Algorithm*>& algorithmsList = it.value();
+            qDeleteAll(algorithmsList);
+        }
+    }
 }
 
 Algorithm *AlgorithmBenchmarkWindow::getSelectedAlgorithm() const

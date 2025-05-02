@@ -72,56 +72,56 @@ BFSVisualizer::BFSVisualizer(QObject *parent)
 
 void BFSVisualizer::run(QWidget *widget)
 {
-    GraphWidget* graphWidget = qobject_cast<GraphWidget*>(widget);
-    Q_CHECK_PTR(graphWidget);
+    // GraphWidget* graphWidget = qobject_cast<GraphWidget*>(widget);
+    // Q_CHECK_PTR(graphWidget);
 
-    QQueue<int> nodeQueue;
-    nodeQueue.reserve(graph->getNodesNum());
-    nodeQueue.enqueue(start);
+    // QQueue<int> nodeQueue;
+    // nodeQueue.reserve(graph->getNodesNum());
+    // nodeQueue.enqueue(start);
 
-    QSet<int> visited;
-    visited.reserve(graph->getNodesNum());
-    visited.insert(start);
+    // QSet<int> visited;
+    // visited.reserve(graph->getNodesNum());
+    // visited.insert(start);
 
-    resultEdgeList.reserve(graph->getEdgesNum());
+    // resultEdgeList.reserve(graph->getEdgesNum());
 
-    while(!nodeQueue.empty())
-    {
-        const int first = nodeQueue.dequeue();
-        const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(first);
+    // while(!nodeQueue.empty())
+    // {
+    //     const int first = nodeQueue.dequeue();
+    //     const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(first);
 
-        for(const auto& neighbour : neighbourEdges)
-        {
-            const int value = neighbour.getEndValue();
-            if(!visited.contains(value))
-            {
-                visited.insert(value);
-                nodeQueue.enqueue(value);
+    //     for(const auto& neighbour : neighbourEdges)
+    //     {
+    //         const int value = neighbour.getEndValue();
+    //         if(!visited.contains(value))
+    //         {
+    //             visited.insert(value);
+    //             nodeQueue.enqueue(value);
 
-                resultEdgeList.add(first, value);
-            }
-        }
-    }
+    //             resultEdgeList.add(first, value);
+    //         }
+    //     }
+    // }
 
-    graphWidget->setNodeColor(start, Qt::red);
-    connect(&visualizationTimer, &QTimer::timeout, this, [this, graphWidget]()
-    {
-        if(resultEdgeList.isValidIndex(resultIndex))
-        {
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
+    // graphWidget->setNodeColor(start, Qt::red);
+    // connect(&visualizationTimer, &QTimer::timeout, this, [this, graphWidget]()
+    // {
+    //     if(resultEdgeList.isValidIndex(resultIndex))
+    //     {
+    //         graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
+    //         graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
 
-            graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
+    //         graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
 
-            resultIndex++;
-        }
-        else
-        {
-            reset();
-        }
-    });
+    //         resultIndex++;
+    //     }
+    //     else
+    //     {
+    //         reset();
+    //     }
+    // });
 
-    visualizationTimer.start();
+    // visualizationTimer.start();
 }
 
 DFSVisualizer::DFSVisualizer(QObject *parent)
@@ -132,35 +132,35 @@ DFSVisualizer::DFSVisualizer(QObject *parent)
 
 void DFSVisualizer::run(QWidget *widget)
 {
-    GraphWidget* graphWidget = qobject_cast<GraphWidget*>(widget);
-    Q_CHECK_PTR(graphWidget);
+    // GraphWidget* graphWidget = qobject_cast<GraphWidget*>(widget);
+    // Q_CHECK_PTR(graphWidget);
 
-    visited.reserve(graph->getNodesNum());
-    visited.insert(start);
+    // visited.reserve(graph->getNodesNum());
+    // visited.insert(start);
 
-    resultEdgeList.reserve(graph->getEdgesNum());
+    // resultEdgeList.reserve(graph->getEdgesNum());
 
-    DFSHelper(start);
+    // DFSHelper(start);
 
-    graphWidget->setNodeColor(start, Qt::red);
-    connect(&visualizationTimer, &QTimer::timeout, this, [this, graphWidget]()
-    {
-        if(resultEdgeList.isValidIndex(resultIndex))
-        {
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
+    // graphWidget->setNodeColor(start, Qt::red);
+    // connect(&visualizationTimer, &QTimer::timeout, this, [this, graphWidget]()
+    // {
+    //     if(resultEdgeList.isValidIndex(resultIndex))
+    //     {
+    //         graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
+    //         graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
 
-            graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
+    //         graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
 
-            resultIndex++;
-        }
-        else
-        {
-            reset();
-        }
-    });
+    //         resultIndex++;
+    //     }
+    //     else
+    //     {
+    //         reset();
+    //     }
+    // });
 
-    visualizationTimer.start();
+    // visualizationTimer.start();
 }
 
 void DFSVisualizer::reset()
@@ -172,17 +172,17 @@ void DFSVisualizer::reset()
 
 void DFSVisualizer::DFSHelper(int begin)
 {
-    const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(begin);
-    for(const auto& neighbour : neighbourEdges)
-    {
-        const int value = neighbour.getEndValue();
-        if(!visited.contains(value))
-        {
-            visited.insert(value);
+    // const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(begin);
+    // for(const auto& neighbour : neighbourEdges)
+    // {
+    //     const int value = neighbour.getEndValue();
+    //     if(!visited.contains(value))
+    //     {
+    //         visited.insert(value);
 
-            resultEdgeList.add(begin, value);
+    //         resultEdgeList.add(begin, value);
 
-            DFSHelper(value);
-        }
-    }
+    //         DFSHelper(value);
+    //     }
+    // }
 }

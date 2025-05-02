@@ -15,58 +15,52 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
 
 void GraphAlgorithm::run()
 {
-    int runNum = 1000;
+    requestedEnd = false;
+    emit started();
+
+    int runNum = 2*9600;
     QList<QPointF> result;
     result.reserve(runNum);
 
-    static qreal timeout = 30000000000; //ns
-    qreal totalTime = 0;
+    QScopedPointer<Graph> testGraph(new AdjacencyMatrixGraph);
+    setGraph(testGraph.get());
 
-    for(int i = 1; i <= runNum; i++)
-    {
-        Graph testGraph;
-
-        for(int j = 0; j < i; j++)
-        {
-            testGraph.addEdge(i, j);
+    for(int i = 1; i <= runNum; ++i)
+    {      
+        for(int j = 0; j < i; ++j)
+        {         
+            if(requestedEnd)
+            {
+                break;
+            }
+            testGraph->addEdge(j, testGraph->getRandomValue());
         }
 
-        setGraph(&testGraph);
+        if(requestedEnd)
+        {
+            clear();
+            break;
+        }
+
         init();
 
         ULONG64 start;
         QueryThreadCycleTime(GetCurrentThread(), &start);
-
-        //QElapsedTimer time;
-        //time.start();
 
         execute();
 
         ULONG64 end;
         QueryThreadCycleTime(GetCurrentThread(), &end);
 
-        const qreal elapsedTime = static_cast<qreal>(end - start);
-        const qreal edgesAndNodesNum = static_cast<qreal>(testGraph.getEdgesNum() + testGraph.getNodesNum());
-
-        const QPointF point(edgesAndNodesNum, elapsedTime);
+        const QPointF point(i - 1, end - start);
         result.append(point);
 
         clear();
-
-        // timeout check
-        totalTime += elapsedTime;
-        if(totalTime > timeout)
-        {
-            break;
-        }
     }
 
-    emit finished(result);
-}
+    setGraph(nullptr);
 
-void GraphAlgorithm::clear()
-{
-    graph = nullptr;
+    emit finished(result);
 }
 
 GraphAlgorithm::~GraphAlgorithm()
@@ -74,12 +68,12 @@ GraphAlgorithm::~GraphAlgorithm()
 
 }
 
-const Graph *GraphAlgorithm::getGraph() const
+Graph *GraphAlgorithm::getGraph() const
 {
     return graph;
 }
 
-void GraphAlgorithm::setGraph(const Graph *newGraph)
+void GraphAlgorithm::setGraph(Graph *newGraph)
 {
     graph = newGraph;
 }
@@ -94,8 +88,8 @@ void BFSIterative::init()
 {
     GraphAlgorithm::init();
 
-    nodeQueue.reserve(graph->getNodesNum());
-    visited.fill(false, graph->getNodesNum());
+    nodeQueue.reserve(graph->getVerticesNum());
+    visited.fill(false, graph->getVerticesNum());
 }
 
 void BFSIterative::clear()
@@ -108,25 +102,23 @@ void BFSIterative::clear()
 
 void BFSIterative::execute()
 {
-    const int start = graph->getFirstValue();
-
-    nodeQueue.enqueue(start);
-    visited[start] = true;
+    nodeQueue.enqueue(0);
+    visited[0] = true;
 
     while(!nodeQueue.empty())
     {
         const int first = nodeQueue.dequeue();
-        const auto& neighbours = graph->getNeighbourEdges(first);
 
-        for(const auto& neighbour : neighbours)
+        auto func = [&](int start, int neighbour, int weight)
         {
-            const int value = neighbour.getEndValue();
-            if(!visited[value])
+            if(!visited[neighbour])
             {
-                visited[value] = true;
-                nodeQueue.enqueue(value);
+                visited[neighbour] = true;
+                nodeQueue.enqueue(neighbour);
             }
-        }
+        };
+
+        graph->forEachNeighbor(first, func);
     }
 }
 

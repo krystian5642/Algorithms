@@ -13,7 +13,7 @@ class GraphAlgorithmVisualizer : public AlgorithmVisualizer
     Q_PROPERTY(int start READ getStart WRITE setStart NOTIFY startChanged FINAL)
     Q_PROPERTY(bool randomStart READ getRandomStart WRITE setRandomStart NOTIFY randomStartChanged FINAL)
 public:
-    GraphAlgorithmVisualizer(QObject *parent = nullptr);
+    explicit GraphAlgorithmVisualizer(QObject *parent = nullptr);
     virtual ~GraphAlgorithmVisualizer() = 0;
 
     void reset() override;

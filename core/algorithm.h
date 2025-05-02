@@ -16,11 +16,17 @@ public:
     virtual void init() {};
     virtual void clear() {};
 
+    void requestEnd();
+
 signals:
+    void started();
     void finished(const QList<QPointF>& result);
 
 protected:
     virtual void execute() = 0;
+
+protected:
+    bool requestedEnd;
 };
 
 #endif // ALGORITHM_H

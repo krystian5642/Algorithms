@@ -20,7 +20,9 @@
 GraphWidget::GraphWidget(QWidget *parent)
     : DataStructureWidget(parent)
 {
-    category = "Graph Algorithms";
+    category = "Graph";
+
+    graph = std::make_unique<AdjacencyListGraph>();
 }
 
 GraphWidget::~GraphWidget()
@@ -29,7 +31,7 @@ GraphWidget::~GraphWidget()
 
 void GraphWidget::clearGraph()
 {
-    graph.clear();
+    graph->clear();
     graphNodeVisualData.clear();
     graphEdgeVisualData.clear();
     update();
@@ -41,10 +43,10 @@ QJsonObject GraphWidget::toJsonObject() const
     for(auto it = graphNodeVisualData.constBegin(); it != graphNodeVisualData.constEnd(); it++)
     {
         QJsonObject locationAsJsonObject;
-        locationAsJsonObject["x"] = it.value().location.x();
-        locationAsJsonObject["y"] = it.value().location.y();
+        locationAsJsonObject["x"] = it->location.x();
+        locationAsJsonObject["y"] = it->location.y();
 
-        locationsAsJsonObject[QString::number(it.key())] = locationAsJsonObject;
+        //locationsAsJsonObject[QString::number(it.key())] = locationAsJsonObject;
     }
     return locationsAsJsonObject;
 }
@@ -64,16 +66,16 @@ void GraphWidget::fromJsonObject(const QJsonObject &jsonObj)
 
 void GraphWidget::setNodeColor(int value, const QColor& color, bool callUpdate)
 {
-    auto it = graphNodeVisualData.find(value);
-    if(it != graphNodeVisualData.end() && it->color != color)
-    {
-        it->color = color;
+    // auto it = graphNodeVisualData.find(value);
+    // if(it != graphNodeVisualData.end() && it->color != color)
+    // {
+    //     it->color = color;
 
-        if(callUpdate)
-        {
-            update();
-        }
-    }
+    //     if(callUpdate)
+    //     {
+    //         update();
+    //     }
+    // }
 }
 
 void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool callUpdate)
@@ -112,19 +114,19 @@ void GraphWidget::setNodesAndEdgesToBlack()
     update();
 }
 
-bool GraphWidget::addNode(int value, const QPoint& location)
+bool GraphWidget::addNode(const QPoint& location)
 {
-    if(graph.addNode(value))
-    {
-        graphNodeVisualData[value].location = location;
-        return true;
-    }
-    return false;
+    graph->addNode();
+
+    graphNodeVisualData.resize(graphNodeVisualData.size() + 1);
+
+    graphNodeVisualData[graphNodeVisualData.size() - 1].location = location;
+    return true;
 }
 
-void GraphWidget::addEdge(int startValue, int endValue, float weight)
+void GraphWidget::addEdge(int start, int end, int weight)
 {
-    graph.addEdge(startValue, endValue, weight);
+    graph->addEdge(start, end, weight);
 }
 
 void GraphWidget::saveAction()
@@ -194,7 +196,7 @@ void GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
             setNodesAndEdgesToBlack();
 
             GraphAlgorithmVisualizer* graphAlgorithmVisualizer = qobject_cast<GraphAlgorithmVisualizer*>(algorithmVisualizer);
-            graphAlgorithmVisualizer->setGraph(&graph);
+            graphAlgorithmVisualizer->setGraph(graph.get());
 
             currentAlgorithmVisualizer = graphAlgorithmVisualizer;
 
@@ -217,36 +219,8 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
     {
-        AddGraphEdgeDialog addGraphEdgeDialog;
-        const int returnCode = addGraphEdgeDialog.exec();
-
-        QPoint nodeLocation = event->pos();
-
-        if(returnCode == QDialog::DialogCode::Accepted)
-        {
-            bool startValueOk = false;
-            const int startValue = addGraphEdgeDialog.getStartValue(&startValueOk);
-            if(startValueOk)
-            {
-                addNode(startValue, nodeLocation);
-                nodeLocation += QPoint(50, 50);
-            }
-
-            bool endValueOk = false;
-            const int endValue = addGraphEdgeDialog.getEndValue(&endValueOk);
-            if(endValueOk)
-            {
-                addNode(endValue, nodeLocation);
-            }
-
-            if(startValueOk && endValueOk)
-            {
-                const int weightValue = addGraphEdgeDialog.getEdgeWeight();
-                addEdge(startValue, endValue, weightValue);
-            }
-
-            update();
-        }
+        addNode(event->pos());
+        update();
     }
     else
     {
@@ -267,45 +241,38 @@ void GraphWidget::paintDataStructure(QPainter &painter)
 
 void GraphWidget::paintEdges(QPainter &painter)
 {
+    return;
     QSet<QPair<int, int>> drawnEdges;
-    drawnEdges.reserve(qMax(0, graph.getEdgesNum()));
+    drawnEdges.reserve(qMax(0, graph->getEdgesNum()));
 
-    for (auto it = graph.constBegin(); it != graph.constEnd(); ++it)
+    auto func = [&](int start, int end, int weight)
     {
-        const auto& value = it.key();
-        const auto& neighbours = it.value();
-
-        for(const auto& neighbour : neighbours)
+        const QPair<int, int> edge(qMin(start, end), qMax(start, end));
+        if(!drawnEdges.contains(edge))
         {
-            const QPair<int, int> edge(qMin(value, neighbour.getEndValue()), qMax(value, neighbour.getEndValue()));
-            if(drawnEdges.contains(edge))
-            {
-                continue;
-            }
-
             QPen edgePen;
             edgePen.setBrush(graphEdgeVisualData[edge].color);
             painter.setPen(edgePen);
 
-            painter.drawLine(graphNodeVisualData[value].location, graphNodeVisualData[neighbour.getEndValue()].location);
+            painter.drawLine(graphNodeVisualData[start].location, graphNodeVisualData[end].location);
             drawnEdges.insert(edge);
         }
-    }
+    };
+    graph->forEachEdge(func);
 }
 
 void GraphWidget::paintNodes(QPainter &painter)
 {
-    for (auto it = graph.constBegin(); it != graph.constEnd(); ++it)
+    auto func = [&](int value)
     {
-        const auto& value = it.key();
-
         QPen nodePen;
         nodePen.setBrush(graphNodeVisualData[value].color);
         painter.setPen(nodePen);
         painter.setBrush(graphNodeVisualData[value].color);
 
         painter.drawEllipse(graphNodeVisualData[value].location, 15, 15);
-    }
+    };
+    graph->forEachNode(func);
 }
 
 void GraphWidget::paintNodeValues(QPainter &painter)
@@ -314,45 +281,43 @@ void GraphWidget::paintNodeValues(QPainter &painter)
     textPen.setBrush(Qt::white);
     painter.setPen(textPen);
 
-    for (auto it = graph.constBegin(); it != graph.constEnd(); ++it)
+    auto func = [&](int value)
     {
-        const auto& value = it.key();
-        const auto& neighbours = it.value();
-
         painter.drawText(graphNodeVisualData[value].location + QPointF(-3.5, 3), QString("%1").arg(value));
-    }
+    };
+    graph->forEachNode(func);
 }
 
 bool GraphWidget::saveGraph()
 {
-    QFile saveFile("graph.txt");
-    if(!saveFile.open(QIODevice::WriteOnly))
-    {
-        return false;
-    }
+    // QFile saveFile("graph.txt");
+    // if(!saveFile.open(QIODevice::WriteOnly))
+    // {
+    //     return false;
+    // }
 
-    const QJsonObject graphAsJsonObject = graph.toJsonObject();
-    const QJsonDocument jsonDoc(graphAsJsonObject);
+    // const QJsonObject graphAsJsonObject = graph.toJsonObject();
+    // const QJsonDocument jsonDoc(graphAsJsonObject);
 
-    saveFile.write(jsonDoc.toJson());
-    saveFile.close();
+    // saveFile.write(jsonDoc.toJson());
+    // saveFile.close();
 
     return true;
 }
 
 bool GraphWidget::loadGraph()
 {
-    QFile loadFile("graph.txt");
-    if(!loadFile.open(QIODevice::ReadOnly))
-    {
-        return false;
-    }
+    // QFile loadFile("graph.txt");
+    // if(!loadFile.open(QIODevice::ReadOnly))
+    // {
+    //     return false;
+    // }
 
-    const QByteArray jsonData = loadFile.readAll();
-    loadFile.close();
+    // const QByteArray jsonData = loadFile.readAll();
+    // loadFile.close();
 
-    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-    graph.fromJsonObject(jsonDoc.object());
+    // const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+    // graph.fromJsonObject(jsonDoc.object());
 
     return true;
 }
@@ -394,58 +359,58 @@ bool GraphWidget::loadGraphNodeLocations()
 
 void GraphWidget::generateRandomGraph()
 {
-    for(int i=0; i<=1000; i++)
-    {
-        const int randomValueX = QRandomGenerator::global()->bounded(600);
-        const int randomValueY = QRandomGenerator::global()->bounded(600);
+    // for(int i=0; i<=1000; i++)
+    // {
+    //     const int randomValueX = QRandomGenerator::global()->bounded(600);
+    //     const int randomValueY = QRandomGenerator::global()->bounded(600);
 
-        const QPoint randomLocationX(QRandomGenerator::global()->bounded(10000), QRandomGenerator::global()->bounded(10000));
-        const QPoint randomLocationY(QRandomGenerator::global()->bounded(10000), QRandomGenerator::global()->bounded(10000));
+    //     const QPoint randomLocationX(QRandomGenerator::global()->bounded(10000), QRandomGenerator::global()->bounded(10000));
+    //     const QPoint randomLocationY(QRandomGenerator::global()->bounded(10000), QRandomGenerator::global()->bounded(10000));
 
-        addNode(randomValueX, randomLocationX);
-        addNode(randomValueY, randomLocationY);
+    //     addNode(randomValueX, randomLocationX);
+    //     addNode(randomValueY, randomLocationY);
 
-        addEdge(randomValueX, graph.getRandomValue());
-        addEdge(randomValueY, graph.getRandomValue());
-    }
+    //     addEdge(randomValueX, graph.getRandomValue());
+    //     addEdge(randomValueY, graph.getRandomValue());
+    // }
 }
 
 void GraphWidget::generateRandomGridGraph()
 {
-    // this info will be taken from UI later
-    constexpr int columns = 20;
-    constexpr int rows = 20;
-    constexpr int nodeSpace = 50;
-    constexpr QPoint startLoc(50, 50);
+    // // this info will be taken from UI later
+    // constexpr int columns = 20;
+    // constexpr int rows = 20;
+    // constexpr int nodeSpace = 50;
+    // constexpr QPoint startLoc(50, 50);
 
-    QList<int> prevRow(columns);
-    for(int i = 0; i < rows; i++)
-    {
-        int prevValue = -1;
-        for(int j = 0; j < columns; j++)
-        {
-            const int randomValue = QRandomGenerator::global()->bounded(10000);
+    // QList<int> prevRow(columns);
+    // for(int i = 0; i < rows; i++)
+    // {
+    //     int prevValue = -1;
+    //     for(int j = 0; j < columns; j++)
+    //     {
+    //         const int randomValue = QRandomGenerator::global()->bounded(10000);
 
-            if(addNode(randomValue, QPoint(startLoc.x()  + nodeSpace * j, startLoc.y() + nodeSpace * i)))
-            {
-                if(j > 0 && prevValue != -1)
-                {
-                    addEdge(prevValue, randomValue);
-                }
+    //         if(addNode(randomValue, QPoint(startLoc.x()  + nodeSpace * j, startLoc.y() + nodeSpace * i)))
+    //         {
+    //             if(j > 0 && prevValue != -1)
+    //             {
+    //                 addEdge(prevValue, randomValue);
+    //             }
 
-                if(i > 0 && prevRow[j] != -1)
-                {
-                    addEdge(prevRow[j], randomValue);
-                }
+    //             if(i > 0 && prevRow[j] != -1)
+    //             {
+    //                 addEdge(prevRow[j], randomValue);
+    //             }
 
-                prevRow[j] = randomValue;
+    //             prevRow[j] = randomValue;
 
-                prevValue = randomValue;
-            }
-            else
-            {
-                prevRow[j] = -1;
-            }
-        }
-    }
+    //             prevValue = randomValue;
+    //         }
+    //         else
+    //         {
+    //             prevRow[j] = -1;
+    //         }
+    //     }
+    // }
 }

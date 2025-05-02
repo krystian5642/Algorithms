@@ -17,13 +17,12 @@ public:
     virtual ~GraphAlgorithm() = 0;
 
     void run() override;
-    void clear() override;
 
-    const Graph *getGraph() const;
-    void setGraph(const Graph *newGraph);
+    Graph *getGraph() const;
+    void setGraph(Graph *newGraph);
 
 protected:
-    const Graph* graph = nullptr;
+    Graph* graph = nullptr;
 };
 
 class BFSIterative : public GraphAlgorithm

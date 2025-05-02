@@ -2,192 +2,56 @@
 
 #include <QRandomGenerator>
 
-GraphEdge::GraphEdge(int inWeight, int inEndValue)
-    : weight(inWeight)
-    , endValue(inEndValue)
-{
-
-}
-
-bool GraphEdge::operator==(const GraphEdge& other) const
-{
-    return weight == other.weight && endValue == other.endValue;
-}
-
-QJsonValue GraphEdge::toJsonValue() const
-{
-    QJsonObject jsonObject;
-    jsonObject["weight"] = weight;
-    jsonObject["endValue"] = endValue;
-    return jsonObject;
-}
-
-void GraphEdge::fromJsonValue(const QJsonValue &jsonValue)
-{
-    weight = jsonValue["weight"].toInt();
-    endValue = jsonValue["endValue"].toInt();
-}
-
-int GraphEdge::getWeight() const
-{
-    return weight;
-}
-
-int GraphEdge::getEndValue() const
-{
-    return endValue;
-}
-
 Graph::Graph(bool inIsDirected)
     : isDirected(inIsDirected)
 {
 
 }
 
-void Graph::addEdge(int start, int end, int weight)
+AdjacencyListGraph::AdjacencyListGraph(bool inIsDirected)
+    : Graph(inIsDirected)
 {
-    const GraphEdge endEdge(weight, end);
-    addEdge(start, endEdge);
+
 }
 
-void Graph::addEdge(int start, const GraphEdge &graphEdge)
+void AdjacencyListGraph::addEdge(int start, int end, int weight)
 {
-    if(!graphContainer[start].contains(graphEdge))
+    if(start < 0 || end < 0)
     {
-        graphContainer[start].emplaceBack(graphEdge);
+        return;
     }
+
+    if(start >= adjList.size())
+    {
+        addNode();
+    }
+
+    adjList[start].push_back(Edge{end, weight});
 
     if(!isDirected)
     {
-        const GraphEdge startEdge(graphEdge.weight, start);
-        if(!graphContainer[graphEdge.endValue].contains(startEdge))
+        if(end >= adjList.size())
         {
-            graphContainer[graphEdge.endValue].emplaceBack(startEdge);
-        }
-    }
-    else
-    {
-        addNode(graphEdge.endValue);
-    }
-}
-
-bool Graph::addNode(int value)
-{
-    if(!graphContainer.contains(value))
-    {
-        graphContainer[value] = QList<GraphEdge>();
-        return true;
-    }
-    return false;
-}
-
-qsizetype Graph::getEdgesNum() const
-{
-    return countEdges();
-}
-
-qsizetype Graph::getNodesNum() const
-{
-    return graphContainer.size();
-}
-
-void Graph::clear()
-{
-    graphContainer.clear();
-}
-
-int Graph::getRandomValue(bool* found) const
-{
-    if (!graphContainer.isEmpty())
-    {
-        if (found)
-        {
-            *found = true;
+            addNode();
         }
 
-        const auto keys = graphContainer.keys();
-        const qint64 randomIndex = QRandomGenerator::global()->bounded(keys.size());
-        return keys[randomIndex];
+        adjList[end].push_back(Edge{end, weight});
     }
-    else if (found)
-    {
-        *found = false;
-    }
-    return 0;
 }
 
-int Graph::getFirstValue(bool *found) const
+void AdjacencyListGraph::addNode()
 {
-    int value = 0;
-    if(!graphContainer.isEmpty())
-    {
-        value = graphContainer.constBegin().key();
-
-        if(found)
-        {
-            *found = true;
-        }
-    }
-    else if(found)
-    {
-        *found = false;
-    }
-
-    return value;
+    const qsizetype oldSize = adjList.size();
+    adjList.resize(oldSize + 1);
+    adjList[oldSize] = QList<Edge>();
 }
 
-QJsonObject Graph::toJsonObject() const
-{
-    QJsonObject jsonObj;
-    for (auto it = graphContainer.constBegin(); it != graphContainer.constEnd(); ++it)
-    {
-        const auto& key = it.key();
-        const auto& values = it.value();
-
-        QJsonArray jsonArray;
-        for (const auto& value : values)
-        {
-            jsonArray.append(value.toJsonValue());
-        }
-
-        jsonObj[QString::number(key)] = jsonArray;
-    }
-    return jsonObj;
-}
-
-void Graph::fromJsonObject(const QJsonObject& jsonObj)
-{
-    clear();
-    for (auto it = jsonObj.constBegin(); it != jsonObj.constEnd(); ++it)
-    {
-        const QJsonArray jsonArray = it.value().toArray();
-        for(const auto& value : jsonArray)
-        {
-            GraphEdge edge;
-            edge.fromJsonValue(value.toObject());
-
-            addEdge(it.key().toInt(), edge);
-        }
-    }
-}
-const Graph::Neighbours& Graph::getNeighbourEdges(int value) const
-{
-    static const Neighbours empty;
-
-    auto it = graphContainer.constFind(value);
-    if(it != graphContainer.constEnd())
-    {
-        return it.value();
-    }
-    return empty;
-}
-
-qsizetype Graph::countEdges() const
+qsizetype AdjacencyListGraph::getEdgesNum() const
 {
     qsizetype edgesNum = 0;
-    for (auto it = graphContainer.constBegin(); it != graphContainer.constEnd(); ++it)
+    for(const auto& neighbours : adjList)
     {
-        edgesNum += it.value().size();
+        edgesNum += neighbours.size();
     }
 
     if(!isDirected)
@@ -196,4 +60,173 @@ qsizetype Graph::countEdges() const
     }
 
     return edgesNum;
+}
+
+qsizetype AdjacencyListGraph::getVerticesNum() const
+{
+    return adjList.size();
+}
+
+void AdjacencyListGraph::clear()
+{
+    adjList.clear();
+}
+
+int AdjacencyListGraph::getRandomValue(bool *found) const
+{
+    if (!adjList.isEmpty())
+    {
+        if (found)
+        {
+            *found = true;
+        }
+
+        return QRandomGenerator::global()->bounded(adjList.size());
+    }
+    else if (found)
+    {
+        *found = false;
+    }
+    return 0;
+}
+
+void AdjacencyListGraph::forEachNode(std::function<void (int)> func)
+{
+    for(int i = 0; i < adjList.size(); ++i)
+    {
+        func(i);
+    }
+}
+
+void AdjacencyListGraph::forEachEdge(std::function<void (int, int, int)> func)
+{
+    for(int i = 0; i < adjList.size(); ++i)
+    {
+        forEachNeighbor(i, func);
+    }
+}
+
+void AdjacencyListGraph::forEachNeighbor(int vertex, std::function<void (int, int, int)> func)
+{
+    for(const Edge& edge : adjList[vertex])
+    {
+        func(vertex, edge.endValue, edge.weight);
+    }
+}
+
+AdjacencyMatrixGraph::AdjacencyMatrixGraph(int vertices, bool inIsDirected)
+    : Graph(inIsDirected)
+{
+    adjMatrix.fill(QList<int>{}, vertices);
+    for(auto& neighbours : adjMatrix)
+    {
+        neighbours.fill(INT_MIN, vertices);
+    }
+}
+
+void AdjacencyMatrixGraph::addEdge(int start, int end, int weight)
+{
+    if(start < 0 || end < 0)
+    {
+        return;
+    }
+
+    if(start >= adjMatrix.size())
+    {
+        addNode();
+    }
+
+    if(end >= adjMatrix[start].size())
+    {
+        addNode();
+    }
+
+    adjMatrix[start][end] = weight;
+
+    if(!isDirected)
+    {
+        adjMatrix[end][start] = weight;
+    }
+}
+
+void AdjacencyMatrixGraph::addNode()
+{
+    const qsizetype verticesNum = getVerticesNum();
+
+    adjMatrix.push_back(QList<int>(verticesNum + 1, INT_MIN));
+    for(int i = 0; i < verticesNum; ++i)
+    {
+        adjMatrix[i].push_back(INT_MIN);
+    }
+}
+
+qsizetype AdjacencyMatrixGraph::getEdgesNum() const
+{
+    qsizetype edgesNum = 0;
+    for(const auto& weights : adjMatrix)
+    {
+        for(int weight : weights)
+        {
+            if(weight != INT_MIN)
+            {
+                edgesNum += 1;
+            }
+        }
+    }
+    return edgesNum;
+}
+
+qsizetype AdjacencyMatrixGraph::getVerticesNum() const
+{
+    return adjMatrix.size();
+}
+
+void AdjacencyMatrixGraph::clear()
+{
+    adjMatrix.clear();
+}
+
+int AdjacencyMatrixGraph::getRandomValue(bool *found) const
+{
+    if (!adjMatrix.isEmpty())
+    {
+        if (found)
+        {
+            *found = true;
+        }
+
+        return QRandomGenerator::global()->bounded(adjMatrix.size());
+    }
+    else if (found)
+    {
+        *found = false;
+    }
+    return 0;
+}
+
+void AdjacencyMatrixGraph::forEachNode(std::function<void (int)> func)
+{
+    for(int i = 0; i < adjMatrix.size(); ++i)
+    {
+        func(i);
+    }
+}
+
+void AdjacencyMatrixGraph::forEachEdge(std::function<void (int, int, int)> func)
+{
+    for(int i = 0; i < adjMatrix.size(); ++i)
+    {
+        forEachNeighbor(i, func);
+    }
+}
+
+void AdjacencyMatrixGraph::forEachNeighbor(int vertex, std::function<void (int, int, int)> func)
+{
+    for(int i = 0; i < adjMatrix[vertex].size(); ++i)
+    {
+        if(adjMatrix[vertex][i] != INT_MIN)
+        {
+            func(vertex, i, adjMatrix[vertex][i]);
+        }
+    }
 }

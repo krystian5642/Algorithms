@@ -26,7 +26,7 @@ class GraphWidget : public DataStructureWidget
     Q_OBJECT
 
 public:
-    GraphWidget(QWidget *parent = nullptr);
+    explicit GraphWidget(QWidget *parent = nullptr);
     ~GraphWidget();
 
     void clearGraph();
@@ -39,8 +39,8 @@ public:
     void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
     void setNodesAndEdgesToBlack();
 
-    bool addNode(int value, const QPoint& location);
-    void addEdge(int startValue, int endValue, float weight = 0.f);
+    bool addNode(const QPoint& location);
+    void addEdge(int start, int end, int weight = 1);
 
     // DataStructureWidget interface
     void saveAction() override;
@@ -54,7 +54,7 @@ public:
 protected:
     void mousePressEvent(QMouseEvent *event) override;
 
-    QHash<int, GraphNodeVisualData> graphNodeVisualData;
+    QList<GraphNodeVisualData> graphNodeVisualData;
     QHash<QPair<int, int>, GraphEdgeVisualData> graphEdgeVisualData;
 
 private:
@@ -73,7 +73,7 @@ private:
     void generateRandomGraph();
     void generateRandomGridGraph();
 
-    Graph graph;
+    std::unique_ptr<Graph> graph;
 };
 
 #endif // GRAPH_WIDGET_H

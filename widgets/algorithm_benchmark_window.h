@@ -28,6 +28,7 @@ private slots:
     void onActionRunBenchmarkTriggered(bool isOn);
     void onActionClearSpikesTriggered();
 
+    void onAlgorithmStarted();
     void onAlgorithmFinished(const QList<QPointF>& result);
 
 private:
@@ -36,7 +37,7 @@ private:
 
     void registerAlgorithms();
 
-    void cancelAlgorithms(bool deleteAll);
+    void endBenchmarkRun(bool deleteAllAlgorithms = false);
 
     Algorithm* getSelectedAlgorithm() const;
 
@@ -48,6 +49,13 @@ private:
     QLineSeries *defaultSeries;
     QChart *chart;
     QChartView *chartView;
+
+    // Actions
+    QAction* actionSave;
+    QAction* actionLoad;
+    QAction* actionClear;
+    QAction* actionRunBenchmark;
+    QAction* actionClearSpikes;
 
     // Category to algorithms list
     QHash<QString, QList<Algorithm*>> algorithms;
