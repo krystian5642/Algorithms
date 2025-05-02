@@ -21,6 +21,8 @@ public:
     void registerCreateLayoutForType(int type, CreateLayoutFunction func);
     QBoxLayout* createLayoutForProperty(const QMetaProperty& property, QObject* propertyObject, QWidget* parent);
 
+    QWidget* createPropertiesWidget(QObject *object, QWidget* parent = nullptr, bool addStretch = true);
+
 private:
     PropertyLayoutFactory();
 

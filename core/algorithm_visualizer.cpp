@@ -32,24 +32,9 @@ void AlgorithmVisualizer::setPause(bool pause)
     }
 }
 
-QWidget *AlgorithmVisualizer::createPropertiesWidget() const
+QWidget *AlgorithmVisualizer::createPropertiesWidget(QWidget* parent)
 {
-    QWidget* propertiesWidget = new QWidget();
-
-    QVBoxLayout* propertyLayout = new QVBoxLayout(propertiesWidget);
-
-    const QMetaObject* myMetaObject = metaObject();
-    for (int i = 0; i < myMetaObject->propertyCount(); ++i)
-    {
-        const QMetaProperty metaProperty = myMetaObject->property(i);
-        if(QString(metaProperty.name()) != "objectName")
-        {
-            propertyLayout->addLayout(PropertyLayoutFactory::get().createLayoutForProperty(metaProperty, const_cast<AlgorithmVisualizer*>(this), propertiesWidget));
-        }
-    }
-
-    propertyLayout->addStretch();
-    return propertiesWidget;
+    return PropertyLayoutFactory::get().createPropertiesWidget(this, parent);
 }
 
 int AlgorithmVisualizer::getStepTime() const

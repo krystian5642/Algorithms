@@ -102,6 +102,31 @@ void AlgorithmBenchmarkWindow::onActionClearSpikesTriggered()
     chart->createDefaultAxes();
 }
 
+void AlgorithmBenchmarkWindow::onAlgorithmTreeItemClicked(const QModelIndex &index)
+{
+    QLayoutItem* layoutItem = verticalLayout->takeAt(1);
+    if(layoutItem)
+    {
+        QWidget* widget = layoutItem->widget();
+        if(widget)
+        {
+            widget->deleteLater();
+        }
+        delete layoutItem;
+    }
+
+    Algorithm* algorithm = qvariant_cast<Algorithm*>(index.data(Qt::UserRole));
+    if(algorithm)
+    {
+        QWidget* propertyWidget = algorithm->createPropertiesWidget(this);
+        verticalLayout->addWidget(propertyWidget, 1);
+    }
+    else
+    {
+        verticalLayout->addStretch(1);
+    }
+}
+
 void AlgorithmBenchmarkWindow::onAlgorithmStarted()
 {
     actionRunBenchmark->setChecked(true);
@@ -146,12 +171,17 @@ void AlgorithmBenchmarkWindow::setupUi()
     algorithmsTreeView = new QTreeView(centralWidget);
     algorithmsTreeView->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
     algorithmsTreeView->setFixedWidth(240);
+    connect(algorithmsTreeView, &QTreeView::clicked, this, &AlgorithmBenchmarkWindow::onAlgorithmTreeItemClicked);
 
-    QVBoxLayout* verticalLayout = new QVBoxLayout;
+    QWidget* layoutHolder = new QWidget(this);
+    layoutHolder->setFixedWidth(240);
+
+    verticalLayout = new QVBoxLayout(layoutHolder);
     verticalLayout->addWidget(algorithmsTreeView, 1);
+    verticalLayout->addStretch(1);
 
     QHBoxLayout* horizontalLayout = new QHBoxLayout(centralWidget);
-    horizontalLayout->addLayout(verticalLayout);
+    horizontalLayout->addWidget(layoutHolder);
     horizontalLayout->addWidget(chartView);
 
     QStandardItemModel* model = new QStandardItemModel;

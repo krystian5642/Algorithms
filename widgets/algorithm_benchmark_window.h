@@ -28,6 +28,8 @@ private slots:
     void onActionRunBenchmarkTriggered(bool isOn);
     void onActionClearSpikesTriggered();
 
+    void onAlgorithmTreeItemClicked(const QModelIndex& index);
+
     void onAlgorithmStarted();
     void onAlgorithmFinished(const QList<QPointF>& result);
 
@@ -49,6 +51,8 @@ private:
     QLineSeries *defaultSeries;
     QChart *chart;
     QChartView *chartView;
+
+    QVBoxLayout* verticalLayout;
 
     // Actions
     QAction* actionSave;

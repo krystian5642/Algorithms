@@ -15,7 +15,7 @@ public:
     virtual void reset();
 
     void setPause(bool pause);
-    QWidget* createPropertiesWidget() const;
+    QWidget* createPropertiesWidget(QWidget* parent = nullptr);
 
     int getStepTime() const;
     void setStepTime(int newStepTime);

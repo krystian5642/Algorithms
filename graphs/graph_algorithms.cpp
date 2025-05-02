@@ -10,7 +10,6 @@
 GraphAlgorithm::GraphAlgorithm(QObject *parent)
     : Algorithm(parent)
 {
-
 }
 
 void GraphAlgorithm::run()
@@ -18,14 +17,13 @@ void GraphAlgorithm::run()
     requestedEnd = false;
     emit started();
 
-    int runNum = 2*9600;
     QList<QPointF> result;
-    result.reserve(runNum);
+    result.reserve(iterationsNumber);
 
-    QScopedPointer<Graph> testGraph(new AdjacencyMatrixGraph);
+    QScopedPointer<Graph> testGraph(new AdjacencyListGraph);
     setGraph(testGraph.get());
 
-    for(int i = 1; i <= runNum; ++i)
+    for(int i = 1; i <= iterationsNumber; ++i)
     {      
         for(int j = 0; j < i; ++j)
         {         
@@ -52,7 +50,13 @@ void GraphAlgorithm::run()
         ULONG64 end;
         QueryThreadCycleTime(GetCurrentThread(), &end);
 
-        const QPointF point(i - 1, end - start);
+        const QString selectedComplexity = getSelectedComplexity();
+        auto it = std::find_if(complexityList.begin(), complexityList.end(), [&](const ComplexityPair& pair)
+        {
+            return pair.first == selectedComplexity;
+        });
+
+        const QPointF point((it->second)(i - 1, testGraph->getVerticesNum(), testGraph->getEdgesNum()), end - start);
         result.append(point);
 
         clear();

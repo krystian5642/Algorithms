@@ -53,6 +53,36 @@ QBoxLayout *PropertyLayoutFactory::createLayoutForProperty(const QMetaProperty& 
     return nullptr;
 }
 
+QWidget *PropertyLayoutFactory::createPropertiesWidget(QObject *object, QWidget* parent, bool addStretch)
+{
+    if(!object)
+    {
+        return nullptr;
+    }
+
+    QWidget* propertiesWidget = new QWidget(parent);
+
+    QVBoxLayout* propertyLayout = new QVBoxLayout;
+    propertiesWidget->setLayout(propertyLayout);
+
+    const QMetaObject* myMetaObject = object->metaObject();
+    for (int i = 0; i < myMetaObject->propertyCount(); ++i)
+    {
+        const QMetaProperty metaProperty = myMetaObject->property(i);
+        if(QString(metaProperty.name()) != "objectName")
+        {
+            propertyLayout->addLayout(createLayoutForProperty(metaProperty, object, propertiesWidget));
+        }
+    }
+
+    if(addStretch)
+    {
+        propertyLayout->addStretch();
+    }
+
+    return propertiesWidget;
+}
+
 PropertyLayoutFactory::PropertyLayoutFactory()
 {
     constexpr int lineEditMaxWidth = 130;
