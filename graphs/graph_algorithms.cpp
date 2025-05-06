@@ -2,22 +2,27 @@
 #include "graph_algorithms.h"
 #include "graph.h"
 
-#include "../core/property_layout_factory.h"
+#include "../core/property_editor_factory.h"
 
-#include "general_graph_builder.h"
+#include "graph_builders.h"
 
 #include <windows.h>
 
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QElapsedTimer>
+#include <QFormLayout>
+#include <QLabel>
 #include <QRandomGenerator>
 #include <QWidget>
 
 GraphAlgorithm::GraphAlgorithm(QObject *parent)
     : Algorithm(parent)
     , graph(nullptr)
-    , addEdgePropability(0.5)
+    , builderPropertiesWidget(nullptr)
 {
+    dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
+    dataStructureBuilders.push_back(new GridGraphBuilder(this));
 }
 
 GraphAlgorithm::~GraphAlgorithm()
@@ -25,18 +30,43 @@ GraphAlgorithm::~GraphAlgorithm()
 
 }
 
-QWidget *GraphAlgorithm::createPropertiesWidget(QWidget *parent, bool addStretch)
+QWidget *GraphAlgorithm::createPropertiesWidget(QWidget *parent)
 {
-    QWidget* propertiesWidget = Algorithm::createPropertiesWidget(parent, false);
+    builderPropertiesWidget = nullptr;
 
-    QStringList implementationsStringList;
-    implementationsStringList.push_back("Adjacency List");
-    implementationsStringList.push_back("Adjacency Matrix");
+    QWidget* propertiesWidget = Algorithm::createPropertiesWidget(parent);
 
-    PropertyLayoutFactory::get().addComboBox(propertiesWidget, implementationsStringList, "implementation", selectedImplementation);
+    QVBoxLayout* verticalLayout = qobject_cast<QVBoxLayout*>(propertiesWidget->layout());
+    QFormLayout* formLayout = propertiesWidget->findChild<QFormLayout*>();
 
-    QBoxLayout* layout = qobject_cast<QBoxLayout*>(propertiesWidget->layout());
-    layout->addStretch(1);
+    builderComboBox = new QComboBox(propertiesWidget);
+
+    for(const auto* builder : dataStructureBuilders)
+    {
+        builderComboBox->addItem(builder->objectName(), QVariant::fromValue(builder));
+    }
+
+    formLayout->addRow("builder", builderComboBox);
+
+    auto onBuilderSelected = [this, verticalLayout, parent](const QString& currentText)
+    {
+        if(builderPropertiesWidget)
+        {
+            verticalLayout->removeWidget(builderPropertiesWidget);
+            builderPropertiesWidget->deleteLater();
+            builderPropertiesWidget = nullptr;
+        }
+
+        PropertyEditorFactory& propertyEditorFactory = PropertyEditorFactory::get();
+
+        builderPropertiesWidget = getSelectedBuilder()->createPropertiesWidget(parent);
+
+        verticalLayout->addWidget(builderPropertiesWidget);
+    };
+
+    connect(builderComboBox, &QComboBox::currentTextChanged, this, onBuilderSelected);
+
+    onBuilderSelected(builderComboBox->currentText());
 
     return propertiesWidget;
 }
@@ -49,10 +79,9 @@ void GraphAlgorithm::run()
     QList<QPointF> result;
     result.reserve(iterationsNumber);
 
-    QScopedPointer<GeneralGraphBuilder> graphBuilder(new GeneralGraphBuilder);
-    graphBuilder->addEdgePropability = addEdgePropability;
+    GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
 
-    auto complexityFunc = std::find_if(complexityList.begin(), complexityList.end(), [&](const StringToFunction& pair)
+    auto complexityFunc = std::find_if(complexityList.begin(), complexityList.end(), [&](const ComplexityNameToFunction& pair)
     {
         return pair.first == selectedComplexity;
     })->second;
@@ -67,10 +96,7 @@ void GraphAlgorithm::run()
 
         graphBuilder->buildIterations = i + 1;
 
-        graphBuilder->setGraph(dynamic_cast<Graph*>(createSelectedDataStructure())); // temp
-
         QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->buildDataStructure()));
-        setGraph(testGraph.get());
 
         init();
 
@@ -103,33 +129,9 @@ void GraphAlgorithm::setGraph(Graph *newGraph)
     graph = newGraph;
 }
 
-double GraphAlgorithm::getAddEdgePropability() const
+DataStructureBuilder *GraphAlgorithm::getSelectedBuilder() const
 {
-    return addEdgePropability;
-}
-
-void GraphAlgorithm::setAddEdgePropability(double newAddEdgePropability)
-{
-    if (qFuzzyCompare(addEdgePropability, newAddEdgePropability))
-    {
-        return;
-    }
-
-    addEdgePropability = newAddEdgePropability;
-    emit addEdgePropabilityChanged();
-}
-
-DataStructure *GraphAlgorithm::createSelectedDataStructure() const
-{
-    if(selectedImplementation == "Adjacency List")
-    {
-        return new AdjacencyListGraph;
-    }
-    else if(selectedImplementation == "Adjacency Matrix")
-    {
-        return new AdjacencyMatrixGraph;
-    }
-    return nullptr;
+    return builderComboBox->currentData(Qt::UserRole).value<DataStructureBuilder*>();
 }
 
 BFSIterative::BFSIterative(QObject *parent)

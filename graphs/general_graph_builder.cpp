@@ -9,7 +9,7 @@ GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
     , buildIterations(1000)
     , addEdgePropability(0.5)
 {
-
+    setObjectName("General Graph Builder");
 }
 
 DataStructure* GeneralGraphBuilder::buildDataStructure()

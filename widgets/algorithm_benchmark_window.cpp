@@ -170,11 +170,11 @@ void AlgorithmBenchmarkWindow::setupUi()
 
     algorithmsTreeView = new QTreeView(centralWidget);
     algorithmsTreeView->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
-    algorithmsTreeView->setFixedWidth(240);
+    algorithmsTreeView->setFixedWidth(270);
     connect(algorithmsTreeView, &QTreeView::clicked, this, &AlgorithmBenchmarkWindow::onAlgorithmTreeItemClicked);
 
     QWidget* layoutHolder = new QWidget(this);
-    layoutHolder->setFixedWidth(240);
+    layoutHolder->setFixedWidth(285);
 
     verticalLayout = new QVBoxLayout(layoutHolder);
     verticalLayout->addWidget(algorithmsTreeView, 1);

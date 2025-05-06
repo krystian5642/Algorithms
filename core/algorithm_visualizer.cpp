@@ -1,6 +1,6 @@
 #include "algorithm_visualizer.h"
 
-#include "property_layout_factory.h"
+#include "property_editor_factory.h"
 
 #include <QMetaProperty>
 #include <QVBoxLayout>
@@ -34,7 +34,7 @@ void AlgorithmVisualizer::setPause(bool pause)
 
 QWidget *AlgorithmVisualizer::createPropertiesWidget(QWidget* parent)
 {
-    return PropertyLayoutFactory::get().createPropertiesWidget(this, parent);
+    return PropertyEditorFactory::get().createPropertiesWidget(this, parent);
 }
 
 int AlgorithmVisualizer::getStepTime() const

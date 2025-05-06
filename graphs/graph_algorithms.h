@@ -5,7 +5,9 @@
 
 #include <QQueue>
 #include <QSet>
+#include <QWeakPointer>
 
+class QComboBox;
 class DataStructure;
 class GraphNode;
 class Graph;
@@ -13,33 +15,25 @@ class Graph;
 class GraphAlgorithm : public Algorithm
 {
     Q_OBJECT
-
-    Q_PROPERTY(double addEdgePropability READ getAddEdgePropability WRITE setAddEdgePropability NOTIFY addEdgePropabilityChanged FINAL)
 public:
     explicit GraphAlgorithm(QObject* parent = nullptr);
     virtual ~GraphAlgorithm() = 0;
 
-    QWidget* createPropertiesWidget(QWidget* parent = nullptr, bool addStretch = true) override;
+    QWidget* createPropertiesWidget(QWidget* parent = nullptr) override;
 
     void run() override;
 
     Graph *getGraph() const;
     void setGraph(Graph *newGraph);
 
-    double getAddEdgePropability() const;
-    void setAddEdgePropability(double newAddEdgePropability);
-
-    DataStructure* createSelectedDataStructure() const;
-
-signals:
-    void addEdgePropabilityChanged();
+    DataStructureBuilder* getSelectedBuilder() const;
 
 protected:
     Graph* graph;
 
-    double addEdgePropability;
-
-    QString selectedImplementation;
+private:
+    QComboBox* builderComboBox;
+    QWidget* builderPropertiesWidget;
 };
 
 class BFSIterative : public GraphAlgorithm

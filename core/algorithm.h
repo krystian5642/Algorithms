@@ -9,14 +9,16 @@
 #include <QString>
 #include <QHash>
 
+class DataStructureBuilder;
+
 class Algorithm : public QObject, public QRunnable
 {
     Q_OBJECT
 
     Q_PROPERTY(int iterationsNumber READ getIterationsNumber WRITE setIterationsNumber NOTIFY iterationsNumberChanged FINAL)
 public:
-    using StringToFunction = QPair<QString, std::function<int(int, int, int)>>;
-    using StringFunctionPairs = QList<StringToFunction>;
+    using ComplexityNameToFunction = QPair<QString, std::function<int(int, int, int)>>;
+    using ComplexityPairsList = QList<ComplexityNameToFunction>;
 
     explicit Algorithm(QObject* parent = nullptr);
     virtual ~Algorithm() = 0;
@@ -25,7 +27,7 @@ public:
     virtual void init() {};
     virtual void clear() {};
 
-    virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr, bool addStretch = true);
+    virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
 
     void requestEnd();
 
@@ -48,7 +50,9 @@ protected:
     bool requestedEnd;
 
 protected:
-    StringFunctionPairs complexityList;
+    ComplexityPairsList complexityList;
+
+    QList<DataStructureBuilder*> dataStructureBuilders;
 };
 
 #endif // ALGORITHM_H

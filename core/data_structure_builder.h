@@ -1,6 +1,7 @@
 #ifndef DATA_STRUCTURE_BUILDER_H
 #define DATA_STRUCTURE_BUILDER_H
 
+#include <QHash>
 #include <QObject>
 
 class DataStructure;
@@ -13,6 +14,10 @@ public:
     virtual ~DataStructureBuilder();
 
     virtual DataStructure* buildDataStructure() = 0;
+    virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
+
+protected:
+    QList<QPair<QString, std::function<DataStructure*()>>> dataStructures;
 };
 
 #endif // DATA_STRUCTURE_BUILDER_H

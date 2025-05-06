@@ -1,5 +1,5 @@
 #include "algorithm.h"
-#include "property_layout_factory.h"
+#include "property_editor_factory.h"
 
 #include <QComboBox>
 #include <QLabel>
@@ -13,9 +13,9 @@ Algorithm::Algorithm(QObject* parent)
 {
     setAutoDelete(false);
 
-    complexityList.push_back(qMakePair("O(1)", [](int I, int V, int E) { return I; }));
-    complexityList.push_back(qMakePair("O(V)", [](int I, int V, int E) { return V; }));
-    complexityList.push_back(qMakePair("O(E)", [](int I, int V, int E) { return E; }));
+    complexityList.push_back(qMakePair("O(1)",   [](int I, int V, int E) { return I; }));
+    complexityList.push_back(qMakePair("O(V)",   [](int I, int V, int E) { return V; }));
+    complexityList.push_back(qMakePair("O(E)",   [](int I, int V, int E) { return E; }));
     complexityList.push_back(qMakePair("O(V+E)", [](int I, int V, int E) { return V + E; }));
     complexityList.push_back(qMakePair("O(V^2)", [](int I, int V, int E) { return V * V; }));
 }
@@ -25,7 +25,7 @@ Algorithm::~Algorithm()
 
 }
 
-QWidget *Algorithm::createPropertiesWidget(QWidget* parent, bool addStretch)
+QWidget *Algorithm::createPropertiesWidget(QWidget* parent)
 {
     QStringList complexityStringList;
     complexityStringList.reserve(complexityList.size());
@@ -35,17 +35,10 @@ QWidget *Algorithm::createPropertiesWidget(QWidget* parent, bool addStretch)
         complexityStringList.push_back(complexity.first);
     }
 
-    PropertyLayoutFactory& propertyLayoutFactory = PropertyLayoutFactory::get();
+    PropertyEditorFactory& propertyEditorFactory = PropertyEditorFactory::get();
 
-    QWidget* propertiesWidget = propertyLayoutFactory.createPropertiesWidget(this, parent, addStretch);
-    QBoxLayout* layout = qobject_cast<QBoxLayout*>(propertiesWidget->layout());
-
-    propertyLayoutFactory.addComboBox(propertiesWidget, complexityStringList, "complexity", selectedComplexity);
-
-    if(addStretch)
-    {
-        layout->addStretch(1);
-    }
+    QWidget* propertiesWidget = propertyEditorFactory.createPropertiesWidget(this, parent);
+    propertyEditorFactory.addStringListComboBox(propertiesWidget, complexityStringList, "complexity", selectedComplexity);
 
     return propertiesWidget;
 }
