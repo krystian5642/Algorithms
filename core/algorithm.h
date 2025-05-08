@@ -28,6 +28,7 @@ public:
     virtual void clear() {};
 
     virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
+    virtual void appendPropertiesInfo(QString& infoText);
 
     void requestEnd();
 
@@ -36,7 +37,7 @@ public:
 
 signals:
     void started();
-    void finished(const QList<QPointF>& result);
+    void finished(const QList<QPointF>& result, const QString& toolTip);
 
     void iterationsNumberChanged();
 

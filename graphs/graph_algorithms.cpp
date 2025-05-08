@@ -71,6 +71,14 @@ QWidget *GraphAlgorithm::createPropertiesWidget(QWidget *parent)
     return propertiesWidget;
 }
 
+void GraphAlgorithm::appendPropertiesInfo(QString &infoText)
+{
+    Algorithm::appendPropertiesInfo(infoText);
+
+    infoText.append("builder : " + builderComboBox->currentText());
+    infoText.append("\n");
+}
+
 void GraphAlgorithm::run()
 {
     requestedEnd = false;
@@ -79,14 +87,19 @@ void GraphAlgorithm::run()
     QList<QPointF> result;
     result.reserve(iterationsNumber);
 
+    QString toolTipText;
+    appendPropertiesInfo(toolTipText);
+
     GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    graphBuilder->appendPropertiesInfo(toolTipText);
 
     auto complexityFunc = std::find_if(complexityList.begin(), complexityList.end(), [&](const ComplexityNameToFunction& pair)
     {
         return pair.first == selectedComplexity;
     })->second;
 
-    for(int i = 0; i < iterationsNumber; ++i)
+    int i = 0;
+    for(; i < iterationsNumber; ++i)
     {
         if(requestedEnd)
         {
@@ -112,14 +125,18 @@ void GraphAlgorithm::run()
         const QPointF point(complexityFunc(i, testGraph->getVerticesNum(), testGraph->getEdgesNum()), end - start);
         result.append(point);
 
-        qDebug() << testGraph->getEdgesNum()  << "  " << testGraph->getVerticesNum();
-
         clear();
     }
 
+    toolTipText.append("build iterations : " + QString::number(i));
+    toolTipText.append("\n");
+
+    toolTipText.append("start time : " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+    toolTipText.append("\n");
+
     setGraph(nullptr);
 
-    emit finished(result);
+    emit finished(result, toolTipText);
 }
 
 Graph *GraphAlgorithm::getGraph() const

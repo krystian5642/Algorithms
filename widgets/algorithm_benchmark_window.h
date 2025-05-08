@@ -7,6 +7,7 @@
 #include <QQueue>
 #include <QTimer>
 
+class QLabel;
 class QLineSeries;
 class QChart;
 class QChartView;
@@ -21,6 +22,10 @@ public:
     explicit AlgorithmBenchmarkWindow(QWidget *parent = nullptr);
     ~AlgorithmBenchmarkWindow();
 
+    // QWidget interface
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+
 private slots:
     void onActionSaveTriggered();
     void onActionLoadTriggered();
@@ -31,7 +36,14 @@ private slots:
     void onAlgorithmTreeItemClicked(const QModelIndex& index);
 
     void onAlgorithmStarted();
-    void onAlgorithmFinished(const QList<QPointF>& result);
+    void onAlgorithmFinished(const QList<QPointF>& result, const QString& toolTipText);
+
+    void onLineSeriesPressed(const QPointF& point);
+
+    void onPlotAreaChanged(const QRectF &plotArea);
+
+    void onLegendMarkerClicked();
+    void onLegendMarkerHovered(bool state);
 
 private:
     void setupUi();
@@ -46,13 +58,18 @@ private:
     void saveSeriesToFile();
     void loadSeriesFromFile();
 
+    void clearSeriesSelection();
+    void addSeries(QLineSeries* series);
+
     QTreeView* algorithmsTreeView;
 
-    QLineSeries *defaultSeries;
     QChart *chart;
     QChartView *chartView;
 
     QVBoxLayout* verticalLayout;
+
+    QHash<QLineSeries*, QString> seriesToToolTipText;
+    QHash<QLineSeries*, QLabel*> seriesToLabel;
 
     // Actions
     QAction* actionSave;

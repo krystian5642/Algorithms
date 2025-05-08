@@ -15,6 +15,7 @@ public:
 
     virtual DataStructure* buildDataStructure() = 0;
     virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
+    virtual void appendPropertiesInfo(QString& infoText);
 
 protected:
     QList<QPair<QString, std::function<DataStructure*()>>> dataStructures;

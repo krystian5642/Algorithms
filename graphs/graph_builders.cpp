@@ -36,6 +36,14 @@ QWidget *GraphBuilder::createPropertiesWidget(QWidget *parent)
     return propertiesWidget;
 }
 
+void GraphBuilder::appendPropertiesInfo(QString &infoText)
+{
+    DataStructureBuilder::appendPropertiesInfo(infoText);
+
+    infoText.append("implemention : " + selectedImplementation);
+    infoText.append("\n");
+}
+
 Graph *GraphBuilder::createGraph() const
 {
     auto createGraphFunc = std::find_if(dataStructures.begin(), dataStructures.end(), [&](const QPair<QString, std::function<DataStructure*()>>& pair)

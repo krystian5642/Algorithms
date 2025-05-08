@@ -20,6 +20,7 @@ public:
     virtual ~GraphAlgorithm() = 0;
 
     QWidget* createPropertiesWidget(QWidget* parent = nullptr) override;
+    void appendPropertiesInfo(QString& infoText) override;
 
     void run() override;
 

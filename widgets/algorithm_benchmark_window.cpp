@@ -15,6 +15,10 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QToolTip>
+#include <QLabel>
+#include <QPointer>
+#include <QLegendMarker>
 
 AlgorithmBenchmarkWindow::AlgorithmBenchmarkWindow(QWidget *parent)
     : QMainWindow{parent}
@@ -26,6 +30,18 @@ AlgorithmBenchmarkWindow::AlgorithmBenchmarkWindow(QWidget *parent)
 AlgorithmBenchmarkWindow::~AlgorithmBenchmarkWindow()
 {
     endBenchmarkRun(true);
+}
+
+void AlgorithmBenchmarkWindow::mousePressEvent(QMouseEvent *event)
+{
+    if(event->button() == Qt::RightButton)
+    {
+        clearSeriesSelection();
+    }
+    else
+    {
+        QMainWindow::mousePressEvent(event);
+    }
 }
 
 void AlgorithmBenchmarkWindow::onActionSaveTriggered()
@@ -46,8 +62,9 @@ void AlgorithmBenchmarkWindow::onActionLoadTriggered()
 
 void AlgorithmBenchmarkWindow::onActionClearTriggered()
 {
-    defaultSeries->clear();
-    //chart->removeAllSeries();
+    chart->removeAllSeries();
+    seriesToLabel.clear();
+    seriesToToolTipText.clear();
 }
 
 void AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered(bool isOn)
@@ -62,8 +79,9 @@ void AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered(bool isOn)
         else
         {
             actionRunBenchmark->setChecked(false);
-        }
 
+            QMessageBox::information(this, "Info", "No algorithm selected");
+        }
     }
     else
     {
@@ -76,28 +94,34 @@ void AlgorithmBenchmarkWindow::onActionClearSpikesTriggered()
 {
     constexpr qreal threshold = 10.0;
 
-    QList<QPointF> oldPoints = defaultSeries->points();
-
-    QList<QPointF> newPoints;
-
-    for(int i = 1; i < oldPoints.size() - 1; ++i)
+    auto seriesArray = chart->series();
+    for(auto* series : seriesArray)
     {
-        const qreal a = oldPoints[i - 1].y();
-        const qreal b = oldPoints[i].y();
-        const qreal c = oldPoints[i + 1].y();
+        QLineSeries* lineSeries = qobject_cast<QLineSeries*>(series);
 
-        const qreal median = std::max(std::min(a, b), std::min(std::max(a, b), c));
+        QList<QPointF> oldPoints = lineSeries->points();
 
-        if(std::abs(b - threshold) < median)
+        QList<QPointF> newPoints;
+
+        for(int i = 1; i < oldPoints.size() - 1; ++i)
         {
-            newPoints.append(oldPoints[i]);
+            const qreal a = oldPoints[i - 1].y();
+            const qreal b = oldPoints[i].y();
+            const qreal c = oldPoints[i + 1].y();
+
+            const qreal median = std::max(std::min(a, b), std::min(std::max(a, b), c));
+
+            if(std::abs(b - threshold) < median)
+            {
+                newPoints.append(oldPoints[i]);
+            }
         }
+
+        lineSeries->replace(newPoints);
+
+        chart->removeSeries(lineSeries);
+        addSeries(lineSeries);
     }
-
-    defaultSeries->replace(newPoints);
-
-    chart->removeSeries(defaultSeries);
-    chart->addSeries(defaultSeries);
 
     chart->createDefaultAxes();
 }
@@ -132,20 +156,99 @@ void AlgorithmBenchmarkWindow::onAlgorithmStarted()
     actionRunBenchmark->setChecked(true);
 }
 
-void AlgorithmBenchmarkWindow::onAlgorithmFinished(const QList<QPointF>& result)
+void AlgorithmBenchmarkWindow::onAlgorithmFinished(const QList<QPointF>& result, const QString& toolTipText)
 {
     actionRunBenchmark->setChecked(false);
     actionRunBenchmark->setEnabled(true);
 
-    defaultSeries->replace(result);
+    QLineSeries* newSeries = new QLineSeries(this);
+    newSeries->append(result);
+    newSeries->setName(sender()->objectName() + "_" + QString::number(chart->series().size()));
+    connect(newSeries, &QLineSeries::pressed, this, &AlgorithmBenchmarkWindow::onLineSeriesPressed);
 
-    //QLineSeries* newSeries = new QLineSeries(this);
-    //newSeries->append(result);
+    seriesToToolTipText[newSeries] = toolTipText;
 
-    chart->removeSeries(defaultSeries);
-    chart->addSeries(defaultSeries);
+    addSeries(newSeries);
 
     chart->createDefaultAxes();
+}
+
+void AlgorithmBenchmarkWindow::onLineSeriesPressed(const QPointF &point)
+{
+    QLineSeries* lineSeries = qobject_cast<QLineSeries*>(sender());
+    auto it = seriesToLabel.constFind(lineSeries);
+
+    int penWidth = 2;
+
+    if(it != seriesToLabel.constEnd())
+    {
+        QLabel* label = *it;
+        label->deleteLater();
+
+        seriesToLabel.remove(lineSeries);
+    }
+    else
+    {
+        QPointer<QLabel> label = new QLabel(seriesToToolTipText[lineSeries], chartView);
+        label->setStyleSheet("border: 1px solid black; background-color: white;");
+        label->adjustSize();
+
+        auto onLineSeriesDestroyed = [this, label]()
+        {
+            if(!label.isNull())
+            {
+                label->deleteLater();
+            }
+
+            QLineSeries* lineSeries = qobject_cast<QLineSeries*>(sender());
+            if(lineSeries)
+            {
+                seriesToLabel.remove(lineSeries);
+                seriesToToolTipText.remove(lineSeries);
+            }
+        };
+
+        connect(lineSeries, &QLineSeries::destroyed, this, onLineSeriesDestroyed);
+
+        const QPoint relativePos = chartView->mapFromGlobal(QCursor::pos());
+        label->move(relativePos);
+
+        label->show();
+
+        seriesToLabel[lineSeries] = label;
+
+        penWidth = 6;
+    }
+
+    QPen pen = lineSeries->pen();
+    pen.setWidth(penWidth);
+    lineSeries->setPen(pen);
+}
+
+void AlgorithmBenchmarkWindow::onPlotAreaChanged(const QRectF &plotArea)
+{
+    clearSeriesSelection();
+}
+
+void AlgorithmBenchmarkWindow::onLegendMarkerClicked()
+{
+    QLegendMarker* marker = qobject_cast<QLegendMarker*>(sender());
+    chart->removeSeries(marker->series());
+    chart->createDefaultAxes();
+}
+
+void AlgorithmBenchmarkWindow::onLegendMarkerHovered(bool state)
+{
+#if QT_CONFIG(tooltip)
+    if(state)
+    {
+        QToolTip::showText(QCursor::pos(), "Click to remove series", chartView);
+    }
+    else
+    {
+        QToolTip::hideText();
+    }
+#endif
 }
 
 void AlgorithmBenchmarkWindow::setupUi()
@@ -155,15 +258,13 @@ void AlgorithmBenchmarkWindow::setupUi()
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
 
-    defaultSeries = new QLineSeries(this);
-
     QFont titleFont;
     titleFont.setBold(true);
     titleFont.setPointSize(30);
 
     chart = new QChart;
     chart->setTitleFont(titleFont);
-    chart->addSeries(defaultSeries);
+    connect(chart, &QChart::plotAreaChanged, this, &AlgorithmBenchmarkWindow::onPlotAreaChanged);
 
     chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
@@ -311,14 +412,28 @@ Algorithm *AlgorithmBenchmarkWindow::getSelectedAlgorithm() const
 
 void AlgorithmBenchmarkWindow::saveSeriesToFile()
 {
+    auto series = chart->series();
+
+    if(series.empty())
+    {
+        return;
+    }
+
     QFile saveFile("benchmark series.txt");
     if(!saveFile.open(QIODevice::WriteOnly))
     {
         return;
     }
 
+    QLineSeries* lastSeries = qobject_cast<QLineSeries*>(series[series.size() - 1]);
+
+    QJsonObject infoAsJsonObject;
+    infoAsJsonObject["info"] = seriesToToolTipText[lastSeries];
+
     QJsonArray resultArray;
-    const QList<QPointF> result = defaultSeries->points();
+    resultArray.append(infoAsJsonObject);
+
+    const QList<QPointF> result = lastSeries->points();
     for(const auto& point : result)
     {
         QJsonObject pointAsJsonObject;
@@ -344,18 +459,61 @@ void AlgorithmBenchmarkWindow::loadSeriesFromFile()
     const QByteArray jsonData = loadFile.readAll();
     loadFile.close();
 
-    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+    QLineSeries* newSeries = new QLineSeries;
+    connect(newSeries, &QLineSeries::pressed, this, &AlgorithmBenchmarkWindow::onLineSeriesPressed);
 
+    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
     const QJsonArray resultJsonArray = jsonDoc.array();
 
-    QLineSeries* newSeries = new QLineSeries;
+    const QString info = resultJsonArray[0].toObject()["info"].toString();
+    seriesToToolTipText[newSeries] = info;
 
-    for(const auto& value : resultJsonArray)
+    newSeries->setName(info.left(info.indexOf('\n')) + "_" + QString::number(chart->series().size() + 1));
+
+    for(int i = 1; i < resultJsonArray.size(); ++i)
     {
-        const QJsonObject jsonObj = value.toObject();
+        const QJsonObject jsonObj = resultJsonArray[i].toObject();
         newSeries->append(QPointF(jsonObj["x"].toDouble(), jsonObj["y"].toDouble()));
     }
 
-    chart->addSeries(newSeries);
+    addSeries(newSeries);
     chart->createDefaultAxes();
 }
+
+void AlgorithmBenchmarkWindow::clearSeriesSelection()
+{
+    for(auto it = seriesToLabel.constBegin(); it != seriesToLabel.constEnd(); ++it)
+    {
+        it.value()->deleteLater();
+
+        QLineSeries* lineSeries = it.key();
+
+        QPen pen = lineSeries->pen();
+        pen.setWidth(2);
+        lineSeries->setPen(pen);
+    }
+
+    seriesToLabel.clear();
+}
+
+void AlgorithmBenchmarkWindow::addSeries(QLineSeries* series)
+{
+    chart->addSeries(series);
+    const auto markers = chart->legend()->markers(series);
+
+    QLegendMarker* marker = markers[0];
+
+    connect(marker, &QLegendMarker::clicked, this, &AlgorithmBenchmarkWindow::onLegendMarkerClicked);
+    connect(marker, &QLegendMarker::hovered, this, &AlgorithmBenchmarkWindow::onLegendMarkerHovered);
+}
+
+
+
+
+
+
+
+
+
+
+

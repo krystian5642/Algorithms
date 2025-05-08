@@ -13,6 +13,7 @@ public:
     virtual ~GraphBuilder() = 0;
 
     QWidget* createPropertiesWidget(QWidget* parent = nullptr) override;
+    void appendPropertiesInfo(QString& infoText) override;
 
     int buildIterations;
 

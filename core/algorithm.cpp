@@ -4,6 +4,7 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QLayout>
+#include <QMetaProperty>
 #include <QWidget>
 
 Algorithm::Algorithm(QObject* parent)
@@ -41,6 +42,30 @@ QWidget *Algorithm::createPropertiesWidget(QWidget* parent)
     propertyEditorFactory.addStringListComboBox(propertiesWidget, complexityStringList, "complexity", selectedComplexity);
 
     return propertiesWidget;
+}
+
+void Algorithm::appendPropertiesInfo(QString &infoText)
+{
+    const QMetaObject* myMetaObject = metaObject();
+    for (int i = 0; i < myMetaObject->propertyCount(); ++i)
+    {
+        const QMetaProperty metaProperty = myMetaObject->property(i);
+
+        QString propertyName(metaProperty.name());
+        if(propertyName == "objectName")
+        {
+            propertyName = "algorithm";
+        }
+
+        if(propertyName != "iterationsNumber")
+        {
+            infoText.append(PropertyEditorFactoryUtils::convertCamelCaseToSpaces(propertyName) + " : " + metaProperty.read(this).toString());
+            infoText.append("\n");
+        }
+    }
+
+    infoText.append("complexity : " + selectedComplexity);
+    infoText.append("\n");
 }
 
 void Algorithm::requestEnd()
