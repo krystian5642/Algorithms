@@ -3,6 +3,8 @@
 
 #include "../core/data_structure_builder.h"
 
+class Graph;
+
 class GraphBuilder : public DataStructureBuilder
 {
     Q_OBJECT
@@ -15,6 +17,8 @@ public:
     int buildIterations;
 
 protected:
+    Graph* createGraph() const;
+
     QString selectedImplementation;
 };
 
@@ -41,27 +45,10 @@ protected:
 class GridGraphBuilder : public GraphBuilder
 {
     Q_OBJECT
-
-    Q_PROPERTY(int rows READ getRows WRITE setRows NOTIFY rowsChanged FINAL)
-    Q_PROPERTY(int columns READ getColumns WRITE setColumns NOTIFY columnsChanged FINAL)
 public:
     explicit GridGraphBuilder(QObject *parent = nullptr);
 
     DataStructure* buildDataStructure() override;
-
-    int getRows() const;
-    void setRows(int newRows);
-
-    int getColumns() const;
-    void setColumns(int newColumns);
-
-signals:
-    void rowsChanged();
-    void columnsChanged();
-
-protected:
-    int rows;
-    int columns;
 };
 
 #endif // GENERAL_GRAPH_BUILDER_H

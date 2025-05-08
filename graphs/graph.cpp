@@ -35,7 +35,7 @@ void AdjacencyListGraph::addEdge(int start, int end, int weight)
             addNode();
         }
 
-        adjList[end].push_back(Edge{end, weight});
+        adjList[end].push_back(Edge{start, weight});
     }
 }
 

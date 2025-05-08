@@ -36,21 +36,26 @@ QWidget *GraphBuilder::createPropertiesWidget(QWidget *parent)
     return propertiesWidget;
 }
 
-GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
-    : GraphBuilder{parent}
-    , addEdgePropability(0.5)
-{
-    setObjectName("General Graph Builder");
-}
-
-DataStructure* GeneralGraphBuilder::buildDataStructure()
+Graph *GraphBuilder::createGraph() const
 {
     auto createGraphFunc = std::find_if(dataStructures.begin(), dataStructures.end(), [&](const QPair<QString, std::function<DataStructure*()>>& pair)
     {
         return pair.first == selectedImplementation;
     })->second;
 
-    Graph* graph = dynamic_cast<Graph*>(createGraphFunc());
+    return dynamic_cast<Graph*>(createGraphFunc());
+}
+
+GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
+    : GraphBuilder{parent}
+    , addEdgePropability(0.5)
+{
+    setObjectName("General Graph");
+}
+
+DataStructure* GeneralGraphBuilder::buildDataStructure()
+{
+    Graph* graph = createGraph();
 
     for(int i = 0; i < buildIterations; ++i)
     {
@@ -63,7 +68,7 @@ DataStructure* GeneralGraphBuilder::buildDataStructure()
         {
             if(value1 != value2)
             {
-                double randomDouble = QRandomGenerator::global()->generateDouble();
+                const double randomDouble = QRandomGenerator::global()->generateDouble();
                 if(randomDouble < addEdgePropability)
                 {
                     graph->addEdge(value1, value2);
@@ -97,45 +102,38 @@ void GeneralGraphBuilder::setAddEdgePropability(double newAddEdgePropability)
 
 GridGraphBuilder::GridGraphBuilder(QObject *parent)
     : GraphBuilder{parent}
-    , rows(10)
-    , columns(10)
 {
-    setObjectName("Grid Graph Builder");
+    setObjectName("Grid Graph");
 }
 
 DataStructure *GridGraphBuilder::buildDataStructure()
 {
-    return nullptr;
-}
+    Graph* graph = createGraph();
 
-int GridGraphBuilder::getRows() const
-{
-    return rows;
-}
-
-void GridGraphBuilder::setRows(int newRows)
-{
-    if (rows == newRows)
+    QList<int> prevRow(buildIterations);
+    for(int i = 0; i < buildIterations; i++)
     {
-        return;
+        int prevValue = -1;
+        for(int j = 0; j < buildIterations; j++)
+        {
+            graph->addNode();
+            const int value = i * buildIterations + j;
+
+            if(j > 0)
+            {
+                graph->addEdge(prevValue, value);
+            }
+
+            if(i > 0)
+            {
+                graph->addEdge(prevRow[j], value);
+            }
+
+            prevRow[j] = value;
+
+            prevValue = value;
+        }
     }
 
-    rows = newRows;
-    emit rowsChanged();
-}
-
-int GridGraphBuilder::getColumns() const
-{
-    return columns;
-}
-
-void GridGraphBuilder::setColumns(int newColumns)
-{
-    if (columns == newColumns)
-    {
-        return;
-    }
-
-    columns = newColumns;
-    emit columnsChanged();
+    return graph;
 }

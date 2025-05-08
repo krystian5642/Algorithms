@@ -97,6 +97,7 @@ void GraphAlgorithm::run()
         graphBuilder->buildIterations = i + 1;
 
         QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->buildDataStructure()));
+        setGraph(testGraph.get());
 
         init();
 
@@ -110,6 +111,8 @@ void GraphAlgorithm::run()
 
         const QPointF point(complexityFunc(i, testGraph->getVerticesNum(), testGraph->getEdgesNum()), end - start);
         result.append(point);
+
+        qDebug() << testGraph->getEdgesNum()  << "  " << testGraph->getVerticesNum();
 
         clear();
     }
