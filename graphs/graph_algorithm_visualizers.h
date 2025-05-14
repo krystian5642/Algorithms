@@ -24,7 +24,7 @@ public:
     bool getRandomStart() const;
     void setRandomStart(bool newRandomStart);
 
-    const Graph *getGraph() const;
+    Graph *getGraph() const;
     void setGraph(Graph *newGraph);
 
 signals:

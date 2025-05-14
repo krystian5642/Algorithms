@@ -4,6 +4,7 @@
 #include "../core/algorithm_visualizer.h"
 #include "../graphs/widgets/graph_widget.h"
 
+#include <QMessageBox>
 #include <QStandardItemModel>
 #include <QToolBar>
 #include <QTreeView>
@@ -60,9 +61,29 @@ void AlgorithmVisualizationWindow::onActionGenerateRandomDataStructureTriggered(
 void AlgorithmVisualizationWindow::onActionRunAlgorithmTriggered(bool isOn)
 {
     DataStructureWidget* dataStructureWidget = getDataStructureWidget();
-    if(dataStructureWidget)
+    if (!dataStructureWidget)
     {
-        dataStructureWidget->visualizeAlgorithmAction(getSelectedAlgorithmVisualizer(), !isOn);
+        return;
+    }
+
+    if(isOn)
+    {
+        AlgorithmVisualizer* algorithmVisualizer = getSelectedAlgorithmVisualizer();
+        if(algorithmVisualizer)
+        {
+            dataStructureWidget->visualizeAlgorithmAction(getSelectedAlgorithmVisualizer(), false);
+        }
+        else
+        {
+            actionRunAlgorithm->setChecked(false);
+
+            QMessageBox::information(this, "Info", "No algorithm selected");
+        }
+    }
+    else
+    {
+        actionRunAlgorithm->setChecked(false);
+        dataStructureWidget->visualizeAlgorithmAction(nullptr, true);
     }
 }
 
@@ -124,6 +145,11 @@ void AlgorithmVisualizationWindow::onAlgorithmVisualizerTreeItemClicked(const QM
     }
 }
 
+void AlgorithmVisualizationWindow::onAlgorithmVisualizerFinished()
+{
+    actionRunAlgorithm->setChecked(false);
+}
+
 void AlgorithmVisualizationWindow::setupUi()
 {
     setupActionsAndToolBar();
@@ -163,6 +189,8 @@ void AlgorithmVisualizationWindow::setupUi()
             QStandardItem* algorithmItem = new QStandardItem(algorithmVisualizer->objectName());
             algorithmItem->setData(QVariant::fromValue(algorithmVisualizer), Qt::UserRole);
             categoryItem->appendRow(algorithmItem);
+
+            connect(algorithmVisualizer, &AlgorithmVisualizer::finished, this, &AlgorithmVisualizationWindow::onAlgorithmVisualizerFinished);
         }
 
         model->appendRow(categoryItem);
@@ -174,32 +202,32 @@ void AlgorithmVisualizationWindow::setupUi()
 
 void AlgorithmVisualizationWindow::setupActionsAndToolBar()
 {
-    QAction* actionSave = new QAction(this);
+    actionSave = new QAction(this);
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/icons/save.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionSave->setIcon(icon);
     connect(actionSave, &QAction::triggered, this, &AlgorithmVisualizationWindow::onActionSaveTriggered);
 
-    QAction* actionLoad = new QAction(this);
+    actionLoad = new QAction(this);
     QIcon icon1;
     icon1.addFile(QString::fromUtf8(":/icons/load.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionLoad->setIcon(icon1);
     connect(actionLoad, &QAction::triggered, this, &AlgorithmVisualizationWindow::onActionLoadTriggered);
 
-    QAction* actionClear = new QAction(this);
+    actionClear = new QAction(this);
     QIcon icon2;
     icon2.addFile(QString::fromUtf8(":/icons/clear.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionClear->setIcon(icon2);
     connect(actionClear, &QAction::triggered, this, &AlgorithmVisualizationWindow::onActionClearTriggered);
 
-    QAction* actionGenerateRandomStructure = new QAction(this);
+    actionGenerateRandomStructure = new QAction(this);
     QIcon icon3;
     icon3.addFile(QString::fromUtf8(":/icons/random.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
     actionGenerateRandomStructure->setIcon(icon3);
     actionGenerateRandomStructure->setMenuRole(QAction::MenuRole::NoRole);
     connect(actionGenerateRandomStructure, &QAction::triggered, this, &AlgorithmVisualizationWindow::onActionGenerateRandomDataStructureTriggered);
 
-    QAction* actionRunAlgorithm = new QAction(this);
+    actionRunAlgorithm = new QAction(this);
     actionRunAlgorithm->setCheckable(true);
     QIcon icon4;
     icon4.addFile(QString::fromUtf8(":/icons/play.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);

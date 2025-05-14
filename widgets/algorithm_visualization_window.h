@@ -24,6 +24,8 @@ private slots:
 
     void onAlgorithmVisualizerTreeItemClicked(const QModelIndex& index);
 
+    void onAlgorithmVisualizerFinished();
+
 private:
     void setupUi();
     void setupActionsAndToolBar();
@@ -40,6 +42,13 @@ private:
     QVBoxLayout* verticalLayout;
     QHBoxLayout* horizontalLayout;
     QToolBar* toolBar;
+
+    // Actions
+    QAction* actionSave;
+    QAction* actionLoad;
+    QAction* actionClear;
+    QAction* actionGenerateRandomStructure;
+    QAction* actionRunAlgorithm;
 
     QList<DataStructureWidget*> dataStructureWidgets;
 };

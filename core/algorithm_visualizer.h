@@ -20,6 +20,9 @@ public:
     int getStepTime() const;
     void setStepTime(int newStepTime);
 
+signals:
+    void finished();
+
 protected:
     QTimer visualizationTimer;
     int stepTime = 1000;

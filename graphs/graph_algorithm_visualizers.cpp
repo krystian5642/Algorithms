@@ -54,7 +54,7 @@ void GraphAlgorithmVisualizer::setRandomStart(bool newRandomStart)
     emit randomStartChanged();
 }
 
-const Graph *GraphAlgorithmVisualizer::getGraph() const
+Graph *GraphAlgorithmVisualizer::getGraph() const
 {
     return graph;
 }
@@ -117,6 +117,8 @@ void BFSVisualizer::run(QWidget *widget)
         else
         {
             reset();
+
+            emit finished();
         }
     });
 
