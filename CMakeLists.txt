@@ -28,7 +28,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graphs/edge_list.cpp graphs/edge_list.h graphs/graph.cpp graphs/graph.h graphs/graph_algorithms.cpp graphs/graph_algorithms.h graphs/graph_algorithm_visualizers.cpp graphs/graph_algorithm_visualizers.h
         graphs/widgets/graph_widget.h graphs/widgets/graph_widget.cpp
         graphs/graph_builders.cpp graphs/graph_builders.h
-        graphs/widgets/add_graph_edge_dialog.h graphs/widgets/add_graph_edge_dialog.cpp
+
         graphs/widgets/random_graph_properties_dialog.h graphs/widgets/random_graph_properties_dialog.cpp
         widgets/algorithm_benchmark_window.h widgets/algorithm_benchmark_window.cpp
         core/data_structure_builder.h core/data_structure_builder.cpp

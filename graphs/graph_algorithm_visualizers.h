@@ -25,7 +25,7 @@ public:
     void setRandomStart(bool newRandomStart);
 
     const Graph *getGraph() const;
-    void setGraph(const Graph *newGraph);
+    void setGraph(Graph *newGraph);
 
 signals:
     void startChanged();
@@ -35,7 +35,7 @@ protected:
     int start = 0;
     bool randomStart = true;
 
-    const Graph* graph = nullptr;
+    Graph* graph = nullptr;
 
 protected:
     EdgeList resultEdgeList;

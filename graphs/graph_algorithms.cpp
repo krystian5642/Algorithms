@@ -181,19 +181,18 @@ void BFSIterative::execute()
     nodeQueue.enqueue(0);
     visited[0] = true;
 
+    auto func = [&](int start, int neighbour, int weight)
+    {
+        if(!visited[neighbour])
+        {
+            visited[neighbour] = true;
+            nodeQueue.enqueue(neighbour);
+        }
+    };
+
     while(!nodeQueue.empty())
     {
         const int first = nodeQueue.dequeue();
-
-        auto func = [&](int start, int neighbour, int weight)
-        {
-            if(!visited[neighbour])
-            {
-                visited[neighbour] = true;
-                nodeQueue.enqueue(neighbour);
-            }
-        };
-
         graph->forEachNeighbor(first, func);
     }
 }

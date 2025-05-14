@@ -40,6 +40,7 @@ public:
 
     const QString& getCategory() const;
 
+    const QList<QAction*>& getAdditionalActions() const;
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -48,6 +49,7 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
 
     QList<AlgorithmVisualizer*> algorithmVisualizers;
+    QList<QAction*> additionalActions;
 
     AlgorithmVisualizer* currentAlgorithmVisualizer = nullptr;
 

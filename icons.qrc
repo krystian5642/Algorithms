@@ -9,5 +9,6 @@
         <file>icons/random.png</file>
         <file>icons/save.png</file>
         <file>icons/clear_spikes.png</file>
+        <file>icons/randomedges.png</file>
     </qresource>
 </RCC>

@@ -28,6 +28,11 @@ const QString& DataStructureWidget::getCategory() const
     return category;
 }
 
+const QList<QAction *> &DataStructureWidget::getAdditionalActions() const
+{
+    return additionalActions;
+}
+
 void DataStructureWidget::paintEvent(QPaintEvent *event)
 {
     QPen nodePen;

@@ -86,7 +86,8 @@ void AlgorithmVisualizationWindow::onAlgorithmVisualizerTreeItemClicked(const QM
     };
 
     deleteFirstLayoutItem(verticalLayout, true);
-    deleteFirstLayoutItem(horizontalLayout, false);
+
+    DataStructureWidget* newWidget = nullptr;
 
     AlgorithmVisualizer* algorithmVisualizer = qvariant_cast<AlgorithmVisualizer*>(index.data(Qt::UserRole));
     if(algorithmVisualizer)
@@ -94,12 +95,32 @@ void AlgorithmVisualizationWindow::onAlgorithmVisualizerTreeItemClicked(const QM
         QWidget* propertyWidget = algorithmVisualizer->createPropertiesWidget();
         verticalLayout->addWidget(propertyWidget, 1);
 
-        horizontalLayout->addWidget(qobject_cast<QWidget*>(algorithmVisualizer->parent()), 1);
+        newWidget = qobject_cast<DataStructureWidget*>(algorithmVisualizer->parent());
     }
     else
     {
         verticalLayout->addStretch(1);
-        horizontalLayout->addStretch(1);
+
+        newWidget = qvariant_cast<DataStructureWidget*>(index.data(Qt::UserRole));
+    }
+
+    DataStructureWidget* previousWidget = getDataStructureWidget();
+
+    if(newWidget != previousWidget)
+    {
+        if(previousWidget)
+        {
+            removeActions(previousWidget->getAdditionalActions());
+        }
+
+        deleteFirstLayoutItem(horizontalLayout, false);
+
+        if(newWidget)
+        {
+            horizontalLayout->addWidget(newWidget, 1);
+
+            toolBar->addActions(newWidget->getAdditionalActions());
+        }
     }
 }
 
@@ -134,6 +155,7 @@ void AlgorithmVisualizationWindow::setupUi()
     for(auto* widget : dataStructureWidgets)
     {
         QStandardItem* categoryItem = new QStandardItem(widget->getCategory());
+        categoryItem->setData(QVariant::fromValue(widget), Qt::UserRole);
 
         const QList<AlgorithmVisualizer*>& algorithmVisualizers = widget->getAlgorithmVisualizers();
         for(auto* algorithmVisualizer : algorithmVisualizers)
@@ -194,7 +216,7 @@ void AlgorithmVisualizationWindow::setupActionsAndToolBar()
 #endif
 
     // tool bar
-    QToolBar* toolBar = new QToolBar(this);
+    toolBar = new QToolBar(this);
     toolBar->setMovable(false);
     toolBar->setFloatable(false);
     addToolBar(Qt::ToolBarArea::TopToolBarArea, toolBar);
@@ -205,6 +227,14 @@ void AlgorithmVisualizationWindow::setupActionsAndToolBar()
     toolBar->addSeparator();
     toolBar->addAction(actionGenerateRandomStructure);
     toolBar->addAction(actionRunAlgorithm);
+}
+
+void AlgorithmVisualizationWindow::removeActions(const QList<QAction *> &actions)
+{
+    for(auto* action : actions)
+    {
+        toolBar->removeAction(action);
+    }
 }
 
 void AlgorithmVisualizationWindow::registerDataStructureWidgets()

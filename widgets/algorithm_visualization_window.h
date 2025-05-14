@@ -28,6 +28,8 @@ private:
     void setupUi();
     void setupActionsAndToolBar();
 
+    void removeActions(const QList<QAction*>& actions);
+
     void registerDataStructureWidgets();
 
     DataStructureWidget* getDataStructureWidget() const;
@@ -37,6 +39,7 @@ private:
     QTreeView* algorithmsTreeView;
     QVBoxLayout* verticalLayout;
     QHBoxLayout* horizontalLayout;
+    QToolBar* toolBar;
 
     QList<DataStructureWidget*> dataStructureWidgets;
 };

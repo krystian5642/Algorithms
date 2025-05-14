@@ -1,8 +1,6 @@
 #include "graph_widget.h"
 
 #include "../graph_algorithm_visualizers.h"
-
-#include "add_graph_edge_dialog.h"
 #include "random_graph_properties_dialog.h"
 
 #include <QComboBox>
@@ -23,6 +21,18 @@ GraphWidget::GraphWidget(QWidget *parent)
     category = "Graph";
 
     graph = std::make_unique<AdjacencyListGraph>();
+
+    QAction* actionGenerateRandomEdges = new QAction(this);
+    QIcon icon;
+    icon.addFile(QString::fromUtf8(":/icons/randomedges.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    actionGenerateRandomEdges->setIcon(icon);
+    connect(actionGenerateRandomEdges, &QAction::triggered, this, &GraphWidget::onActionGenerateRandomEdgesTriggered);
+
+#if QT_CONFIG(tooltip)
+    actionGenerateRandomEdges->setToolTip("Generate random edges");
+#endif
+
+    additionalActions.push_back(actionGenerateRandomEdges);
 }
 
 GraphWidget::~GraphWidget()
@@ -45,8 +55,6 @@ QJsonObject GraphWidget::toJsonObject() const
         QJsonObject locationAsJsonObject;
         locationAsJsonObject["x"] = it->location.x();
         locationAsJsonObject["y"] = it->location.y();
-
-        //locationsAsJsonObject[QString::number(it.key())] = locationAsJsonObject;
     }
     return locationsAsJsonObject;
 }
@@ -66,16 +74,15 @@ void GraphWidget::fromJsonObject(const QJsonObject &jsonObj)
 
 void GraphWidget::setNodeColor(int value, const QColor& color, bool callUpdate)
 {
-    // auto it = graphNodeVisualData.find(value);
-    // if(it != graphNodeVisualData.end() && it->color != color)
-    // {
-    //     it->color = color;
+    if(graphNodeVisualData.size() > value)
+    {
+        graphNodeVisualData[value].color = color;
 
-    //     if(callUpdate)
-    //     {
-    //         update();
-    //     }
-    // }
+        if(callUpdate)
+        {
+            update();
+        }
+    }
 }
 
 void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool callUpdate)
@@ -215,6 +222,30 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new DFSVisualizer(this));
 }
 
+void GraphWidget::onActionGenerateRandomEdgesTriggered()
+{
+    auto func1 = [&](int value1)
+    {
+        auto func2 = [&](int value2)
+        {
+            if(value1 != value2)
+            {
+                const double randomDouble = QRandomGenerator::global()->generateDouble();
+                if(randomDouble < 0.2)
+                {
+                    addEdge(value1, value2);
+                }
+            }
+        };
+
+        graph->forEachNode(func2);
+    };
+
+    graph->forEachNode(func1);
+
+    update();
+}
+
 void GraphWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
@@ -241,7 +272,6 @@ void GraphWidget::paintDataStructure(QPainter &painter)
 
 void GraphWidget::paintEdges(QPainter &painter)
 {
-    return;
     QSet<QPair<int, int>> drawnEdges;
     drawnEdges.reserve(qMax(0, graph->getEdgesNum()));
 

@@ -50,6 +50,9 @@ public:
     void visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisualizer, bool pause) override;
     void registerAlgorithmVisualizers() override;
 
+private slots:
+    void onActionGenerateRandomEdgesTriggered();
+
     // QWidget interface
 protected:
     void mousePressEvent(QMouseEvent *event) override;
