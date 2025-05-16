@@ -8,6 +8,28 @@ Graph::Graph(bool inIsDirected)
 
 }
 
+void Graph::generateRandomEdges(const double addEdgePropability)
+{
+    auto func1 = [&](int value1)
+    {
+        auto func2 = [&](int value2)
+        {
+            if(value1 != value2 && !hasEdgeTo(value1, value2))
+            {
+                const double randomDouble = QRandomGenerator::global()->generateDouble();
+                if(randomDouble < addEdgePropability)
+                {
+                    addEdge(value1, value2);
+                }
+            }
+        };
+
+        forEachNode(func2);
+    };
+
+    forEachNode(func1);
+}
+
 AdjacencyListGraph::AdjacencyListGraph(bool inIsDirected)
     : Graph(inIsDirected)
 {
@@ -44,6 +66,18 @@ void AdjacencyListGraph::addNode()
     const qsizetype oldSize = adjList.size();
     adjList.resize(oldSize + 1);
     adjList[oldSize] = QList<Edge>();
+}
+
+bool AdjacencyListGraph::hasEdgeTo(int from, int to)
+{
+    if(adjList.size() > from)
+    {
+        return std::any_of(adjList[from].begin(), adjList[from].end(), [to](const Edge& edge)
+        {
+            return edge.endValue == to;
+        });
+    }
+    return false;
 }
 
 qsizetype AdjacencyListGraph::getEdgesNum() const
@@ -158,6 +192,11 @@ void AdjacencyMatrixGraph::addNode()
     {
         adjMatrix[i].push_back(INT_MIN);
     }
+}
+
+bool AdjacencyMatrixGraph::hasEdgeTo(int from, int to)
+{
+    return adjMatrix.size() > from && adjMatrix[from].size() > to && adjMatrix[from][to] != INT_MIN;
 }
 
 qsizetype AdjacencyMatrixGraph::getEdgesNum() const

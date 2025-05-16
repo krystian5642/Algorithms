@@ -11,8 +11,10 @@ public:
     AlgorithmVisualizer(QObject *parent = nullptr);
     virtual ~AlgorithmVisualizer() = 0;
 
+    virtual void updateVisualization() = 0;
+
     virtual void run(QWidget* widget) = 0;
-    virtual void reset();
+    virtual void clear();
 
     void setPause(bool pause);
     QWidget* createPropertiesWidget(QWidget* parent = nullptr);

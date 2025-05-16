@@ -45,6 +45,7 @@ void AlgorithmVisualizationWindow::onActionClearTriggered()
     DataStructureWidget* dataStructureWidget = getDataStructureWidget();
     if(dataStructureWidget)
     {
+        actionRunAlgorithm->setChecked(false);
         dataStructureWidget->clearAction();
     }
 }

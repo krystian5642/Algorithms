@@ -6,18 +6,43 @@
 
 GraphAlgorithmVisualizer::GraphAlgorithmVisualizer(QObject *parent)
     : AlgorithmVisualizer(parent)
+    , start(0)
+    , randomStart(false)
+    , graph(nullptr)
+    , resultIndex(0)
 {
 
 }
 
 GraphAlgorithmVisualizer::~GraphAlgorithmVisualizer()
 {
+
 }
 
-void GraphAlgorithmVisualizer::reset()
+void GraphAlgorithmVisualizer::updateVisualization()
 {
-    AlgorithmVisualizer::reset();
+    if(resultEdgeList.isValidIndex(resultIndex))
+    {
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
 
+        graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
+
+        resultIndex++;
+    }
+    else
+    {
+        clear();
+
+        emit finished();
+    }
+}
+
+void GraphAlgorithmVisualizer::clear()
+{
+    AlgorithmVisualizer::clear();
+
+    visualizationTimer.stop();
     resultEdgeList.clear();
     resultIndex = 0;
 }
@@ -80,8 +105,10 @@ void BFSVisualizer::run(QWidget *widget)
 
     resultEdgeList.reserve(graph->getEdgesNum());
 
-    nodeQueue.enqueue(0);
-    visited[0] = true;
+    const int begin = randomStart ? graph->getRandomValue() : start;
+
+    nodeQueue.enqueue(begin);
+    visited[begin] = true;
 
     auto func = [&](int start, int neighbour, int weight)
     {
@@ -100,27 +127,8 @@ void BFSVisualizer::run(QWidget *widget)
         graph->forEachNeighbor(first, func);
     }
 
-    GraphWidget* graphWidget = qobject_cast<GraphWidget*>(widget);
-    graphWidget->setNodeColor(0, Qt::red);
-
-    connect(&visualizationTimer, &QTimer::timeout, this, [this, graphWidget]()
-    {
-        if(resultEdgeList.isValidIndex(resultIndex))
-        {
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
-
-            graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
-
-            resultIndex++;
-        }
-        else
-        {
-            reset();
-
-            emit finished();
-        }
-    });
+    graphWidget = qobject_cast<GraphWidget*>(widget);
+    graphWidget->setNodeColor(begin, Qt::red);
 
     visualizationTimer.start();
 }
@@ -144,29 +152,13 @@ void DFSVisualizer::run(QWidget *widget)
     // DFSHelper(start);
 
     // graphWidget->setNodeColor(start, Qt::red);
-    // connect(&visualizationTimer, &QTimer::timeout, this, [this, graphWidget]()
-    // {
-    //     if(resultEdgeList.isValidIndex(resultIndex))
-    //     {
-    //         graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
-    //         graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
-
-    //         graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
-
-    //         resultIndex++;
-    //     }
-    //     else
-    //     {
-    //         reset();
-    //     }
-    // });
 
     // visualizationTimer.start();
 }
 
-void DFSVisualizer::reset()
+void DFSVisualizer::clear()
 {
-    GraphAlgorithmVisualizer::reset();
+    GraphAlgorithmVisualizer::clear();
 
     visited.clear();
 }

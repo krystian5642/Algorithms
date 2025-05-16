@@ -9,14 +9,20 @@ AlgorithmVisualizer::AlgorithmVisualizer(QObject *parent)
     : QObject(parent)
 {
     visualizationTimer.setInterval(stepTime);
+    connect(&visualizationTimer, &QTimer::timeout, this, &AlgorithmVisualizer::updateVisualization);
 }
 
 AlgorithmVisualizer::~AlgorithmVisualizer()
 {
+
 }
 
-void AlgorithmVisualizer::reset()
+void AlgorithmVisualizer::clear()
 {
+    if(visualizationTimer.isActive())
+    {
+        emit finished();
+    }
     visualizationTimer.stop();
 }
 

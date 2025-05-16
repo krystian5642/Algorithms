@@ -39,11 +39,12 @@ GraphWidget::~GraphWidget()
 {
 }
 
-void GraphWidget::clearGraph()
-{
+void GraphWidget::clear()
+{   
+    clearVisualization();
     graph->clear();
     graphNodeVisualData.clear();
-    graphEdgeVisualData.clear();
+    graphEdgeVisualData.clear();  
     update();
 }
 
@@ -152,7 +153,7 @@ void GraphWidget::saveAction()
 
 void GraphWidget::loadAction()
 {
-    clearGraph();
+    clear();
 
     if(loadGraph())
     {
@@ -163,7 +164,7 @@ void GraphWidget::loadAction()
 
 void GraphWidget::clearAction()
 {
-    clearGraph();
+    clear();
 }
 
 void GraphWidget::generateRandomDataStructureAction()
@@ -173,7 +174,7 @@ void GraphWidget::generateRandomDataStructureAction()
 
     if(randomGraphProperitiesDialog.result() == QDialog::DialogCode::Accepted)
     {
-        clearGraph();
+        clear();
 
         const QString selectedGraphTypeName = randomGraphProperitiesDialog.getSelectedGraphTypeName();
 
@@ -203,9 +204,11 @@ void GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
             setNodesAndEdgesToBlack();
 
             GraphAlgorithmVisualizer* graphAlgorithmVisualizer = qobject_cast<GraphAlgorithmVisualizer*>(algorithmVisualizer);
+            graphAlgorithmVisualizer->clear();
             graphAlgorithmVisualizer->setGraph(graph.get());
 
             currentAlgorithmVisualizer = graphAlgorithmVisualizer;
+            connect(currentAlgorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
 
             currentAlgorithmVisualizer->run(this);
         }
@@ -224,26 +227,15 @@ void GraphWidget::registerAlgorithmVisualizers()
 
 void GraphWidget::onActionGenerateRandomEdgesTriggered()
 {
-    auto func1 = [&](int value1)
-    {
-        auto func2 = [&](int value2)
-        {
-            if(value1 != value2)
-            {
-                const double randomDouble = QRandomGenerator::global()->generateDouble();
-                if(randomDouble < 0.2)
-                {
-                    addEdge(value1, value2);
-                }
-            }
-        };
-
-        graph->forEachNode(func2);
-    };
-
-    graph->forEachNode(func1);
-
+    clearVisualization();
+    graph->generateRandomEdges(0.2);
     update();
+}
+
+void GraphWidget::onAlgorithmVisualizerFinished()
+{
+    disconnect(currentAlgorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
+    currentAlgorithmVisualizer = nullptr;
 }
 
 void GraphWidget::mousePressEvent(QMouseEvent *event)
@@ -316,6 +308,15 @@ void GraphWidget::paintNodeValues(QPainter &painter)
         painter.drawText(graphNodeVisualData[value].location + QPointF(-3.5, 3), QString("%1").arg(value));
     };
     graph->forEachNode(func);
+}
+
+void GraphWidget::clearVisualization()
+{
+    if(currentAlgorithmVisualizer)
+    {
+        currentAlgorithmVisualizer->clear();
+    }
+    setNodesAndEdgesToBlack();
 }
 
 bool GraphWidget::saveGraph()

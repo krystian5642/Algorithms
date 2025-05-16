@@ -70,24 +70,7 @@ DataStructure* GeneralGraphBuilder::buildDataStructure()
         graph->addNode();
     }
 
-    auto func1 = [&](int value1)
-    {
-        auto func2 = [&](int value2)
-        {
-            if(value1 != value2)
-            {
-                const double randomDouble = QRandomGenerator::global()->generateDouble();
-                if(randomDouble < addEdgePropability)
-                {
-                    graph->addEdge(value1, value2);
-                }
-            }
-        };
-
-        graph->forEachNode(func2);
-    };
-
-    graph->forEachNode(func1);
+    graph->generateRandomEdges(addEdgePropability);
 
     return graph;
 }

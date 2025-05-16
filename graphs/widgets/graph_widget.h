@@ -29,7 +29,7 @@ public:
     explicit GraphWidget(QWidget *parent = nullptr);
     ~GraphWidget();
 
-    void clearGraph();
+    void clear();
 
     // graph serialization
     QJsonObject toJsonObject() const;
@@ -53,6 +53,8 @@ public:
 private slots:
     void onActionGenerateRandomEdgesTriggered();
 
+    void onAlgorithmVisualizerFinished();
+
     // QWidget interface
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -66,6 +68,8 @@ private:
     void paintEdges(QPainter& painter);
     void paintNodes(QPainter& painter);
     void paintNodeValues(QPainter& painter);
+
+    void clearVisualization();
 
     bool saveGraph();
     bool loadGraph();

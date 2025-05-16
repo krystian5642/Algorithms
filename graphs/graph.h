@@ -13,8 +13,11 @@ public:
     explicit Graph(bool inIsDirected = false);
     virtual ~Graph() {};
 
+    void generateRandomEdges(const double addEdgePropability);
+
     virtual void addEdge(int start, int end, int weight = 1) = 0;
     virtual void addNode() = 0;
+    virtual bool hasEdgeTo(int from, int to) = 0;
     virtual qsizetype getEdgesNum() const = 0;
     virtual qsizetype getVerticesNum() const = 0;
     virtual void clear() = 0;
@@ -34,6 +37,7 @@ public:
 
     void addEdge(int start, int end, int weight = 1) override;
     void addNode() override;
+    bool hasEdgeTo(int from, int to) override;
     qsizetype getEdgesNum() const override;
     qsizetype getVerticesNum() const override;
     void clear() override;
@@ -69,6 +73,7 @@ public:
 
     void addEdge(int start, int end, int weight = 1) override;
     void addNode() override;
+    bool hasEdgeTo(int from, int to) override;
     qsizetype getEdgesNum() const override;
     qsizetype getVerticesNum() const override;
     void clear() override;

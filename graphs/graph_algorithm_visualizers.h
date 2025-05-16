@@ -4,6 +4,7 @@
 #include "../core/algorithm_visualizer.h"
 #include "edge_list.h"
 
+class GraphWidget;
 class Graph;
 
 class GraphAlgorithmVisualizer : public AlgorithmVisualizer
@@ -16,7 +17,9 @@ public:
     explicit GraphAlgorithmVisualizer(QObject *parent = nullptr);
     virtual ~GraphAlgorithmVisualizer() = 0;
 
-    void reset() override;
+    void updateVisualization() override;
+
+    void clear() override;
 
     int getStart() const;
     void setStart(int newStart);
@@ -32,14 +35,15 @@ signals:
     void randomStartChanged();
 
 protected:
-    int start = 0;
-    bool randomStart = true;
+    int start;
+    bool randomStart;
 
-    Graph* graph = nullptr;
+    Graph* graph;
+    GraphWidget* graphWidget;
 
 protected:
     EdgeList resultEdgeList;
-    qsizetype resultIndex = 0;
+    qsizetype resultIndex;
 };
 
 class BFSVisualizer : public GraphAlgorithmVisualizer
@@ -58,7 +62,7 @@ public:
     DFSVisualizer(QObject *parent = nullptr);
 
     void run(QWidget* widget) override;
-    void reset() override;
+    void clear() override;
 
 private:
     QSet<int> visited;
