@@ -51,11 +51,12 @@ void GraphWidget::clear()
 QJsonObject GraphWidget::toJsonObject() const
 {
     QJsonObject locationsAsJsonObject;
-    for(auto it = graphNodeVisualData.constBegin(); it != graphNodeVisualData.constEnd(); it++)
+    for(int i = 0; i < graphNodeVisualData.size(); ++i)
     {
         QJsonObject locationAsJsonObject;
-        locationAsJsonObject["x"] = it->location.x();
-        locationAsJsonObject["y"] = it->location.y();
+        locationAsJsonObject["x"] = graphNodeVisualData[i].location.x();
+        locationAsJsonObject["y"] = graphNodeVisualData[i].location.y();
+        locationsAsJsonObject[QString::number(i)] = locationAsJsonObject;
     }
     return locationsAsJsonObject;
 }
@@ -63,6 +64,8 @@ QJsonObject GraphWidget::toJsonObject() const
 void GraphWidget::fromJsonObject(const QJsonObject &jsonObj)
 {
     graphNodeVisualData.clear();
+    graphNodeVisualData.resize(jsonObj.size());
+
     for (auto it = jsonObj.constBegin(); it != jsonObj.constEnd(); ++it)
     {
         const QJsonObject jsonObject = it.value().toObject();
@@ -321,34 +324,34 @@ void GraphWidget::clearVisualization()
 
 bool GraphWidget::saveGraph()
 {
-    // QFile saveFile("graph.txt");
-    // if(!saveFile.open(QIODevice::WriteOnly))
-    // {
-    //     return false;
-    // }
+    QFile saveFile("graph.txt");
+    if(!saveFile.open(QIODevice::WriteOnly))
+    {
+        return false;
+    }
 
-    // const QJsonObject graphAsJsonObject = graph.toJsonObject();
-    // const QJsonDocument jsonDoc(graphAsJsonObject);
+    const QJsonObject graphAsJsonObject = graph->toJsonObject();
+    const QJsonDocument jsonDoc(graphAsJsonObject);
 
-    // saveFile.write(jsonDoc.toJson());
-    // saveFile.close();
+    saveFile.write(jsonDoc.toJson());
+    saveFile.close();
 
     return true;
 }
 
 bool GraphWidget::loadGraph()
 {
-    // QFile loadFile("graph.txt");
-    // if(!loadFile.open(QIODevice::ReadOnly))
-    // {
-    //     return false;
-    // }
+    QFile loadFile("graph.txt");
+    if(!loadFile.open(QIODevice::ReadOnly))
+    {
+        return false;
+    }
 
-    // const QByteArray jsonData = loadFile.readAll();
-    // loadFile.close();
+    const QByteArray jsonData = loadFile.readAll();
+    loadFile.close();
 
-    // const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-    // graph.fromJsonObject(jsonDoc.object());
+    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+    graph->fromJsonObject(jsonDoc.object());
 
     return true;
 }

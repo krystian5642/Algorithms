@@ -8,6 +8,11 @@ Graph::Graph(bool inIsDirected)
 
 }
 
+Graph::~Graph()
+{
+
+}
+
 void Graph::generateRandomEdges(const double addEdgePropability)
 {
     auto func1 = [&](int value1)
@@ -28,6 +33,43 @@ void Graph::generateRandomEdges(const double addEdgePropability)
     };
 
     forEachNode(func1);
+}
+
+QJsonObject Graph::toJsonObject()
+{
+    QJsonObject graphAsJsonObject;
+    forEachNode([&](int value)
+    {
+        QJsonArray edgesAsJsonArray;
+        forEachNeighbor(value, [&](int start, int end, int weight)
+        {
+            QJsonObject edgeAsJsonObject;
+            edgeAsJsonObject["end"] = end;
+            edgeAsJsonObject["weight"] = weight;
+
+            edgesAsJsonArray.append(edgeAsJsonObject);
+        });
+        graphAsJsonObject[QString::number(value)] = edgesAsJsonArray;
+    });
+    return graphAsJsonObject;
+}
+
+void Graph::fromJsonObject(const QJsonObject &jsonObject)
+{
+    for (auto it = jsonObject.constBegin(); it != jsonObject.constEnd(); ++it)
+    {
+        addNode();
+    }
+
+    for (auto it = jsonObject.constBegin(); it != jsonObject.constEnd(); ++it)
+    {
+        const QJsonArray edgesAsJsonArray = it->toArray();
+        for(const auto& edgeAsJsonValue : edgesAsJsonArray)
+        {
+            const QJsonObject edgeAsJsonObject = edgeAsJsonValue.toObject();
+            addEdge(it.key().toInt(), edgeAsJsonObject["end"].toInt(), edgeAsJsonObject["weight"].toInt());
+        }
+    }
 }
 
 AdjacencyListGraph::AdjacencyListGraph(bool inIsDirected)

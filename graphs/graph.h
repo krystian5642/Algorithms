@@ -11,9 +11,11 @@ class Graph : public DataStructure
 {
 public:
     explicit Graph(bool inIsDirected = false);
-    virtual ~Graph() {};
+    virtual ~Graph();
 
     void generateRandomEdges(const double addEdgePropability);
+    QJsonObject toJsonObject();
+    void fromJsonObject(const QJsonObject& jsonObject);
 
     virtual void addEdge(int start, int end, int weight = 1) = 0;
     virtual void addNode() = 0;
