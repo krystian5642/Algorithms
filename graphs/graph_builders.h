@@ -31,7 +31,7 @@ class GeneralGraphBuilder : public GraphBuilder
 public:
     explicit GeneralGraphBuilder(QObject *parent = nullptr);
 
-    DataStructure* buildDataStructure() override;
+    DataStructure* createDataStructure() override;
 
     double getAddEdgePropability() const;
     void setAddEdgePropability(double newAddEdgePropability);
@@ -49,7 +49,7 @@ class GridGraphBuilder : public GraphBuilder
 public:
     explicit GridGraphBuilder(QObject *parent = nullptr);
 
-    DataStructure* buildDataStructure() override;
+    DataStructure* createDataStructure() override;
 };
 
 #endif // GENERAL_GRAPH_BUILDER_H

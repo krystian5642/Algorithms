@@ -28,12 +28,16 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graphs/edge_list.cpp graphs/edge_list.h graphs/graph.cpp graphs/graph.h graphs/graph_algorithms.cpp graphs/graph_algorithms.h graphs/graph_algorithm_visualizers.cpp graphs/graph_algorithm_visualizers.h
         graphs/widgets/graph_widget.h graphs/widgets/graph_widget.cpp
         graphs/graph_builders.cpp graphs/graph_builders.h
+        graphs/graph_visual_builders.h graphs/graph_visual_builders.cpp
 
         graphs/widgets/random_graph_properties_dialog.h graphs/widgets/random_graph_properties_dialog.cpp
         widgets/algorithm_benchmark_window.h widgets/algorithm_benchmark_window.cpp
         core/data_structure_builder.h core/data_structure_builder.cpp
         core/data_structure.h core/data_structure.cpp
         core/property_editor_factory.cpp core/property_editor_factory.h
+        core/data_structure_visual_builder.h core/data_structure_visual_builder.cpp
+        core/widgets/properties_dialog.h core/widgets/properties_dialog.cpp
+        graphs/widgets/add_edge_dialog.h graphs/widgets/add_edge_dialog.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Algorithms APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

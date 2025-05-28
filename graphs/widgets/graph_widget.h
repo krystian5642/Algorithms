@@ -12,7 +12,7 @@ class GraphAlgorithmVisualizer;
 
 struct GraphNodeVisualData
 {
-    QPoint location;
+    QPointF location;
     QColor color = Qt::black;
 };
 
@@ -39,6 +39,8 @@ public:
     void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
     void setNodesAndEdgesToBlack();
 
+    void generateRandomEdges(const double addEdgePropability);
+
     bool addNode(const QPoint& location);
     void addEdge(int start, int end, int weight = 1);
 
@@ -52,6 +54,7 @@ public:
 
 private slots:
     void onActionGenerateRandomEdgesTriggered();
+    void onActionAddEdgeTriggered();
 
     void onAlgorithmVisualizerFinished();
 
@@ -77,8 +80,9 @@ private:
     bool saveGraphNodeLocations();
     bool loadGraphNodeLocations();
 
-    void generateRandomGraph();
-    void generateRandomGridGraph();
+    qreal nodeRadius;
+    qreal arrowSize;
+    qreal arrowAngle;
 
     std::unique_ptr<Graph> graph;
 };

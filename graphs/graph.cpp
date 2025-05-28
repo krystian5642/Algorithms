@@ -72,6 +72,11 @@ void Graph::fromJsonObject(const QJsonObject &jsonObject)
     }
 }
 
+bool Graph::getIsDirected() const
+{
+    return isDirected;
+}
+
 AdjacencyListGraph::AdjacencyListGraph(bool inIsDirected)
     : Graph(inIsDirected)
 {

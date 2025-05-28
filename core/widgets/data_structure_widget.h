@@ -3,6 +3,7 @@
 
 #include <QWidget>
 
+class DataStructureVisualBuilder;
 class AlgorithmVisualizer;
 
 struct ScaleData
@@ -50,6 +51,7 @@ protected:
 
     QList<AlgorithmVisualizer*> algorithmVisualizers;
     QList<QAction*> additionalActions;
+    QList<DataStructureVisualBuilder*> dataStructureVisualBuilders;
 
     AlgorithmVisualizer* currentAlgorithmVisualizer = nullptr;
 

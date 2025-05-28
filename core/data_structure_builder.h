@@ -13,7 +13,7 @@ public:
     explicit DataStructureBuilder(QObject *parent = nullptr);
     virtual ~DataStructureBuilder();
 
-    virtual DataStructure* buildDataStructure() = 0;
+    virtual DataStructure* createDataStructure() = 0;
     virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
     virtual void appendPropertiesInfo(QString& infoText);
 

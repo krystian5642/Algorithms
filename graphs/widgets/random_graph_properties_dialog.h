@@ -4,20 +4,16 @@
 #include <QComboBox>
 #include <QDialog>
 
-namespace GraphTypeNames
-{
-    const QString AllRandom("All random");
-    const QString Grid("Grid");
-}
+class DataStructureVisualBuilder;
 
 class RandomGraphPropertiesDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit RandomGraphPropertiesDialog(QWidget *parent = nullptr);
-    ~RandomGraphPropertiesDialog();
+    RandomGraphPropertiesDialog();
 
-    QString getSelectedGraphTypeName() const;
+    DataStructureVisualBuilder* getSelectedBuidler() const;
+    void setGraphBuilders(const QList<DataStructureVisualBuilder*>& graphBuilders);
 
 private:
     void setupUi();

@@ -1,14 +1,13 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/clear.png</file>
-        <file>icons/gridgraph.png</file>
-        <file>icons/hardrun.png</file>
         <file>icons/load.png</file>
         <file>icons/pause.png</file>
         <file>icons/play.png</file>
         <file>icons/random.png</file>
         <file>icons/save.png</file>
         <file>icons/clear_spikes.png</file>
-        <file>icons/randomedges.png</file>
+        <file>icons/random_edges.png</file>
+        <file>icons/add_edge.png</file>
     </qresource>
 </RCC>

@@ -109,7 +109,7 @@ void GraphAlgorithm::run()
 
         graphBuilder->buildIterations = i + 1;
 
-        QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->buildDataStructure()));
+        QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->createDataStructure()));
         setGraph(testGraph.get());
 
         init();

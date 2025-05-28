@@ -61,7 +61,7 @@ GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
     setObjectName("General Graph");
 }
 
-DataStructure* GeneralGraphBuilder::buildDataStructure()
+DataStructure* GeneralGraphBuilder::createDataStructure()
 {
     Graph* graph = createGraph();
 
@@ -97,7 +97,7 @@ GridGraphBuilder::GridGraphBuilder(QObject *parent)
     setObjectName("Grid Graph");
 }
 
-DataStructure *GridGraphBuilder::buildDataStructure()
+DataStructure *GridGraphBuilder::createDataStructure()
 {
     Graph* graph = createGraph();
 

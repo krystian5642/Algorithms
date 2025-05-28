@@ -17,6 +17,8 @@ public:
     QJsonObject toJsonObject();
     void fromJsonObject(const QJsonObject& jsonObject);
 
+    bool getIsDirected() const;
+
     virtual void addEdge(int start, int end, int weight = 1) = 0;
     virtual void addNode() = 0;
     virtual bool hasEdgeTo(int from, int to) = 0;

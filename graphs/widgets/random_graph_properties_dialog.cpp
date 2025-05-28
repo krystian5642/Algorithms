@@ -1,23 +1,27 @@
 #include "random_graph_properties_dialog.h"
 
+#include <QFormLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include "../../core/data_structure_visual_builder.h"
 
-RandomGraphPropertiesDialog::RandomGraphPropertiesDialog(QWidget *parent)
-    : QDialog(parent)
+RandomGraphPropertiesDialog::RandomGraphPropertiesDialog()
 {
     setupUi();
 }
 
-RandomGraphPropertiesDialog::~RandomGraphPropertiesDialog()
+DataStructureVisualBuilder *RandomGraphPropertiesDialog::getSelectedBuidler() const
 {
-
+    return qvariant_cast<DataStructureVisualBuilder*>(graphTypesBox->currentData(Qt::UserRole));
 }
 
-QString RandomGraphPropertiesDialog::getSelectedGraphTypeName() const
+void RandomGraphPropertiesDialog::setGraphBuilders(const QList<DataStructureVisualBuilder*> &graphBuilders)
 {
-    return graphTypesBox->currentText();
+    for(const auto* graphBuilder : graphBuilders)
+    {
+        graphTypesBox->addItem(graphBuilder->objectName(), QVariant::fromValue(graphBuilder));
+    }
 }
 
 void RandomGraphPropertiesDialog::setupUi()
@@ -26,18 +30,12 @@ void RandomGraphPropertiesDialog::setupUi()
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
-    QHBoxLayout* layout = new QHBoxLayout;
-    mainLayout->addLayout(layout);
-
-    QLabel* label = new QLabel(this);
-    label->setText("Graph type : ");
+    QFormLayout* formLayout = new QFormLayout;
 
     graphTypesBox = new QComboBox(this);
-    graphTypesBox->addItem(GraphTypeNames::AllRandom);
-    graphTypesBox->addItem(GraphTypeNames::Grid);
+    formLayout->addRow("Graph type : ", graphTypesBox);
 
-    layout->addWidget(label);
-    layout->addWidget(graphTypesBox);
+    mainLayout->addLayout(formLayout);
 
     QPushButton* okButton = new QPushButton("ok", this);
     mainLayout->addWidget(okButton);
