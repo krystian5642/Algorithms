@@ -71,6 +71,7 @@ private:
     void paintEdges(QPainter& painter);
     void paintNodes(QPainter& painter);
     void paintNodeValues(QPainter& painter);
+    void paintWeights(QPainter& painter);
 
     void clearVisualization();
 

@@ -288,6 +288,7 @@ void GraphWidget::paintDataStructure(QPainter &painter)
     paintEdges(painter);
     paintNodes(painter);
     paintNodeValues(painter);
+    //paintWeights(painter);
 
     painter.restore();
 }
@@ -353,9 +354,42 @@ void GraphWidget::paintNodeValues(QPainter &painter)
 
     auto func = [&](int value)
     {
-        painter.drawText(graphNodeVisualData[value].location + QPointF(-3.5, 3), QString("%1").arg(value));
+        painter.drawText(graphNodeVisualData[value].location + QPointF(-3.5, 3.0), QString("%1").arg(value));
     };
     graph->forEachNode(func);
+}
+
+void GraphWidget::paintWeights(QPainter &painter)
+{
+    QPen textPen;
+    textPen.setBrush(Qt::blue);
+    QFont font("Arial", 12);
+    painter.setFont(font);
+    painter.setBrush(QColor(255, 165, 0)); // orange
+
+    constexpr int padding = 5;
+
+    auto func = [&](int start, int end, int weight)
+    {
+        const QString weightText(QString::number(weight));
+
+        QFontMetrics fontMetrics(font);
+        const int textWidth = fontMetrics.horizontalAdvance(weightText);
+        const int textHeight = fontMetrics.height();
+
+        const QPointF center((graphNodeVisualData[start].location + graphNodeVisualData[end].location) / 2.0);
+        const QRectF backgroundRect(center.x() - (textWidth / 2) - padding
+                                    , center.y() - (textHeight / 2) - padding
+                                    , textWidth + 2 * padding
+                                    , textHeight + 2 * padding);
+
+        painter.setPen(Qt::NoPen);
+        painter.drawRect(backgroundRect);
+
+        painter.setPen(textPen);
+        painter.drawText(backgroundRect, Qt::AlignCenter, weightText);
+    };
+    graph->forEachEdge(func);
 }
 
 void GraphWidget::clearVisualization()
