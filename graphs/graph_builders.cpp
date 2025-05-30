@@ -51,7 +51,7 @@ Graph *GraphBuilder::createGraph() const
         return pair.first == selectedImplementation;
     })->second;
 
-    return dynamic_cast<Graph*>(createGraphFunc());
+    return qobject_cast<Graph*>(createGraphFunc());
 }
 
 GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)

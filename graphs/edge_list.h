@@ -5,35 +5,52 @@
 #include <QPair>
 #include <QSet>
 
+class Edge
+{
+public:
+    explicit Edge(int inStart, int inEnd, bool directed);
+
+    int getStart() const;
+    int getEnd() const;
+
+public:
+    bool operator==(const Edge& other) const = default;
+
+private:
+    int start;
+    int end;
+};
+
+inline uint qHash(const Edge& edge, uint seed = 0)
+{
+    return qHash(QPair<int, int>(edge.getStart(), edge.getEnd()), seed);
+}
+
 class EdgeList
 {
 public:
-    using GraphEdge = QPair<int, int>;
-    using const_iterator = QList<QPair<int, int>>::const_iterator;
-    using iterator = QList<QPair<int, int>>::iterator;
-
     EdgeList();
 
-    void add(int start, int end);
+    void add(int start, int end, bool directed);
     void reserve(qsizetype size);
 
-    const QPair<int, int>& getLastEdge() const;
+    const Edge& getLastEdge() const;
     bool isValidIndex(qsizetype index) const;
 
     void clear();
 
 private:
-    QList<GraphEdge> edges;
-    QSet<GraphEdge> helperSet;
+    QList<Edge> edges;
+    QSet<Edge> helperSet;
 
 public:
-    const QPair<int, int>& operator[](qsizetype index) const;
+    const Edge& operator[](qsizetype index) const;
 
     // to support range-based operation for loop
-    inline QList<GraphEdge>::iterator        begin() { return edges.begin(); }
-    inline QList<GraphEdge>::const_iterator  constBegin() const { return edges.constBegin(); }
-    inline QList<GraphEdge>::iterator        end() { return edges.end(); }
-    inline QList<GraphEdge>::const_iterator  constEnd() const { return edges.constEnd(); }
+    inline QList<Edge>::iterator        begin() { return edges.begin(); }
+    inline QList<Edge>::const_iterator  constBegin() const { return edges.constBegin(); }
+    inline QList<Edge>::iterator        end() { return edges.end(); }
+    inline QList<Edge>::const_iterator  constEnd() const { return edges.constEnd(); }
 };
 
 #endif // EDGE_LIST_H

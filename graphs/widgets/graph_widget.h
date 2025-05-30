@@ -10,6 +10,7 @@
 class GraphVisualizationSettings;
 class GraphNodePropertiesWidget;
 class GraphAlgorithmVisualizer;
+class Edge;
 
 struct GraphNodeVisualData
 {
@@ -44,6 +45,7 @@ public:
 
     bool addNode(const QPoint& location);
     void addEdge(int start, int end, int weight = 1);
+    void removeEdge(int start, int end);
 
     // DataStructureWidget interface
     void saveAction() override;
@@ -60,12 +62,15 @@ private slots:
 
     void onAlgorithmVisualizerFinished();
 
+    void onGraphEdgeAdded();
+    void onGraphEdgeRemoved();
+
     // QWidget interface
 protected:
     void mousePressEvent(QMouseEvent *event) override;
 
     QList<GraphNodeVisualData> graphNodeVisualData;
-    QHash<QPair<int, int>, GraphEdgeVisualData> graphEdgeVisualData;
+    QHash<Edge, GraphEdgeVisualData> graphEdgeVisualData;
 
 private:
     void paintDataStructure(QPainter& painter) override;
@@ -74,6 +79,8 @@ private:
     void paintNodes(QPainter& painter);
     void paintNodeValues(QPainter& painter);
     void paintWeights(QPainter& painter);
+
+    void setAllowDirectedGraph(bool allow);
 
     void clearVisualization();
 
@@ -88,8 +95,11 @@ private:
     qreal arrowAngle;
 
     GraphVisualizationSettings* graphVisualizationSettings;
+    QWidget* graphPropertiesWidget;
 
-    std::unique_ptr<Graph> graph;
+    Graph* graph;
+
+    bool allowDirectedGraph;
 };
 
 #endif // GRAPH_WIDGET_H

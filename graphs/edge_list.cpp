@@ -1,13 +1,29 @@
 #include "edge_list.h"
 
+Edge::Edge(int inStart, int inEnd, bool directed)
+{
+    start = directed ? inStart : qMin(inStart, inEnd);
+    end = directed ? inEnd : qMax(inStart, inEnd);
+}
+
+int Edge::getStart() const
+{
+    return start;
+}
+
+int Edge::getEnd() const
+{
+    return end;
+}
+
 EdgeList::EdgeList()
 {
 
 }
 
-void EdgeList::add(int start, int end)
+void EdgeList::add(int start, int end, bool directed)
 {
-    const QPair<int, int> edge(qMin(start, end), qMax(start, end));
+    const Edge edge(start, end, directed);
     if(!helperSet.contains(edge))
     {
         edges.append(edge);
@@ -21,7 +37,7 @@ void EdgeList::reserve(qsizetype size)
     helperSet.reserve(size);
 }
 
-const QPair<int, int> &EdgeList::getLastEdge() const
+const Edge& EdgeList::getLastEdge() const
 {
     return edges.last();
 }
@@ -37,7 +53,7 @@ void EdgeList::clear()
     helperSet.clear();
 }
 
-const QPair<int, int> &EdgeList::operator[](qsizetype index) const
+const Edge &EdgeList::operator[](qsizetype index) const
 {
     return edges[index];
 }

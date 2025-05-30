@@ -9,8 +9,9 @@
 
 class Graph : public DataStructure
 {
+    Q_OBJECT
 public:
-    explicit Graph(bool inIsDirected = false);
+    explicit Graph(QObject *parent = nullptr, bool inIsDirected = false);
     virtual ~Graph();
 
     void generateRandomEdges(const double addEdgePropability);
@@ -20,9 +21,9 @@ public:
     bool getIsDirected() const;
     void setIsDirected(bool newIsDirected);
 
+    virtual void addNode() = 0;
     virtual void addEdge(int start, int end, int weight = 1) = 0;
     virtual void removeEdge(int start, int end) = 0;
-    virtual void addNode() = 0;
     virtual bool hasEdgeTo(int from, int to) = 0;
     virtual qsizetype getEdgesNum() const = 0;
     virtual qsizetype getVerticesNum() const = 0;
@@ -32,18 +33,24 @@ public:
     virtual void forEachEdge(std::function<void(int, int, int)> func) = 0;
     virtual void forEachNeighbor(int vertex, std::function<void(int, int, int)> func) = 0;
 
+signals:
+    void onNodeAdded();
+    void onEdgeAdded();
+    void onEdgeRemoved();
+
 protected:
     bool isDirected;
 };
 
 class AdjacencyListGraph : public Graph
 {
+    Q_OBJECT
 public:
-    explicit AdjacencyListGraph(bool inIsDirected = false);
+    explicit AdjacencyListGraph(QObject *parent = nullptr, bool inIsDirected = false);
 
+    void addNode() override;
     void addEdge(int start, int end, int weight = 1) override;
     void removeEdge(int start, int end) override;
-    void addNode() override;
     bool hasEdgeTo(int from, int to) override;
     qsizetype getEdgesNum() const override;
     qsizetype getVerticesNum() const override;
@@ -75,12 +82,13 @@ private:
 
 class AdjacencyMatrixGraph : public Graph
 {
+    Q_OBJECT
 public:
-    explicit AdjacencyMatrixGraph(int vertices = 0,  bool inIsDirected = false);
+    explicit AdjacencyMatrixGraph(QObject *parent = nullptr, bool inIsDirected = false, int vertices = 0);
 
+    void addNode() override;
     void addEdge(int start, int end, int weight = 1) override;
     void removeEdge(int start, int end) override;
-    void addNode() override;
     bool hasEdgeTo(int from, int to) override;
     qsizetype getEdgesNum() const override;
     qsizetype getVerticesNum() const override;

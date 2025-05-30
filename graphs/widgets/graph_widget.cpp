@@ -13,6 +13,7 @@
 #include <QComboBox>
 #include <QElapsedTimer>
 #include <QFile>
+#include <QFormLayout>
 #include <QJsonDocument>
 #include <QLabel>
 #include <QMessageBox>
@@ -28,18 +29,19 @@ GraphWidget::GraphWidget(QWidget *parent)
     , nodeRadius(15.0)
     , arrowSize(10.0)
     , arrowAngle(M_PI / 6.0)
+    , allowDirectedGraph(true)
 {
     category = "Graph";
 
-    graph = std::make_unique<AdjacencyListGraph>(true);
+    graph = new AdjacencyListGraph(this, true);
+    connect(graph, &Graph::onEdgeAdded, this, &GraphWidget::onGraphEdgeAdded);
+    connect(graph, &Graph::onEdgeRemoved, this, &GraphWidget::onGraphEdgeRemoved);
 
     graphVisualizationSettings = new GraphVisualizationSettings(this);
-
     connect(graphVisualizationSettings, &GraphVisualizationSettings::showWeightsChanged, this, [this](bool showWeights)
     {
         update();
     });
-
     connect(graphVisualizationSettings, &GraphVisualizationSettings::graphDirectedChanged, this, [this](bool graphDirected)
     {
         graph->setIsDirected(graphDirected);
@@ -76,10 +78,10 @@ GraphWidget::GraphWidget(QWidget *parent)
     dataStructureVisualBuilders.push_back(new GeneralGraphVisualBuilder(this));
     dataStructureVisualBuilders.push_back(new GridGraphVisualBuilder(this));
 
-    QWidget* propertiesWidget = PropertyEditorFactory::get().createPropertiesWidget(graphVisualizationSettings, this);
-    propertiesWidget->setFixedWidth(170);
+    graphPropertiesWidget = PropertyEditorFactory::get().createPropertiesWidget(graphVisualizationSettings, this);
+    graphPropertiesWidget->setFixedWidth(170);
 
-    additionalToolBarWidgets.push_back(propertiesWidget);
+    additionalToolBarWidgets.push_back(graphPropertiesWidget);
 }
 
 GraphWidget::~GraphWidget()
@@ -91,7 +93,8 @@ void GraphWidget::clear()
     clearVisualization();
     graph->clear();
     graphNodeVisualData.clear();
-    graphEdgeVisualData.clear();  
+    graphEdgeVisualData.clear();
+    setAllowDirectedGraph(true);
     update();
 }
 
@@ -138,7 +141,7 @@ void GraphWidget::setNodeColor(int value, const QColor& color, bool callUpdate)
 
 void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool callUpdate)
 {
-    const QPair<int, int> edge(qMin(start, end), qMax(start, end));
+    const Edge edge(start, end, graph->getIsDirected());
     auto it = graphEdgeVisualData.find(edge);
     if(it != graphEdgeVisualData.end() && it->color != color)
     {
@@ -191,6 +194,11 @@ bool GraphWidget::addNode(const QPoint& location)
 void GraphWidget::addEdge(int start, int end, int weight)
 {
     graph->addEdge(start, end, weight);
+}
+
+void GraphWidget::removeEdge(int start, int end)
+{
+    graph->removeEdge(start, end);
 }
 
 void GraphWidget::saveAction()
@@ -253,7 +261,7 @@ void GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
 
             GraphAlgorithmVisualizer* graphAlgorithmVisualizer = qobject_cast<GraphAlgorithmVisualizer*>(algorithmVisualizer);
             graphAlgorithmVisualizer->clear();
-            graphAlgorithmVisualizer->setGraph(graph.get());
+            graphAlgorithmVisualizer->setGraph(graph);
 
             currentAlgorithmVisualizer = graphAlgorithmVisualizer;
             connect(currentAlgorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
@@ -281,12 +289,12 @@ void GraphWidget::onActionGenerateRandomEdgesTriggered()
 
 void GraphWidget::onActionAddEdgeTriggered()
 {
-    AddEdgeDialog addEdgeDialog(graph.get());
+    AddEdgeDialog addEdgeDialog(graph);
     const int result = addEdgeDialog.exec();
 
     if(result == QDialog::DialogCode::Accepted)
     {
-        graph->addEdge(addEdgeDialog.getStart(), addEdgeDialog.getEnd(), addEdgeDialog.getWeight());
+        addEdge(addEdgeDialog.getStart(), addEdgeDialog.getEnd(), addEdgeDialog.getWeight());
 
         update();
     }
@@ -294,12 +302,12 @@ void GraphWidget::onActionAddEdgeTriggered()
 
 void GraphWidget::onActionRemoveEdgeTriggered()
 {
-    RemoveEdgeDialog removeEdgeDialog(graph.get());
+    RemoveEdgeDialog removeEdgeDialog(graph);
     const int result = removeEdgeDialog.exec();
 
     if(result == QDialog::DialogCode::Accepted)
     {
-        graph->removeEdge(removeEdgeDialog.getStart(), removeEdgeDialog.getEnd());
+        removeEdge(removeEdgeDialog.getStart(), removeEdgeDialog.getEnd());
 
         update();
     }
@@ -309,6 +317,19 @@ void GraphWidget::onAlgorithmVisualizerFinished()
 {
     disconnect(currentAlgorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
     currentAlgorithmVisualizer = nullptr;
+}
+
+void GraphWidget::onGraphEdgeAdded()
+{
+    setAllowDirectedGraph(false);
+}
+
+void GraphWidget::onGraphEdgeRemoved()
+{
+    if(graph->getEdgesNum() == 0)
+    {
+        setAllowDirectedGraph(true);
+    }
 }
 
 void GraphWidget::mousePressEvent(QMouseEvent *event)
@@ -349,12 +370,14 @@ void GraphWidget::paintDataStructure(QPainter &painter)
 
 void GraphWidget::paintEdges(QPainter &painter)
 {
-    QSet<QPair<int, int>> drawnEdges;
+    QSet<Edge> drawnEdges;
     drawnEdges.reserve(graph->getEdgesNum());
+
+    const bool isDirected = graph->getIsDirected();
 
     auto func = [&](int start, int end, int weight)
     {
-        const QPair<int, int> edge(qMin(start, end), qMax(start, end));
+        const Edge edge(start, end, isDirected);
         if(!drawnEdges.contains(edge))
         {
             const QColor color = graphEdgeVisualData[edge].color;
@@ -371,7 +394,7 @@ void GraphWidget::paintEdges(QPainter &painter)
             painter.drawLine(startNodeVisualData.location, end);
             drawnEdges.insert(edge);
 
-            if(graph->getIsDirected())
+            if(isDirected)
             {
                 const QLineF line(end, startNodeVisualData.location);
                 const double angle = std::atan2(line.dy(), line.dx());
@@ -458,6 +481,18 @@ void GraphWidget::paintWeights(QPainter &painter)
         painter.drawText(backgroundRect, Qt::AlignCenter, weightText);
     };
     graph->forEachEdge(func);
+}
+
+void GraphWidget::setAllowDirectedGraph(bool allow)
+{
+    if(allowDirectedGraph == allow)
+    {
+        return;
+    }
+
+    allowDirectedGraph = allow;
+    const QFormLayout* formLayout = graphPropertiesWidget->layout()->findChild<QFormLayout*>();
+    formLayout->itemAt(1, QFormLayout::FieldRole)->widget()->setEnabled(allowDirectedGraph);
 }
 
 void GraphWidget::clearVisualization()

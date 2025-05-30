@@ -75,10 +75,10 @@ void GraphAlgorithmVisualizer::updateVisualization()
 {
     if(resultEdgeList.isValidIndex(resultIndex))
     {
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red, false);
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
 
-        graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
+        graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
 
         resultIndex++;
     }
@@ -125,7 +125,7 @@ void BFSVisualizer::run(QWidget *widget)
                 nodeQueue.enqueue(neighbour);
             }
 
-            resultEdgeList.add(start, neighbour);
+            resultEdgeList.add(start, neighbour, graph->getIsDirected());
         };
 
         while(!nodeQueue.empty())

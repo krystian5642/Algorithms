@@ -4,8 +4,9 @@
 
 #include <QRandomGenerator>
 
-Graph::Graph(bool inIsDirected)
-    : isDirected(inIsDirected)
+Graph::Graph(QObject *parent, bool inIsDirected)
+    : DataStructure(parent)
+    , isDirected(inIsDirected)
 {
 
 }
@@ -84,10 +85,19 @@ void Graph::setIsDirected(bool newIsDirected)
     isDirected = newIsDirected;
 }
 
-AdjacencyListGraph::AdjacencyListGraph(bool inIsDirected)
-    : Graph(inIsDirected)
+AdjacencyListGraph::AdjacencyListGraph(QObject *parent, bool inIsDirected)
+    : Graph(parent, inIsDirected)
 {
 
+}
+
+void AdjacencyListGraph::addNode()
+{
+    const qsizetype oldSize = adjList.size();
+    adjList.resize(oldSize + 1);
+    adjList[oldSize] = QList<Edge>();
+
+    emit onNodeAdded();
 }
 
 void AdjacencyListGraph::addEdge(int start, int end, int weight)
@@ -103,6 +113,7 @@ void AdjacencyListGraph::addEdge(int start, int end, int weight)
     }
 
     adjList[start].push_back(Edge{end, weight});
+    emit onEdgeAdded();
 
     if(!isDirected)
     {
@@ -112,6 +123,7 @@ void AdjacencyListGraph::addEdge(int start, int end, int weight)
         }
 
         adjList[end].push_back(Edge{start, weight});
+        emit onEdgeAdded();
     }
 }
 
@@ -123,18 +135,13 @@ void AdjacencyListGraph::removeEdge(int start, int end)
     }
 
     Utils::eraseIf(adjList[start], [end](const Edge& edge) { return end == edge.endValue; });
+    emit onEdgeRemoved();
 
     if(!isDirected)
     {
         Utils::eraseIf(adjList[end], [start](const Edge& edge) { return start == edge.endValue; });
+        emit onEdgeRemoved();
     }
-}
-
-void AdjacencyListGraph::addNode()
-{
-    const qsizetype oldSize = adjList.size();
-    adjList.resize(oldSize + 1);
-    adjList[oldSize] = QList<Edge>();
 }
 
 bool AdjacencyListGraph::hasEdgeTo(int from, int to)
@@ -217,14 +224,27 @@ void AdjacencyListGraph::forEachNeighbor(int vertex, std::function<void (int, in
     }
 }
 
-AdjacencyMatrixGraph::AdjacencyMatrixGraph(int vertices, bool inIsDirected)
-    : Graph(inIsDirected)
+AdjacencyMatrixGraph::AdjacencyMatrixGraph(QObject *parent, bool inIsDirected, int vertices)
+    : Graph(parent, inIsDirected)
 {
     adjMatrix.fill(QList<int>{}, vertices);
     for(auto& neighbours : adjMatrix)
     {
         neighbours.fill(INT_MIN, vertices);
     }
+}
+
+void AdjacencyMatrixGraph::addNode()
+{
+    const qsizetype verticesNum = getVerticesNum();
+
+    adjMatrix.push_back(QList<int>(verticesNum + 1, INT_MIN));
+    for(int i = 0; i < verticesNum; ++i)
+    {
+        adjMatrix[i].push_back(INT_MIN);
+    }
+
+    emit onNodeAdded();
 }
 
 void AdjacencyMatrixGraph::addEdge(int start, int end, int weight)
@@ -245,10 +265,12 @@ void AdjacencyMatrixGraph::addEdge(int start, int end, int weight)
     }
 
     adjMatrix[start][end] = weight;
+    emit onEdgeAdded();
 
     if(!isDirected)
     {
         adjMatrix[end][start] = weight;
+        emit onEdgeAdded();
     }
 }
 
@@ -260,21 +282,12 @@ void AdjacencyMatrixGraph::removeEdge(int start, int end)
     }
 
     adjMatrix[start][end] = INT_MIN;
+    emit onEdgeRemoved();
 
     if(!isDirected)
     {
         adjMatrix[end][start] = INT_MIN;
-    }
-}
-
-void AdjacencyMatrixGraph::addNode()
-{
-    const qsizetype verticesNum = getVerticesNum();
-
-    adjMatrix.push_back(QList<int>(verticesNum + 1, INT_MIN));
-    for(int i = 0; i < verticesNum; ++i)
-    {
-        adjMatrix[i].push_back(INT_MIN);
+        emit onEdgeRemoved();
     }
 }
 
