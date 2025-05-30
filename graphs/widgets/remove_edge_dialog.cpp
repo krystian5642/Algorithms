@@ -1,4 +1,6 @@
-#include "add_edge_dialog.h"
+#include "remove_edge_dialog.h"
+
+#include "../graph.h"
 
 #include <QFormLayout>
 #include <QIntValidator>
@@ -6,49 +8,39 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include "../graph.h"
-
-AddEdgeDialog::AddEdgeDialog(const Graph* graph)
+RemoveEdgeDialog::RemoveEdgeDialog(const Graph *graph)
 {
     setupUi(graph);
 }
 
-int AddEdgeDialog::getStart() const
+int RemoveEdgeDialog::getStart() const
 {
     return lineEditStart->text().toInt();
 }
 
-int AddEdgeDialog::getEnd() const
+int RemoveEdgeDialog::getEnd() const
 {
     return lineEditEnd->text().toInt();
 }
 
-int AddEdgeDialog::getWeight() const
+void RemoveEdgeDialog::setupUi(const Graph *graph)
 {
-    return lineEditWeight->text().toInt();
-}
-
-void AddEdgeDialog::setupUi(const Graph* graph)
-{
-    setWindowTitle("Add Edge");
+    setWindowTitle("Remove Edge");
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
     QFormLayout* formLayout = new QFormLayout;
 
-    const QIntValidator* addEdgeValidator = new QIntValidator(0, graph->getVerticesNum() - 1, formLayout);
+    const QIntValidator* removeEdgeValidator = new QIntValidator(0, graph->getVerticesNum() - 1, formLayout);
 
     lineEditStart = new QLineEdit("0", this);
-    lineEditStart->setValidator(addEdgeValidator);
+    lineEditStart->setValidator(removeEdgeValidator);
 
     lineEditEnd = new QLineEdit("0", this);
-    lineEditEnd->setValidator(addEdgeValidator);
-
-    lineEditWeight = new QLineEdit("0", this);
+    lineEditEnd->setValidator(removeEdgeValidator);
 
     formLayout->addRow("Start : ", lineEditStart);
     formLayout->addRow("End : ", lineEditEnd);
-    formLayout->addRow("Weight : ", lineEditWeight);
 
     mainLayout->addLayout(formLayout);
 

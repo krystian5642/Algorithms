@@ -2,6 +2,7 @@
 #include "graph_algorithm_visualizers.h"
 #include "widgets/graph_widget.h"
 
+#include <QMessageBox>
 #include <QQueue>
 
 GraphAlgorithmVisualizer::GraphAlgorithmVisualizer(QObject *parent)
@@ -17,25 +18,6 @@ GraphAlgorithmVisualizer::GraphAlgorithmVisualizer(QObject *parent)
 GraphAlgorithmVisualizer::~GraphAlgorithmVisualizer()
 {
 
-}
-
-void GraphAlgorithmVisualizer::updateVisualization()
-{
-    if(resultEdgeList.isValidIndex(resultIndex))
-    {
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
-
-        graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
-
-        resultIndex++;
-    }
-    else
-    {
-        clear();
-
-        emit finished();
-    }
 }
 
 void GraphAlgorithmVisualizer::clear()
@@ -89,6 +71,29 @@ void GraphAlgorithmVisualizer::setGraph(Graph *newGraph)
     graph = newGraph;
 }
 
+void GraphAlgorithmVisualizer::updateVisualization()
+{
+    if(resultEdgeList.isValidIndex(resultIndex))
+    {
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].first, Qt::red, false);
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].second, Qt::red, false);
+
+        graphWidget->setEdgeColor(resultEdgeList[resultIndex].first, resultEdgeList[resultIndex].second, Qt::red);
+
+        resultIndex++;
+    }
+    else
+    {
+        clear();
+        emit finished();
+    }
+}
+
+void GraphAlgorithmVisualizer::showStartIsInvalidInfo()
+{
+    QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", "Choosen start is too large or negative");
+}
+
 BFSVisualizer::BFSVisualizer(QObject *parent)
     : GraphAlgorithmVisualizer(parent)
 {
@@ -97,40 +102,48 @@ BFSVisualizer::BFSVisualizer(QObject *parent)
 
 void BFSVisualizer::run(QWidget *widget)
 {
-    QQueue<int> nodeQueue;
-    nodeQueue.reserve(graph->getVerticesNum());
-
-    QList<bool> visited;
-    visited.fill(false, graph->getVerticesNum());
-
-    resultEdgeList.reserve(graph->getEdgesNum());
-
     const int begin = randomStart ? graph->getRandomValue() : start;
 
-    nodeQueue.enqueue(begin);
-    visited[begin] = true;
-
-    auto func = [&](int start, int neighbour, int weight)
+    if(begin < graph->getVerticesNum())
     {
-        if(!visited[neighbour])
+        QQueue<int> nodeQueue;
+        nodeQueue.reserve(graph->getVerticesNum());
+
+        QList<bool> visited;
+        visited.fill(false, graph->getVerticesNum());
+
+        resultEdgeList.reserve(graph->getEdgesNum());
+
+        nodeQueue.enqueue(begin);
+        visited[begin] = true;
+
+        auto func = [&](int start, int neighbour, int weight)
         {
-            visited[neighbour] = true;
-            nodeQueue.enqueue(neighbour);
+            if(!visited[neighbour])
+            {
+                visited[neighbour] = true;
+                nodeQueue.enqueue(neighbour);
+            }
+
+            resultEdgeList.add(start, neighbour);
+        };
+
+        while(!nodeQueue.empty())
+        {
+            const int first = nodeQueue.dequeue();
+            graph->forEachNeighbor(first, func);
         }
 
-        resultEdgeList.add(start, neighbour);
-    };
+        graphWidget = qobject_cast<GraphWidget*>(widget);
+        graphWidget->setNodeColor(begin, Qt::red);
 
-    while(!nodeQueue.empty())
-    {
-        const int first = nodeQueue.dequeue();
-        graph->forEachNeighbor(first, func);
+        visualizationTimer.start();
     }
-
-    graphWidget = qobject_cast<GraphWidget*>(widget);
-    graphWidget->setNodeColor(begin, Qt::red);
-
-    visualizationTimer.start();
+    else
+    {
+        showStartIsInvalidInfo();
+        emit finished();
+    }
 }
 
 DFSVisualizer::DFSVisualizer(QObject *parent)

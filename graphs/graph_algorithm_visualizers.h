@@ -17,8 +17,6 @@ public:
     explicit GraphAlgorithmVisualizer(QObject *parent = nullptr);
     virtual ~GraphAlgorithmVisualizer() = 0;
 
-    void updateVisualization() override;
-
     void clear() override;
 
     int getStart() const;
@@ -35,6 +33,10 @@ signals:
     void randomStartChanged();
 
 protected:
+    void updateVisualization() override;
+
+    void showStartIsInvalidInfo();
+
     int start;
     bool randomStart;
 

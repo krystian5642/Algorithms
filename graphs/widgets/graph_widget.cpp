@@ -1,12 +1,17 @@
 #include "graph_widget.h"
 
+#include "../../core/property_editor_factory.h"
+
 #include "../graph_algorithm_visualizers.h"
 #include "../graph_visual_builders.h"
+#include "../graph_visualization_settings.h"
 
 #include "add_edge_dialog.h"
+#include "remove_edge_dialog.h"
 #include "random_graph_properties_dialog.h"
 
 #include <QComboBox>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QJsonDocument>
 #include <QLabel>
@@ -28,6 +33,19 @@ GraphWidget::GraphWidget(QWidget *parent)
 
     graph = std::make_unique<AdjacencyListGraph>(true);
 
+    graphVisualizationSettings = new GraphVisualizationSettings(this);
+
+    connect(graphVisualizationSettings, &GraphVisualizationSettings::showWeightsChanged, this, [this](bool showWeights)
+    {
+        update();
+    });
+
+    connect(graphVisualizationSettings, &GraphVisualizationSettings::graphDirectedChanged, this, [this](bool graphDirected)
+    {
+        graph->setIsDirected(graphDirected);
+        update();
+    });
+
     QAction* actionGenerateRandomEdges = new QAction(this);
     QIcon icon;
     icon.addFile(QString::fromUtf8(":/icons/random_edges.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
@@ -40,6 +58,12 @@ GraphWidget::GraphWidget(QWidget *parent)
     actionAddEdge->setIcon(icon1);
     connect(actionAddEdge, &QAction::triggered, this, &GraphWidget::onActionAddEdgeTriggered);
 
+    QAction* actionRemoveEdge = new QAction(this);
+    QIcon icon3;
+    icon3.addFile(QString::fromUtf8(":/icons/remove_edge.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    actionRemoveEdge->setIcon(icon3);
+    connect(actionRemoveEdge, &QAction::triggered, this, &GraphWidget::onActionRemoveEdgeTriggered);
+
 #if QT_CONFIG(tooltip)
     actionGenerateRandomEdges->setToolTip("Generate random edges");
     actionAddEdge->setToolTip("Add edge");
@@ -47,9 +71,15 @@ GraphWidget::GraphWidget(QWidget *parent)
 
     additionalActions.push_back(actionGenerateRandomEdges);
     additionalActions.push_back(actionAddEdge);
+    additionalActions.push_back(actionRemoveEdge);
 
     dataStructureVisualBuilders.push_back(new GeneralGraphVisualBuilder(this));
     dataStructureVisualBuilders.push_back(new GridGraphVisualBuilder(this));
+
+    QWidget* propertiesWidget = PropertyEditorFactory::get().createPropertiesWidget(graphVisualizationSettings, this);
+    propertiesWidget->setFixedWidth(170);
+
+    additionalToolBarWidgets.push_back(propertiesWidget);
 }
 
 GraphWidget::~GraphWidget()
@@ -262,6 +292,19 @@ void GraphWidget::onActionAddEdgeTriggered()
     }
 }
 
+void GraphWidget::onActionRemoveEdgeTriggered()
+{
+    RemoveEdgeDialog removeEdgeDialog(graph.get());
+    const int result = removeEdgeDialog.exec();
+
+    if(result == QDialog::DialogCode::Accepted)
+    {
+        graph->removeEdge(removeEdgeDialog.getStart(), removeEdgeDialog.getEnd());
+
+        update();
+    }
+}
+
 void GraphWidget::onAlgorithmVisualizerFinished()
 {
     disconnect(currentAlgorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
@@ -285,10 +328,21 @@ void GraphWidget::paintDataStructure(QPainter &painter)
 {
     painter.save();
 
-    paintEdges(painter);
-    paintNodes(painter);
-    paintNodeValues(painter);
-    //paintWeights(painter);
+    {
+        QElapsedTimer paintTimer;
+        paintTimer.start();
+
+        paintEdges(painter);
+        paintNodes(painter);
+        paintNodeValues(painter);
+
+        if(graphVisualizationSettings->getShowWeights())
+        {
+            paintWeights(painter);
+        }
+
+        lastPaintTime = paintTimer.elapsed();
+    }
 
     painter.restore();
 }
@@ -296,7 +350,7 @@ void GraphWidget::paintDataStructure(QPainter &painter)
 void GraphWidget::paintEdges(QPainter &painter)
 {
     QSet<QPair<int, int>> drawnEdges;
-    drawnEdges.reserve(qMax(0, graph->getEdgesNum()));
+    drawnEdges.reserve(graph->getEdgesNum());
 
     auto func = [&](int start, int end, int weight)
     {
@@ -351,10 +405,24 @@ void GraphWidget::paintNodeValues(QPainter &painter)
     QPen textPen;
     textPen.setBrush(Qt::white);
     painter.setPen(textPen);
+    QFont font("Arial", 12);
+    painter.setFont(font);
 
     auto func = [&](int value)
     {
-        painter.drawText(graphNodeVisualData[value].location + QPointF(-3.5, 3.0), QString("%1").arg(value));
+        const QString valueText(QString::number(value));
+
+        QFontMetrics fontMetrics(font);
+        const int textWidth = fontMetrics.horizontalAdvance(valueText);
+        const int textHeight = fontMetrics.height();
+
+        const QPointF& center = graphNodeVisualData[value].location;
+        const QRectF backgroundRect(center.x() - (textWidth / 2)
+                                    , center.y() - (textHeight / 2)
+                                    , textWidth
+                                    , textHeight);
+
+        painter.drawText(backgroundRect, Qt::AlignCenter, valueText);
     };
     graph->forEachNode(func);
 }

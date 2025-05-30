@@ -42,6 +42,9 @@ public:
     const QString& getCategory() const;
 
     const QList<QAction*>& getAdditionalActions() const;
+    const QList<QWidget*>& getAdditionalToolBarWidget() const;
+    qint64 getLastPaintTime() const;
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -51,11 +54,14 @@ protected:
 
     QList<AlgorithmVisualizer*> algorithmVisualizers;
     QList<QAction*> additionalActions;
+    QList<QWidget*> additionalToolBarWidgets;
     QList<DataStructureVisualBuilder*> dataStructureVisualBuilders;
 
     AlgorithmVisualizer* currentAlgorithmVisualizer = nullptr;
 
     QString category;
+
+    qint64 lastPaintTime;
 
 private:
     virtual void paintDataStructure(QPainter& painter);

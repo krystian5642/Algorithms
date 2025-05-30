@@ -6,6 +6,7 @@
 
 DataStructureWidget::DataStructureWidget(QWidget *parent)
     : QWidget(parent)
+    , lastPaintTime(0)
 {
 }
 
@@ -31,6 +32,11 @@ const QString& DataStructureWidget::getCategory() const
 const QList<QAction *> &DataStructureWidget::getAdditionalActions() const
 {
     return additionalActions;
+}
+
+const QList<QWidget *> &DataStructureWidget::getAdditionalToolBarWidget() const
+{
+    return additionalToolBarWidgets;
 }
 
 void DataStructureWidget::paintEvent(QPaintEvent *event)
@@ -93,6 +99,11 @@ void DataStructureWidget::wheelEvent(QWheelEvent *event)
     scaleOffset = QPointF(event->position().x() * (1 - scaleData.currentScale), event->position().y() * (1 - scaleData.currentScale));
 
     update();
+}
+
+qint64 DataStructureWidget::getLastPaintTime() const
+{
+    return lastPaintTime;
 }
 
 void DataStructureWidget::paintDataStructure(QPainter &painter)

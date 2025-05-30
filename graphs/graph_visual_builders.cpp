@@ -146,6 +146,11 @@ void GeneralGraphVisualBuilder::setAddEdgePropability(double newAddEdgePropabili
 
 GridGraphVisualBuilder::GridGraphVisualBuilder(QObject *parent)
     : GraphVisualBuilder{parent}
+    , columns(20)
+    , rows(20)
+    , nodeSpace(50)
+    , startXLocation(50)
+    , startYLocation(50)
 {
     setObjectName("Grid Graph");
 }
@@ -157,36 +162,117 @@ void GridGraphVisualBuilder::buildDataStructureVisualization(DataStructureWidget
         return;
     }
 
-    // this info will be taken from UI later
-    constexpr int columns = 20;
-    constexpr int rows = 20;
-    constexpr int nodeSpace = 50;
-    constexpr QPoint startLoc(50, 50);
+    PropertiesDialog propertiesDialog(this);
+    const int result = propertiesDialog.exec();
 
-    GraphWidget* graphWidget = qobject_cast<GraphWidget*>(dataStructureWidget);
-
-    QList<int> prevRow(columns);
-    for(int i = 0; i < rows; i++)
+    if(result == QDialog::DialogCode::Accepted)
     {
-        int prevValue = -1;
-        for(int j = 0; j < columns; j++)
+        GraphWidget* graphWidget = qobject_cast<GraphWidget*>(dataStructureWidget);
+        graphWidget->clear();
+
+        QList<int> prevRow(columns);
+        for(int i = 0; i < rows; i++)
         {
-            const int value = i * rows + j;
-
-            graphWidget->addNode(QPoint(startLoc.x()  + nodeSpace * j, startLoc.y() + nodeSpace * i));
-
-            if(j > 0 && prevValue != -1)
+            int prevValue = -1;
+            for(int j = 0; j < columns; j++)
             {
-                graphWidget->addEdge(prevValue, value);
-            }
+                const int value = i * columns + j;
 
-            if(i > 0 && prevRow[j] != -1)
-            {
-                graphWidget->addEdge(prevRow[j], value);
-            }
+                graphWidget->addNode(QPoint(startXLocation  + nodeSpace * j, startYLocation + nodeSpace * i));
 
-            prevRow[j] = value;
-            prevValue = value;
+                if(j > 0 && prevValue != -1)
+                {
+                    graphWidget->addEdge(prevValue, value);
+                }
+
+                if(i > 0 && prevRow[j] != -1)
+                {
+                    graphWidget->addEdge(prevRow[j], value);
+                }
+
+                prevRow[j] = value;
+                prevValue = value;
+            }
         }
     }
+}
+
+int GridGraphVisualBuilder::getColumns() const
+{
+    return columns;
+}
+
+void GridGraphVisualBuilder::setColumns(int newColumns)
+{
+    if (columns == newColumns)
+    {
+        return;
+    }
+
+    columns = newColumns;
+    emit columnsChanged();
+}
+
+int GridGraphVisualBuilder::getRows() const
+{
+    return rows;
+}
+
+void GridGraphVisualBuilder::setRows(int newRows)
+{
+    if (rows == newRows)
+    {
+        return;
+    }
+
+    rows = newRows;
+    emit rowsChanged();
+}
+
+int GridGraphVisualBuilder::getNodeSpace() const
+{
+    return nodeSpace;
+}
+
+void GridGraphVisualBuilder::setNodeSpace(int newNodeSpace)
+{
+    if (nodeSpace == newNodeSpace)
+    {
+        return;
+    }
+
+    nodeSpace = newNodeSpace;
+    emit nodeSpaceChanged();
+}
+
+int GridGraphVisualBuilder::getStartXLocation() const
+{
+    return startXLocation;
+}
+
+void GridGraphVisualBuilder::setStartXLocation(int newStartXLocation)
+{
+    if (startXLocation == newStartXLocation)
+    {
+        return;
+    }
+
+    startXLocation = newStartXLocation;
+    emit startXLocationChanged();
+}
+
+int GridGraphVisualBuilder::getStartYLocation() const
+{
+    return startYLocation;
+}
+
+void GridGraphVisualBuilder::setStartYLocation(int newStartYLocation)
+{
+    if (startYLocation == newStartYLocation)
+    {
+        return;
+    }
+
+    startYLocation = newStartYLocation;
+    emit startYLocationChanged();
 }

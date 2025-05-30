@@ -26,17 +26,26 @@ private slots:
 
     void onAlgorithmVisualizerFinished();
 
+    // QWidget interface
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+
 private:
     void setupUi();
     void setupActionsAndToolBar();
 
     void removeActions(const QList<QAction*>& actions);
 
+    void addWidgetsToToolBar(const QList<QWidget*>& widgets);
+
     void registerDataStructureWidgets();
 
     DataStructureWidget* getDataStructureWidget() const;
 
     AlgorithmVisualizer* getSelectedAlgorithmVisualizer() const;
+
+    void showNothingSelectedInfo();
 
     QTreeView* algorithmsTreeView;
     QVBoxLayout* verticalLayout;
@@ -51,6 +60,8 @@ private:
     QAction* actionRunAlgorithm;
 
     QList<DataStructureWidget*> dataStructureWidgets;
+
+    QList<QAction*> temporaryActions;
 };
 
 #endif // ALGORITHM_VISUALIZATION_WINDOW_H

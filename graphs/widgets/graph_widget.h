@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include <QDialog>
 
+class GraphVisualizationSettings;
 class GraphNodePropertiesWidget;
 class GraphAlgorithmVisualizer;
 
@@ -55,6 +56,7 @@ public:
 private slots:
     void onActionGenerateRandomEdgesTriggered();
     void onActionAddEdgeTriggered();
+    void onActionRemoveEdgeTriggered();
 
     void onAlgorithmVisualizerFinished();
 
@@ -84,6 +86,8 @@ private:
     qreal nodeRadius;
     qreal arrowSize;
     qreal arrowAngle;
+
+    GraphVisualizationSettings* graphVisualizationSettings;
 
     std::unique_ptr<Graph> graph;
 };

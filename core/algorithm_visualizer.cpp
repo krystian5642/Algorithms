@@ -7,6 +7,7 @@
 
 AlgorithmVisualizer::AlgorithmVisualizer(QObject *parent)
     : QObject(parent)
+    , stepTime(1000)
 {
     visualizationTimer.setInterval(stepTime);
     connect(&visualizationTimer, &QTimer::timeout, this, &AlgorithmVisualizer::updateVisualization);
@@ -50,5 +51,13 @@ int AlgorithmVisualizer::getStepTime() const
 
 void AlgorithmVisualizer::setStepTime(int newStepTime)
 {
+    if(stepTime == newStepTime)
+    {
+        return;
+    }
+
     stepTime = newStepTime;
+    visualizationTimer.setInterval(stepTime);
+
+    emit stepTimeChanged();
 }

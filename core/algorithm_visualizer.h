@@ -7,11 +7,11 @@
 class AlgorithmVisualizer : public QObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(int stepTime READ getStepTime WRITE setStepTime NOTIFY stepTimeChanged FINAL)
 public:
     AlgorithmVisualizer(QObject *parent = nullptr);
     virtual ~AlgorithmVisualizer() = 0;
-
-    virtual void updateVisualization() = 0;
 
     virtual void run(QWidget* widget) = 0;
     virtual void clear();
@@ -25,9 +25,13 @@ public:
 signals:
     void finished();
 
+    void stepTimeChanged();
+
 protected:
+    virtual void updateVisualization() = 0;
+
     QTimer visualizationTimer;
-    int stepTime = 1000;
+    int stepTime;
 };
 
 #endif // ALGORITHMVISUALIZER_H

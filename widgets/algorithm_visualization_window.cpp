@@ -9,6 +9,7 @@
 #include <QToolBar>
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <QStatusBar>
 
 AlgorithmVisualizationWindow::AlgorithmVisualizationWindow(QWidget *parent)
     : QMainWindow{parent}
@@ -29,6 +30,10 @@ void AlgorithmVisualizationWindow::onActionSaveTriggered()
     {
         dataStructureWidget->saveAction();
     }
+    else
+    {
+        showNothingSelectedInfo();
+    }
 }
 
 void AlgorithmVisualizationWindow::onActionLoadTriggered()
@@ -37,6 +42,10 @@ void AlgorithmVisualizationWindow::onActionLoadTriggered()
     if(dataStructureWidget)
     {
         dataStructureWidget->loadAction();
+    }
+    else
+    {
+        showNothingSelectedInfo();
     }
 }
 
@@ -48,6 +57,10 @@ void AlgorithmVisualizationWindow::onActionClearTriggered()
         actionRunAlgorithm->setChecked(false);
         dataStructureWidget->clearAction();
     }
+    else
+    {
+        showNothingSelectedInfo();
+    }
 }
 
 void AlgorithmVisualizationWindow::onActionGenerateRandomDataStructureTriggered()
@@ -57,6 +70,10 @@ void AlgorithmVisualizationWindow::onActionGenerateRandomDataStructureTriggered(
     {
         dataStructureWidget->generateRandomDataStructureAction();
     }
+    else
+    {
+        showNothingSelectedInfo();
+    }
 }
 
 void AlgorithmVisualizationWindow::onActionRunAlgorithmTriggered(bool isOn)
@@ -64,6 +81,8 @@ void AlgorithmVisualizationWindow::onActionRunAlgorithmTriggered(bool isOn)
     DataStructureWidget* dataStructureWidget = getDataStructureWidget();
     if (!dataStructureWidget)
     {
+        actionRunAlgorithm->setChecked(false);
+        showNothingSelectedInfo();
         return;
     }
 
@@ -132,16 +151,25 @@ void AlgorithmVisualizationWindow::onAlgorithmVisualizerTreeItemClicked(const QM
     {
         if(previousWidget)
         {
+            previousWidget->hide();
+
             removeActions(previousWidget->getAdditionalActions());
+
+            removeActions(temporaryActions);
+            temporaryActions.clear();
         }
 
         deleteFirstLayoutItem(horizontalLayout, false);
 
         if(newWidget)
         {
+            newWidget->show();
+
             horizontalLayout->addWidget(newWidget, 1);
 
             toolBar->addActions(newWidget->getAdditionalActions());
+
+            addWidgetsToToolBar(newWidget->getAdditionalToolBarWidget());
         }
     }
 }
@@ -151,11 +179,27 @@ void AlgorithmVisualizationWindow::onAlgorithmVisualizerFinished()
     actionRunAlgorithm->setChecked(false);
 }
 
+void AlgorithmVisualizationWindow::mousePressEvent(QMouseEvent *event)
+{
+    const DataStructureWidget* dataStructureWidget = getDataStructureWidget();
+    if(!dataStructureWidget)
+    {
+        showNothingSelectedInfo();
+    }
+}
+
+void AlgorithmVisualizationWindow::paintEvent(QPaintEvent *event)
+{
+    const DataStructureWidget* dataStructureWidget = getDataStructureWidget();
+    statusBar()->showMessage(dataStructureWidget ? QString("Last paint time : %1 ms").arg(dataStructureWidget->getLastPaintTime())
+                                                     : QString());
+}
+
 void AlgorithmVisualizationWindow::setupUi()
 {
     setupActionsAndToolBar();
 
-    setIconSize(QSize(35, 35));
+    setIconSize(QSize(40, 40));
     setWindowTitle("Algorithm Visualization Window");
 
     QWidget* centralWidget = new QWidget(this);
@@ -256,6 +300,11 @@ void AlgorithmVisualizationWindow::setupActionsAndToolBar()
     toolBar->addSeparator();
     toolBar->addAction(actionGenerateRandomStructure);
     toolBar->addAction(actionRunAlgorithm);
+
+    QTimer::singleShot(0, this, [this]()
+    {
+        toolBar->setFixedHeight(70);
+    });
 }
 
 void AlgorithmVisualizationWindow::removeActions(const QList<QAction *> &actions)
@@ -266,12 +315,22 @@ void AlgorithmVisualizationWindow::removeActions(const QList<QAction *> &actions
     }
 }
 
+void AlgorithmVisualizationWindow::addWidgetsToToolBar(const QList<QWidget *> &widgets)
+{
+    temporaryActions.reserve(widgets.size());
+    for(auto* widget : widgets)
+    {
+        temporaryActions.push_back(toolBar->addWidget(widget));
+    }
+}
+
 void AlgorithmVisualizationWindow::registerDataStructureWidgets()
 {
     dataStructureWidgets.append(new GraphWidget(this));
 
     for(auto* widget : dataStructureWidgets)
     {
+        widget->hide();
         widget->registerAlgorithmVisualizers();
     }
 }
@@ -286,4 +345,9 @@ AlgorithmVisualizer* AlgorithmVisualizationWindow::getSelectedAlgorithmVisualize
 {
     const QModelIndex modelIndex = algorithmsTreeView->selectionModel()->currentIndex();
     return modelIndex.isValid() ? qvariant_cast<AlgorithmVisualizer*>(modelIndex.data(Qt::UserRole)) : nullptr;
+}
+
+void AlgorithmVisualizationWindow::showNothingSelectedInfo()
+{
+    QMessageBox::information(this, "Info", "No algorithm/data structure selected");
 }

@@ -1,5 +1,7 @@
 #include "graph.h"
 
+#include "../core/utils.h"
+
 #include <QRandomGenerator>
 
 Graph::Graph(bool inIsDirected)
@@ -77,6 +79,11 @@ bool Graph::getIsDirected() const
     return isDirected;
 }
 
+void Graph::setIsDirected(bool newIsDirected)
+{
+    isDirected = newIsDirected;
+}
+
 AdjacencyListGraph::AdjacencyListGraph(bool inIsDirected)
     : Graph(inIsDirected)
 {
@@ -105,6 +112,21 @@ void AdjacencyListGraph::addEdge(int start, int end, int weight)
         }
 
         adjList[end].push_back(Edge{start, weight});
+    }
+}
+
+void AdjacencyListGraph::removeEdge(int start, int end)
+{
+    if(start < 0 || end < 0)
+    {
+        return;
+    }
+
+    Utils::eraseIf(adjList[start], [end](const Edge& edge) { return end == edge.endValue; });
+
+    if(!isDirected)
+    {
+        Utils::eraseIf(adjList[end], [start](const Edge& edge) { return start == edge.endValue; });
     }
 }
 
@@ -227,6 +249,21 @@ void AdjacencyMatrixGraph::addEdge(int start, int end, int weight)
     if(!isDirected)
     {
         adjMatrix[end][start] = weight;
+    }
+}
+
+void AdjacencyMatrixGraph::removeEdge(int start, int end)
+{
+    if(start < 0 || end < 0 || adjMatrix.size() < start || adjMatrix.size() < end)
+    {
+        return;
+    }
+
+    adjMatrix[start][end] = INT_MIN;
+
+    if(!isDirected)
+    {
+        adjMatrix[end][start] = INT_MIN;
     }
 }
 

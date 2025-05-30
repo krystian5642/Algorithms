@@ -67,10 +67,49 @@ protected:
 class GridGraphVisualBuilder : public GraphVisualBuilder
 {
     Q_OBJECT
+
+    Q_PROPERTY(int columns READ getColumns WRITE setColumns NOTIFY columnsChanged FINAL)
+    Q_PROPERTY(int rows READ getRows WRITE setRows NOTIFY rowsChanged FINAL)
+    Q_PROPERTY(int nodeSpace READ getNodeSpace WRITE setNodeSpace NOTIFY nodeSpaceChanged FINAL)
+    Q_PROPERTY(int startXLocation READ getStartXLocation WRITE setStartXLocation NOTIFY startXLocationChanged FINAL)
+    Q_PROPERTY(int startYLocation READ getStartYLocation WRITE setStartYLocation NOTIFY startYLocationChanged FINAL)
 public:
     explicit GridGraphVisualBuilder(QObject *parent = nullptr);
 
     void buildDataStructureVisualization(DataStructureWidget* dataStructureWidget) override;
+
+    int getColumns() const;
+    void setColumns(int newColumns);
+
+    int getRows() const;
+    void setRows(int newRows);
+
+    int getNodeSpace() const;
+    void setNodeSpace(int newNodeSpace);
+
+    int getStartXLocation() const;
+    void setStartXLocation(int newStartXLocation);
+
+    int getStartYLocation() const;
+    void setStartYLocation(int newStartYLocation);
+
+signals:
+    void columnsChanged();
+    void rowsChanged();
+
+    void nodeSpaceChanged();
+
+    void startXLocationChanged();
+    void startYLocationChanged();
+
+protected:
+    int columns;
+    int rows;
+
+    int nodeSpace;
+
+    int startXLocation;
+    int startYLocation;
 };
 
 

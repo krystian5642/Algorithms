@@ -9,5 +9,6 @@
         <file>icons/clear_spikes.png</file>
         <file>icons/random_edges.png</file>
         <file>icons/add_edge.png</file>
+        <file>icons/remove_edge.png</file>
     </qresource>
 </RCC>

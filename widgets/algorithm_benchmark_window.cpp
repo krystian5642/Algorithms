@@ -309,7 +309,7 @@ void AlgorithmBenchmarkWindow::setupUi()
 
 void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
 {
-    setIconSize(QSize(35, 35));
+    setIconSize(QSize(40, 40));
 
     actionSave = new QAction(this);
     QIcon icon;
@@ -364,6 +364,11 @@ void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
     toolBar->addSeparator();
     toolBar->addAction(actionRunBenchmark);
     toolBar->addAction(actionClearSpikes);
+
+    QTimer::singleShot(0, this, [toolBar]()
+    {
+        toolBar->setFixedHeight(70);
+    });
 }
 
 void AlgorithmBenchmarkWindow::registerAlgorithms()
@@ -506,14 +511,3 @@ void AlgorithmBenchmarkWindow::addSeries(QLineSeries* series)
     connect(marker, &QLegendMarker::clicked, this, &AlgorithmBenchmarkWindow::onLegendMarkerClicked);
     connect(marker, &QLegendMarker::hovered, this, &AlgorithmBenchmarkWindow::onLegendMarkerHovered);
 }
-
-
-
-
-
-
-
-
-
-
-
