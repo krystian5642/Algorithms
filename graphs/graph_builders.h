@@ -8,6 +8,8 @@ class Graph;
 class GraphBuilder : public DataStructureBuilder
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool isGraphDirected READ getIsGraphDirected WRITE setIsGraphDirected NOTIFY isGraphDirectedChanged FINAL)
 public:
     explicit GraphBuilder(QObject *parent = nullptr);
     virtual ~GraphBuilder() = 0;
@@ -17,8 +19,16 @@ public:
 
     int buildIterations;
 
+    bool getIsGraphDirected() const;
+    void setIsGraphDirected(bool newIsGraphDirected);
+
+signals:
+    void isGraphDirectedChanged();
+
 protected:
     Graph* createGraph() const;
+
+    bool isGraphDirected;
 
     QString selectedImplementation;
 };

@@ -18,6 +18,8 @@ public:
     QJsonObject toJsonObject();
     void fromJsonObject(const QJsonObject& jsonObject);
 
+    QString print() override;
+
     bool getIsDirected() const;
     void setIsDirected(bool newIsDirected);
 
@@ -28,7 +30,7 @@ public:
     virtual qsizetype getEdgesNum() const = 0;
     virtual qsizetype getVerticesNum() const = 0;
     virtual void clear() = 0;
-    virtual int getRandomValue(bool* found = nullptr) const = 0;
+    virtual int getRandomValue(bool* found = nullptr) const = 0;   
     virtual void forEachNode(std::function<void(int)> func) = 0;
     virtual void forEachEdge(std::function<void(int, int, int)> func) = 0;
     virtual void forEachNeighbor(int vertex, std::function<void(int, int, int)> func) = 0;

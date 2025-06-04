@@ -24,10 +24,13 @@ public:
 
     void run() override;
 
-    Graph *getGraph() const;
-    void setGraph(Graph *newGraph);
+#ifdef QT_DEBUG
+    void debugRun() override;
+#endif
 
     DataStructureBuilder* getSelectedBuilder() const;
+
+    void setGraph(Graph *newGraph);
 
 protected:
     Graph* graph;
@@ -48,6 +51,23 @@ public:
 
 protected:
     void execute() override;
+
+    QQueue<int> nodeQueue;
+    QList<bool> visited;
+};
+
+class BFSRecursive : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit BFSRecursive(QObject* parent = nullptr);
+
+    void init() override;
+    void clear() override;
+
+protected:
+    void execute() override;
+    void BFSRecursiveHelper(std::function<void(int, int, int)> forEachNeighbourFunc);
 
     QQueue<int> nodeQueue;
     QList<bool> visited;

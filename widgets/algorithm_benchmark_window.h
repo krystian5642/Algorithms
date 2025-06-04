@@ -33,6 +33,10 @@ private slots:
     void onActionRunBenchmarkTriggered(bool isOn);
     void onActionClearSpikesTriggered();
 
+#ifdef QT_DEBUG
+    void onActionDebugRunTriggered();
+#endif
+
     void onAlgorithmTreeItemClicked(const QModelIndex& index);
 
     void onAlgorithmStarted();
@@ -77,6 +81,10 @@ private:
     QAction* actionClear;
     QAction* actionRunBenchmark;
     QAction* actionClearSpikes;
+
+#ifdef QT_DEBUG
+    QAction* debugRun;
+#endif
 
     // Category to algorithms list
     QHash<QString, QList<Algorithm*>> algorithms;

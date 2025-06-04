@@ -126,6 +126,21 @@ void AlgorithmBenchmarkWindow::onActionClearSpikesTriggered()
     chart->createDefaultAxes();
 }
 
+#ifdef QT_DEBUG
+void AlgorithmBenchmarkWindow::onActionDebugRunTriggered()
+{
+    Algorithm* algorithm = getSelectedAlgorithm();
+    if(algorithm)
+    {
+        algorithm->debugRun();
+    }
+    else
+    {
+        QMessageBox::information(this, "Info", "No algorithm selected");
+    }
+}
+#endif
+
 void AlgorithmBenchmarkWindow::onAlgorithmTreeItemClicked(const QModelIndex &index)
 {
     QLayoutItem* layoutItem = verticalLayout->takeAt(1);
@@ -344,12 +359,25 @@ void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
     actionClearSpikes->setIcon(icon5);
     connect(actionClearSpikes, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionClearSpikesTriggered);
 
+#ifdef QT_DEBUG
+    debugRun = new QAction(this);
+    QIcon icon6;
+    icon6.addFile(QString::fromUtf8(":/icons/debug.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    debugRun->setIcon(icon6);
+    connect(debugRun, &QAction::triggered, this, &AlgorithmBenchmarkWindow::onActionDebugRunTriggered);
+#endif
+
 #if QT_CONFIG(tooltip)
     actionSave->setToolTip("Save series to file");
     actionLoad->setToolTip("Load series from file");
     actionClear->setToolTip("Clear all series");
     actionRunBenchmark->setToolTip("Pause/Run benchmark");
     actionClearSpikes->setToolTip("Clear spikes");
+
+#ifdef QT_DEBUG
+    debugRun->setToolTip("Debug run: select algorithm and view result in console");
+#endif
+
 #endif
 
     // tool bar
@@ -365,6 +393,10 @@ void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
     toolBar->addAction(actionRunBenchmark);
     toolBar->addAction(actionClearSpikes);
 
+#ifdef QT_DEBUG
+    toolBar->addAction(debugRun);
+#endif
+
     QTimer::singleShot(0, this, [toolBar]()
     {
         toolBar->setFixedHeight(70);
@@ -377,6 +409,7 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     QList<Algorithm*>& algorithmsList = it.value();
 
     algorithmsList.append(new BFSIterative);
+    algorithmsList.append(new BFSRecursive);
     algorithmsList.append(new DFSRecursive);
 
     for(auto* algorithm : algorithmsList)

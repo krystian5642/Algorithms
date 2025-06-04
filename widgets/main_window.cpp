@@ -34,4 +34,6 @@ void MainWindow::setupUi()
     tabWidget->addTab(banchmarkWindow, "Benchmark");
 
     horizontalLayout->addWidget(tabWidget);
+
+    tabWidget->setCurrentIndex(1);
 }

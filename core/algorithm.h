@@ -10,6 +10,7 @@
 #include <QHash>
 
 class DataStructureBuilder;
+class DataStructure;
 
 class Algorithm : public QObject, public QRunnable
 {
@@ -29,6 +30,10 @@ public:
 
     virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
     virtual void appendPropertiesInfo(QString& infoText);
+
+#ifdef QT_DEBUG
+    virtual void debugRun() {};
+#endif
 
     void requestEnd();
 

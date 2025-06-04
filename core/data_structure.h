@@ -9,6 +9,8 @@ class DataStructure : public QObject
 public:
     explicit DataStructure(QObject *parent = nullptr);
     virtual ~DataStructure() = 0;
+
+    virtual QString print() { return QString{}; };
 };
 
 #endif // DATA_STRUCTURE_H

@@ -111,7 +111,6 @@ void GraphAlgorithm::run()
 
         QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->createDataStructure()));
         setGraph(testGraph.get());
-
         init();
 
         ULONG64 start;
@@ -134,14 +133,28 @@ void GraphAlgorithm::run()
     toolTipText.append("start time : " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
     toolTipText.append("\n");
 
-    setGraph(nullptr);
-
     emit finished(result, toolTipText);
 }
 
-Graph *GraphAlgorithm::getGraph() const
+#ifdef QT_DEBUG
+void GraphAlgorithm::debugRun()
 {
-    return graph;
+    GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    graphBuilder->buildIterations = 4;
+
+    QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->createDataStructure()));
+    setGraph(testGraph.get());
+    init();
+
+    qDebug().noquote() << testGraph->print();
+
+    execute();
+}
+#endif
+
+DataStructureBuilder *GraphAlgorithm::getSelectedBuilder() const
+{
+    return builderComboBox->currentData(Qt::UserRole).value<DataStructureBuilder*>();
 }
 
 void GraphAlgorithm::setGraph(Graph *newGraph)
@@ -149,15 +162,10 @@ void GraphAlgorithm::setGraph(Graph *newGraph)
     graph = newGraph;
 }
 
-DataStructureBuilder *GraphAlgorithm::getSelectedBuilder() const
-{
-    return builderComboBox->currentData(Qt::UserRole).value<DataStructureBuilder*>();
-}
-
 BFSIterative::BFSIterative(QObject *parent)
     : GraphAlgorithm(parent)
 {
-    setObjectName("Breadth First Search (Iterative ?)");
+    setObjectName("Breadth First Search (Iterative)");
 }
 
 void BFSIterative::init()
@@ -195,6 +203,57 @@ void BFSIterative::execute()
         const int first = nodeQueue.dequeue();
         graph->forEachNeighbor(first, func);
     }
+}
+
+BFSRecursive::BFSRecursive(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Breadth First Search (Recursive)");
+}
+
+void BFSRecursive::init()
+{
+    GraphAlgorithm::init();
+
+    nodeQueue.reserve(graph->getVerticesNum());
+    visited.fill(false, graph->getVerticesNum());
+}
+
+void BFSRecursive::clear()
+{
+    GraphAlgorithm::clear();
+
+    nodeQueue.clear();
+    visited.clear();
+}
+
+void BFSRecursive::execute()
+{
+    nodeQueue.enqueue(0);
+    visited[0] = true;
+
+    auto func = [&](int start, int neighbour, int weight)
+    {
+        if(!visited[neighbour])
+        {
+            visited[neighbour] = true;
+            nodeQueue.enqueue(neighbour);
+        }
+    };
+
+    BFSRecursiveHelper(func);
+}
+
+void BFSRecursive::BFSRecursiveHelper(std::function<void (int, int, int)> forEachNeighbourFunc)
+{
+    if(nodeQueue.isEmpty())
+    {
+        return;
+    }
+
+    const int first = nodeQueue.dequeue();
+    graph->forEachNeighbor(first, forEachNeighbourFunc);
+    BFSRecursiveHelper(forEachNeighbourFunc);
 }
 
 DFSRecursive::DFSRecursive(QObject *parent)

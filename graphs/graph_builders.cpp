@@ -54,6 +54,22 @@ Graph *GraphBuilder::createGraph() const
     return qobject_cast<Graph*>(createGraphFunc());
 }
 
+bool GraphBuilder::getIsGraphDirected() const
+{
+    return isGraphDirected;
+}
+
+void GraphBuilder::setIsGraphDirected(bool newIsGraphDirected)
+{
+    if (isGraphDirected == newIsGraphDirected)
+    {
+        return;
+    }
+
+    isGraphDirected = newIsGraphDirected;
+    emit isGraphDirectedChanged();
+}
+
 GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
     : GraphBuilder{parent}
     , addEdgePropability(0.5)
@@ -64,6 +80,7 @@ GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
 DataStructure* GeneralGraphBuilder::createDataStructure()
 {
     Graph* graph = createGraph();
+    graph->setIsDirected(isGraphDirected);
 
     for(int i = 0; i < buildIterations; ++i)
     {

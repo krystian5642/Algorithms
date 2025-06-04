@@ -75,6 +75,27 @@ void Graph::fromJsonObject(const QJsonObject &jsonObject)
     }
 }
 
+QString Graph::print()
+{
+    QString graphAsText("Graph : \n");
+
+    auto forEachNeighbourFunc = [&](int start, int neighbour, int weight)
+    {
+        graphAsText.append(" -> " + QString::number(neighbour));
+    };
+
+    auto forEachNodeFunc = [&](int value)
+    {
+        graphAsText.append(QString::number(value));
+        forEachNeighbor(value, forEachNeighbourFunc);
+        graphAsText.append('\n');
+    };
+
+    forEachNode(forEachNodeFunc);
+
+    return graphAsText;
+}
+
 bool Graph::getIsDirected() const
 {
     return isDirected;
