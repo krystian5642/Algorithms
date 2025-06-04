@@ -5,7 +5,7 @@
 #include <QPair>
 #include <QSet>
 
-class Edge
+struct Edge
 {
 public:
     explicit Edge(int inStart, int inEnd, bool directed);

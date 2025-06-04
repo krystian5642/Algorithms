@@ -181,7 +181,7 @@ void GraphWidget::generateRandomEdges(const double addEdgePropability)
     update();
 }
 
-bool GraphWidget::addNode(const QPoint& location)
+bool GraphWidget::addNode(const QPointF& location)
 {
     graph->addNode();
 
@@ -336,7 +336,9 @@ void GraphWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
     {
-        addNode(event->pos());
+        const QTransform currentTransform = getCurrentTransform();
+        addNode(currentTransform.inverted().map(event->position()));
+
         update();
     }
     else

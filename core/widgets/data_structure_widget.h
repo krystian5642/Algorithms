@@ -1,6 +1,7 @@
 #ifndef ALGORITHM_WIDGET_H
 #define ALGORITHM_WIDGET_H
 
+#include <QTimer>
 #include <QWidget>
 
 class DataStructureVisualBuilder;
@@ -45,6 +46,8 @@ public:
     const QList<QWidget*>& getAdditionalToolBarWidget() const;
     qint64 getLastPaintTime() const;
 
+    QTransform getCurrentTransform() const;
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -63,14 +66,15 @@ protected:
 
     qint64 lastPaintTime;
 
-private:
-    virtual void paintDataStructure(QPainter& painter);
-
     RuntimeMouseDragData dragData;
 
     ScaleData scaleData;
 
     QPointF scaleOffset;
+
+private:
+    virtual void paintDataStructure(QPainter& painter);
+
 };
 
 #endif // ALGORITHM_WIDGET_H

@@ -50,9 +50,7 @@ void DataStructureWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(nodePen);
 
-    painter.translate(dragData.dragDelta);
-    painter.scale(scaleData.currentScale, scaleData.currentScale);
-    painter.translate(scaleOffset);
+    painter.setTransform(getCurrentTransform());
 
     paintDataStructure(painter);
 }
@@ -86,24 +84,45 @@ void DataStructureWidget::mouseMoveEvent(QMouseEvent *event)
 
 void DataStructureWidget::wheelEvent(QWheelEvent *event)
 {
+    const qreal prevScale = scaleData.currentScale;
+
+    const QTransform prevTransform = getCurrentTransform();
+    const QPointF worldBefore = prevTransform.inverted().map(event->position());
+
     const int angleDelta = event->angleDelta().y();
-    if(angleDelta > 0)
+    if(angleDelta > 0 && scaleData.currentScale < scaleData.maxScale)
     {
-        scaleData.currentScale *= scaleData.scaleMultiplier;
+        scaleData.currentScale = std::min(scaleData.maxScale, scaleData.currentScale * scaleData.scaleMultiplier);
     }
-    else
+    else if(angleDelta < 0 && scaleData.currentScale > scaleData.minScale)
     {
-        scaleData.currentScale /= scaleData.scaleMultiplier;
+        scaleData.currentScale = std::max(scaleData.minScale, scaleData.currentScale / scaleData.scaleMultiplier);
     }
 
-    scaleOffset = QPointF(event->position().x() * (1 - scaleData.currentScale), event->position().y() * (1 - scaleData.currentScale));
+    if(prevScale != scaleData.currentScale)
+    {
+        const QTransform newTransform = getCurrentTransform();
+        const QPointF screenAfter = newTransform.map(worldBefore);
 
-    update();
+        const QPointF delta = event->position() - screenAfter;
+        scaleOffset += delta;
+
+        update();
+    }
 }
 
 qint64 DataStructureWidget::getLastPaintTime() const
 {
     return lastPaintTime;
+}
+
+QTransform DataStructureWidget::getCurrentTransform() const
+{
+    QTransform transform;
+    transform.translate(scaleOffset.x() + dragData.dragDelta.x(), scaleOffset.y() + dragData.dragDelta.y());
+    transform.scale(scaleData.currentScale, scaleData.currentScale);
+
+    return transform;
 }
 
 void DataStructureWidget::paintDataStructure(QPainter &painter)

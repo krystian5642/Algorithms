@@ -43,7 +43,7 @@ public:
 
     void generateRandomEdges(const double addEdgePropability);
 
-    bool addNode(const QPoint& location);
+    bool addNode(const QPointF& location);
     void addEdge(int start, int end, int weight = 1);
     void removeEdge(int start, int end);
 
