@@ -23,8 +23,6 @@ public:
     void appendPropertiesInfo(QString& infoText) override;
 
     void run() override;
-    void init(const DataStructure* dataStructure) override;
-    void clear() override;
 
 #ifdef QT_DEBUG
     void debugRun() override;
@@ -46,14 +44,8 @@ class BFSIterative : public GraphAlgorithm
 public:
     explicit BFSIterative(QObject* parent = nullptr);
 
-    void init(const DataStructure* dataStructure) override;
-    void clear() override;
-
 protected:
     void execute() override;
-
-    QQueue<int> nodeQueue;
-    QList<bool> visited;
 };
 
 class BFSRecursive : public GraphAlgorithm
@@ -62,15 +54,9 @@ class BFSRecursive : public GraphAlgorithm
 public:
     explicit BFSRecursive(QObject* parent = nullptr);
 
-    void init(const DataStructure* dataStructure) override;
-    void clear() override;
-
 protected:
     void execute() override;
-    void BFSRecursiveHelper(std::function<void(int, int, int)> forEachNeighbourFunc);
-
-    QQueue<int> nodeQueue;
-    QList<bool> visited;
+    void BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<void(int, int, int)> forEachNeighbourFunc);
 };
 
 class DFSRecursive : public GraphAlgorithm
@@ -79,14 +65,19 @@ class DFSRecursive : public GraphAlgorithm
 public:
     explicit DFSRecursive(QObject* parent = nullptr);
 
-    void init(const DataStructure* dataStructure) override;
-    void clear() override;
+protected:
+    void execute() override;
+    void DFSHelper(int begin, QList<bool>& visited);
+};
+
+class DFSIterative : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit DFSIterative(QObject* parent = nullptr);
 
 protected:
     void execute() override;
-    void DFSHelper(int begin);
-
-    QList<bool> visited;
 };
 
 #endif // GRAPH_AlGORITHMS_H

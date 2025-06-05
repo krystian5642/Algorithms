@@ -25,8 +25,6 @@ public:
     virtual ~Algorithm() = 0;
 
     virtual void run() = 0;
-    virtual void init(const DataStructure* dataStructure) {};
-    virtual void clear() {};
 
     virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
     virtual void appendPropertiesInfo(QString& infoText);
