@@ -410,6 +410,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
 
     algorithmsList.append(new BFSIterative);
     algorithmsList.append(new BFSRecursive);
+
+    algorithmsList.append(new DFSIterative);
     algorithmsList.append(new DFSRecursive);
 
     for(auto* algorithm : algorithmsList)

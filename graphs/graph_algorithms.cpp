@@ -14,6 +14,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QRandomGenerator>
+#include <QStack>
 #include <QWidget>
 
 GraphAlgorithm::GraphAlgorithm(QObject *parent)
@@ -82,7 +83,6 @@ void GraphAlgorithm::appendPropertiesInfo(QString &infoText)
 void GraphAlgorithm::run()
 {
     requestedEnd = false;
-    emit started();
 
     QList<QPointF> result;
     result.reserve(iterationsNumber);
@@ -97,6 +97,9 @@ void GraphAlgorithm::run()
     {
         return pair.first == selectedComplexity;
     })->second;
+
+    const QString startTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    emit started();
 
     int i = 0;
     for(; i < iterationsNumber; ++i)
@@ -128,7 +131,10 @@ void GraphAlgorithm::run()
     toolTipText.append("build iterations : " + QString::number(i));
     toolTipText.append("\n");
 
-    toolTipText.append("start time : " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+    toolTipText.append("start time : " + startTime);
+    toolTipText.append("\n");
+
+    toolTipText.append("end time : " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
     toolTipText.append("\n");
 
     emit finished(result, toolTipText);
@@ -228,6 +234,38 @@ void BFSRecursive::BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<void
     BFSRecursiveHelper(nodeQueue, forEachNeighbourFunc);
 }
 
+DFSIterative::DFSIterative(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Depth First Search (Iterative)");
+}
+
+void DFSIterative::execute()
+{
+    QList<bool> visited;
+    visited.fill(false, graph->getVerticesNum());
+    visited[0] = true;
+
+    QStack<int> nodesStack;
+    nodesStack.reserve(graph->getVerticesNum());
+    nodesStack.push(0);
+
+    auto func = [&](int start, int neighbour, int weight)
+    {
+        if(!visited[neighbour])
+        {
+            visited[neighbour] = true;
+            nodesStack.push(neighbour);
+        }
+    };
+
+    while(!nodesStack.isEmpty())
+    {
+        const int first = nodesStack.pop();
+        graph->forEachNeighbor(first, func);
+    }
+}
+
 DFSRecursive::DFSRecursive(QObject *parent)
     : GraphAlgorithm(parent)
 {
@@ -255,22 +293,3 @@ void DFSRecursive::DFSHelper(int begin, QList<bool>& visited)
 
     graph->forEachNeighbor(begin, func);
 }
-
-DFSIterative::DFSIterative(QObject *parent)
-    : GraphAlgorithm(parent)
-{
-    setObjectName("Depth First Search (Iterative)");
-}
-
-void DFSIterative::execute()
-{
-    QList<bool> visited;
-    visited.fill(false, graph->getVerticesNum());
-
-
-}
-
-
-
-
-

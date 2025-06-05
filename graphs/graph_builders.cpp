@@ -51,7 +51,10 @@ Graph *GraphBuilder::createGraph() const
         return pair.first == selectedImplementation;
     })->second;
 
-    return qobject_cast<Graph*>(createGraphFunc());
+    Graph* graph = qobject_cast<Graph*>(createGraphFunc());
+    graph->setIsDirected(isGraphDirected);
+
+    return graph;
 }
 
 bool GraphBuilder::getIsGraphDirected() const
@@ -80,7 +83,6 @@ GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
 DataStructure* GeneralGraphBuilder::createDataStructure()
 {
     Graph* graph = createGraph();
-    graph->setIsDirected(isGraphDirected);
 
     for(int i = 0; i < buildIterations; ++i)
     {

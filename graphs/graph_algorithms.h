@@ -59,6 +59,16 @@ protected:
     void BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<void(int, int, int)> forEachNeighbourFunc);
 };
 
+class DFSIterative : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit DFSIterative(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+};
+
 class DFSRecursive : public GraphAlgorithm
 {
     Q_OBJECT
@@ -68,16 +78,6 @@ public:
 protected:
     void execute() override;
     void DFSHelper(int begin, QList<bool>& visited);
-};
-
-class DFSIterative : public GraphAlgorithm
-{
-    Q_OBJECT
-public:
-    explicit DFSIterative(QObject* parent = nullptr);
-
-protected:
-    void execute() override;
 };
 
 #endif // GRAPH_AlGORITHMS_H
