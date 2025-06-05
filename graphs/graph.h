@@ -18,7 +18,7 @@ public:
     QJsonObject toJsonObject();
     void fromJsonObject(const QJsonObject& jsonObject);
 
-    QString print() override;
+    QString print() const override;
 
     bool getIsDirected() const;
     void setIsDirected(bool newIsDirected);
@@ -34,6 +34,10 @@ public:
     virtual void forEachNode(std::function<void(int)> func) = 0;
     virtual void forEachEdge(std::function<void(int, int, int)> func) = 0;
     virtual void forEachNeighbor(int vertex, std::function<void(int, int, int)> func) = 0;
+
+    void forEachNode(std::function<void(int)> func) const;
+    void forEachEdge(std::function<void(int, int, int)> func) const;
+    void forEachNeighbor(int vertex, std::function<void(int, int, int)> func) const;
 
 signals:
     void onNodeAdded();

@@ -75,7 +75,7 @@ void Graph::fromJsonObject(const QJsonObject &jsonObject)
     }
 }
 
-QString Graph::print()
+QString Graph::print() const
 {
     QString graphAsText("Graph : \n");
 
@@ -104,6 +104,21 @@ bool Graph::getIsDirected() const
 void Graph::setIsDirected(bool newIsDirected)
 {
     isDirected = newIsDirected;
+}
+
+void Graph::forEachNode(std::function<void (int)> func) const
+{
+    const_cast<Graph*>(this)->forEachNode(func);
+}
+
+void Graph::forEachEdge(std::function<void (int, int, int)> func) const
+{
+    const_cast<Graph*>(this)->forEachEdge(func);
+}
+
+void Graph::forEachNeighbor(int vertex, std::function<void (int, int, int)> func) const
+{
+    const_cast<Graph*>(this)->forEachNeighbor(vertex, func);
 }
 
 AdjacencyListGraph::AdjacencyListGraph(QObject *parent, bool inIsDirected)

@@ -10,7 +10,7 @@ public:
     explicit DataStructure(QObject *parent = nullptr);
     virtual ~DataStructure() = 0;
 
-    virtual QString print() { return QString{}; };
+    virtual QString print() const { return QString{}; };
 };
 
 #endif // DATA_STRUCTURE_H

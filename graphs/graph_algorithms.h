@@ -23,6 +23,8 @@ public:
     void appendPropertiesInfo(QString& infoText) override;
 
     void run() override;
+    void init(const DataStructure* dataStructure) override;
+    void clear() override;
 
 #ifdef QT_DEBUG
     void debugRun() override;
@@ -30,10 +32,8 @@ public:
 
     DataStructureBuilder* getSelectedBuilder() const;
 
-    void setGraph(Graph *newGraph);
-
 protected:
-    Graph* graph;
+    const Graph* graph;
 
 private:
     QComboBox* builderComboBox;
@@ -46,7 +46,7 @@ class BFSIterative : public GraphAlgorithm
 public:
     explicit BFSIterative(QObject* parent = nullptr);
 
-    void init() override;
+    void init(const DataStructure* dataStructure) override;
     void clear() override;
 
 protected:
@@ -62,7 +62,7 @@ class BFSRecursive : public GraphAlgorithm
 public:
     explicit BFSRecursive(QObject* parent = nullptr);
 
-    void init() override;
+    void init(const DataStructure* dataStructure) override;
     void clear() override;
 
 protected:
@@ -79,9 +79,14 @@ class DFSRecursive : public GraphAlgorithm
 public:
     explicit DFSRecursive(QObject* parent = nullptr);
 
+    void init(const DataStructure* dataStructure) override;
+    void clear() override;
+
 protected:
     void execute() override;
-    void DFSHelper(int begin, QSet<int>& visited);
+    void DFSHelper(int begin);
+
+    QList<bool> visited;
 };
 
 #endif // GRAPH_AlGORITHMS_H

@@ -154,41 +154,40 @@ DFSVisualizer::DFSVisualizer(QObject *parent)
 
 void DFSVisualizer::run(QWidget *widget)
 {
-    // GraphWidget* graphWidget = qobject_cast<GraphWidget*>(widget);
-    // Q_CHECK_PTR(graphWidget);
+    const int begin = randomStart ? graph->getRandomValue() : start;
 
-    // visited.reserve(graph->getNodesNum());
-    // visited.insert(start);
+    if(begin < graph->getVerticesNum())
+    {
+        QList<int> visited;
+        visited.fill(false, graph->getVerticesNum());
 
-    // resultEdgeList.reserve(graph->getEdgesNum());
+        resultEdgeList.reserve(graph->getEdgesNum());
 
-    // DFSHelper(start);
+        DFSHelper(begin, visited);
 
-    // graphWidget->setNodeColor(start, Qt::red);
-
-    // visualizationTimer.start();
+        graphWidget = qobject_cast<GraphWidget*>(widget);
+        graphWidget->setNodeColor(begin, Qt::red);
+        visualizationTimer.start();
+    }
+    else
+    {
+        showStartIsInvalidInfo();
+        emit finished();
+    }
 }
 
-void DFSVisualizer::clear()
+void DFSVisualizer::DFSHelper(int begin, QList<int>& visited)
 {
-    GraphAlgorithmVisualizer::clear();
+    auto func = [&](int start, int neighbour, int weight)
+    {
+        resultEdgeList.add(start, neighbour, graph->getIsDirected());
 
-    visited.clear();
-}
+        if(!visited[neighbour])
+        {
+            visited[neighbour] = true;
+            DFSHelper(neighbour, visited);
+        }
+    };
 
-void DFSVisualizer::DFSHelper(int begin)
-{
-    // const QList<GraphEdge>& neighbourEdges = graph->getNeighbourEdges(begin);
-    // for(const auto& neighbour : neighbourEdges)
-    // {
-    //     const int value = neighbour.getEndValue();
-    //     if(!visited.contains(value))
-    //     {
-    //         visited.insert(value);
-
-    //         resultEdgeList.add(begin, value);
-
-    //         DFSHelper(value);
-    //     }
-    // }
+    graph->forEachNeighbor(begin, func);
 }

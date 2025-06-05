@@ -64,12 +64,9 @@ public:
     DFSVisualizer(QObject *parent = nullptr);
 
     void run(QWidget* widget) override;
-    void clear() override;
 
 private:
-    QSet<int> visited;
-
-    void DFSHelper(int start);
+    void DFSHelper(int start, QList<int>& visited);
 };
 
 #endif // GRAPHALGORITHMVISUALIZERS_H
