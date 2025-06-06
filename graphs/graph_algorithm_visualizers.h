@@ -52,16 +52,47 @@ class BFSVisualizer : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 public:
-    BFSVisualizer(QObject *parent = nullptr);
+    explicit BFSVisualizer(QObject *parent = nullptr);
 
     void run(QWidget* widget) override;
+};
+
+class BFSShortestPathVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+
+    Q_PROPERTY(int end READ getEnd WRITE setEnd NOTIFY endChanged FINAL)
+    Q_PROPERTY(bool randomEnd READ getRandomEnd WRITE setRandomEnd NOTIFY randomEndChanged FINAL)
+public:
+    explicit BFSShortestPathVisualizer(QObject *parent = nullptr);
+
+    void run(QWidget* widget) override;
+    void clear() override;
+
+    int getEnd() const;
+    void setEnd(int newEnd);
+
+    bool getRandomEnd() const;
+    void setRandomEnd(bool newRandomEnd);
+
+signals:
+    void endChanged();
+    void randomEndChanged();
+
+protected:
+    void updateVisualization() override;
+
+    int end;
+    bool randomEnd;
+
+    QList<int> resultPath;
 };
 
 class DFSVisualizer : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 public:
-    DFSVisualizer(QObject *parent = nullptr);
+    explicit DFSVisualizer(QObject *parent = nullptr);
 
     void run(QWidget* widget) override;
 

@@ -102,9 +102,12 @@ BFSVisualizer::BFSVisualizer(QObject *parent)
 
 void BFSVisualizer::run(QWidget *widget)
 {
-    const int begin = randomStart ? graph->getRandomValue() : start;
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
 
-    if(begin < graph->getVerticesNum())
+    if(start < graph->getVerticesNum())
     {
         QQueue<int> nodeQueue;
         nodeQueue.reserve(graph->getVerticesNum());
@@ -114,10 +117,10 @@ void BFSVisualizer::run(QWidget *widget)
 
         resultEdgeList.reserve(graph->getEdgesNum());
 
-        nodeQueue.enqueue(begin);
-        visited[begin] = true;
+        nodeQueue.enqueue(start);
+        visited[start] = true;
 
-        auto func = [&](int start, int neighbour, int weight)
+        auto func = [&](int value, int neighbour, int weight)
         {
             if(!visited[neighbour])
             {
@@ -125,7 +128,8 @@ void BFSVisualizer::run(QWidget *widget)
                 nodeQueue.enqueue(neighbour);
             }
 
-            resultEdgeList.add(start, neighbour, graph->getIsDirected());
+            resultEdgeList.add(value, neighbour, graph->getIsDirected());
+            return true;
         };
 
         while(!nodeQueue.empty())
@@ -135,13 +139,176 @@ void BFSVisualizer::run(QWidget *widget)
         }
 
         graphWidget = qobject_cast<GraphWidget*>(widget);
-        graphWidget->setNodeColor(begin, Qt::red);
+        graphWidget->setNodeColor(start, Qt::red);
 
         visualizationTimer.start();
     }
     else
     {
         showStartIsInvalidInfo();
+        emit finished();
+    }
+}
+
+BFSShortestPathVisualizer::BFSShortestPathVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+    , end(1)
+    , randomEnd(false)
+{
+    setObjectName("Breadth First Search Shortest Path");
+}
+
+void BFSShortestPathVisualizer::run(QWidget *widget)
+{
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
+
+    if(randomEnd)
+    {
+        setEnd(graph->getRandomValue());
+    }
+
+    const qsizetype verticesNum = graph->getVerticesNum();
+
+    if(start < verticesNum && end < verticesNum)
+    {
+        QQueue<int> nodeQueue;
+        nodeQueue.reserve(verticesNum);
+
+        QList<bool> visited;
+        visited.fill(false, verticesNum);
+
+        resultEdgeList.reserve(graph->getEdgesNum());
+
+        nodeQueue.enqueue(start);
+        visited[start] = true;
+
+        QList<int> prev;
+        prev.fill(INT_MIN, verticesNum);
+
+        auto func = [&](int value, int neighbour, int weight)
+        {
+            if(!visited[neighbour])
+            {
+                visited[neighbour] = true;
+                nodeQueue.enqueue(neighbour);
+
+                prev[neighbour] = value;
+            }
+
+            resultEdgeList.add(value, neighbour, graph->getIsDirected());
+
+            if(end == neighbour)
+            {
+                nodeQueue.clear();
+                return false;
+            }
+            return true;
+        };
+
+        while(!nodeQueue.empty())
+        {
+            const int first = nodeQueue.dequeue();
+            graph->forEachNeighbor(first, func);
+        }
+
+        resultPath.push_back(end);
+
+        int prevValue = end;
+        while(prevValue != INT_MIN)
+        {
+            resultPath.push_back(prev[prevValue]);
+            prevValue = prev[prevValue];
+        }
+
+        std::reverse(resultPath.begin(), resultPath.end());
+
+        graphWidget = qobject_cast<GraphWidget*>(widget);
+        graphWidget->setNodeColor(start, Qt::red);
+
+        visualizationTimer.start();
+    }
+    else
+    {
+        showStartIsInvalidInfo();
+        emit finished();
+    }
+}
+
+void BFSShortestPathVisualizer::clear()
+{
+    GraphAlgorithmVisualizer::clear();
+
+    resultPath.clear();
+}
+
+int BFSShortestPathVisualizer::getEnd() const
+{
+    return end;
+}
+
+void BFSShortestPathVisualizer::setEnd(int newEnd)
+{
+    if (end == newEnd)
+    {
+        return;
+    }
+
+    end = newEnd;
+    emit endChanged();
+}
+
+bool BFSShortestPathVisualizer::getRandomEnd() const
+{
+    return randomEnd;
+}
+
+void BFSShortestPathVisualizer::setRandomEnd(bool newRandomEnd)
+{
+    if (randomEnd == newRandomEnd)
+    {
+        return;
+    }
+
+    randomEnd = newRandomEnd;
+    emit randomEndChanged();
+}
+
+void BFSShortestPathVisualizer::updateVisualization()
+{
+    if(resultEdgeList.isValidIndex(resultIndex))
+    {
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red, false);
+        graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
+
+        graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
+
+        if(!resultPath.isEmpty() && resultEdgeList[resultIndex].getEnd() == resultPath.last())
+        {
+            for(int i = 1; i < resultPath.size(); ++i)
+            {
+                graphWidget->setNodeColor(resultPath[i], Qt::green, false);
+
+                if(i + 1 < resultPath.size())
+                {
+                    graphWidget->setEdgeColor(resultPath[i], resultPath[i + 1], Qt::green, false);
+                }
+            }
+            graphWidget->update();
+
+            clear();
+            emit finished();
+        }
+        else
+        {
+            resultIndex++;
+        }
+    }
+    else
+    {
+        clear();
         emit finished();
     }
 }
@@ -154,19 +321,22 @@ DFSVisualizer::DFSVisualizer(QObject *parent)
 
 void DFSVisualizer::run(QWidget *widget)
 {
-    const int begin = randomStart ? graph->getRandomValue() : start;
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
 
-    if(begin < graph->getVerticesNum())
+    if(start < graph->getVerticesNum())
     {
         QList<int> visited;
         visited.fill(false, graph->getVerticesNum());
 
         resultEdgeList.reserve(graph->getEdgesNum());
 
-        DFSHelper(begin, visited);
+        DFSHelper(start, visited);
 
         graphWidget = qobject_cast<GraphWidget*>(widget);
-        graphWidget->setNodeColor(begin, Qt::red);
+        graphWidget->setNodeColor(start, Qt::red);
         visualizationTimer.start();
     }
     else
@@ -187,6 +357,7 @@ void DFSVisualizer::DFSHelper(int begin, QList<int>& visited)
             visited[neighbour] = true;
             DFSHelper(neighbour, visited);
         }
+        return true;
     };
 
     graph->forEachNeighbor(begin, func);

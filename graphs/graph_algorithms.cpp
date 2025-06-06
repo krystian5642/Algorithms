@@ -184,6 +184,7 @@ void BFSIterative::execute()
             visited[neighbour] = true;
             nodeQueue.enqueue(neighbour);
         }
+        return true;
     };
 
     while(!nodeQueue.empty())
@@ -217,12 +218,13 @@ void BFSRecursive::execute()
             visited[neighbour] = true;
             nodeQueue.enqueue(neighbour);
         }
+        return true;
     };
 
     BFSRecursiveHelper(nodeQueue, func);
 }
 
-void BFSRecursive::BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<void (int, int, int)> forEachNeighbourFunc)
+void BFSRecursive::BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<bool (int, int, int)> forEachNeighbourFunc)
 {
     if(nodeQueue.isEmpty())
     {
@@ -257,6 +259,7 @@ void DFSIterative::execute()
             visited[neighbour] = true;
             nodesStack.push(neighbour);
         }
+        return true;
     };
 
     while(!nodesStack.isEmpty())
@@ -289,6 +292,7 @@ void DFSRecursive::DFSHelper(int begin, QList<bool>& visited)
             visited[neighbour] = true;
             DFSHelper(neighbour, visited);
         }
+        return true;
     };
 
     graph->forEachNeighbor(begin, func);

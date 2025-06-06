@@ -30,9 +30,11 @@ void Graph::generateRandomEdges(const double addEdgePropability)
                     addEdge(value1, value2);
                 }
             }
+            return true;
         };
-
         forEachNode(func2);
+
+        return true;
     };
 
     forEachNode(func1);
@@ -51,8 +53,12 @@ QJsonObject Graph::toJsonObject()
             edgeAsJsonObject["weight"] = weight;
 
             edgesAsJsonArray.append(edgeAsJsonObject);
+
+            return true;
         });
         graphAsJsonObject[QString::number(value)] = edgesAsJsonArray;
+
+        return true;
     });
     return graphAsJsonObject;
 }
@@ -82,6 +88,7 @@ QString Graph::print() const
     auto forEachNeighbourFunc = [&](int start, int neighbour, int weight)
     {
         graphAsText.append(" -> " + QString::number(neighbour));
+        return true;
     };
 
     auto forEachNodeFunc = [&](int value)
@@ -89,6 +96,8 @@ QString Graph::print() const
         graphAsText.append(QString::number(value));
         forEachNeighbor(value, forEachNeighbourFunc);
         graphAsText.append('\n');
+
+        return true;
     };
 
     forEachNode(forEachNodeFunc);
@@ -106,17 +115,17 @@ void Graph::setIsDirected(bool newIsDirected)
     isDirected = newIsDirected;
 }
 
-void Graph::forEachNode(std::function<void (int)> func) const
+void Graph::forEachNode(std::function<bool (int)> func) const
 {
     const_cast<Graph*>(this)->forEachNode(func);
 }
 
-void Graph::forEachEdge(std::function<void (int, int, int)> func) const
+void Graph::forEachEdge(std::function<bool (int, int, int)> func) const
 {
     const_cast<Graph*>(this)->forEachEdge(func);
 }
 
-void Graph::forEachNeighbor(int vertex, std::function<void (int, int, int)> func) const
+void Graph::forEachNeighbor(int vertex, std::function<bool (int, int, int)> func) const
 {
     const_cast<Graph*>(this)->forEachNeighbor(vertex, func);
 }
@@ -236,27 +245,39 @@ int AdjacencyListGraph::getRandomValue(bool *found) const
     return 0;
 }
 
-void AdjacencyListGraph::forEachNode(std::function<void (int)> func)
+void AdjacencyListGraph::forEachNode(std::function<bool (int)> func)
 {
     for(int i = 0; i < adjList.size(); ++i)
     {
-        func(i);
+        if(!func(i))
+        {
+            return;
+        }
     }
 }
 
-void AdjacencyListGraph::forEachEdge(std::function<void (int, int, int)> func)
+void AdjacencyListGraph::forEachEdge(std::function<bool (int, int, int)> func)
 {
     for(int i = 0; i < adjList.size(); ++i)
     {
-        forEachNeighbor(i, func);
+        for(const Edge& edge : adjList[i])
+        {
+            if(!func(i, edge.endValue, edge.weight))
+            {
+                return;
+            }
+        }
     }
 }
 
-void AdjacencyListGraph::forEachNeighbor(int vertex, std::function<void (int, int, int)> func)
+void AdjacencyListGraph::forEachNeighbor(int vertex, std::function<bool (int, int, int)> func)
 {
     for(const Edge& edge : adjList[vertex])
     {
-        func(vertex, edge.endValue, edge.weight);
+        if(!func(vertex, edge.endValue, edge.weight))
+        {
+            return;
+        }
     }
 }
 
@@ -382,29 +403,44 @@ int AdjacencyMatrixGraph::getRandomValue(bool *found) const
     return 0;
 }
 
-void AdjacencyMatrixGraph::forEachNode(std::function<void (int)> func)
+void AdjacencyMatrixGraph::forEachNode(std::function<bool (int)> func)
 {
     for(int i = 0; i < adjMatrix.size(); ++i)
     {
-        func(i);
+        if(!func(i))
+        {
+            return;
+        }
     }
 }
 
-void AdjacencyMatrixGraph::forEachEdge(std::function<void (int, int, int)> func)
+void AdjacencyMatrixGraph::forEachEdge(std::function<bool (int, int, int)> func)
 {
     for(int i = 0; i < adjMatrix.size(); ++i)
     {
-        forEachNeighbor(i, func);
+        for(int j = 0; i < adjMatrix[i].size(); ++i)
+        {
+            if(adjMatrix[i][j] != INT_MIN)
+            {
+                if(!func(i, j, adjMatrix[i][j]))
+                {
+                    return;
+                }
+            }
+        }
     }
 }
 
-void AdjacencyMatrixGraph::forEachNeighbor(int vertex, std::function<void (int, int, int)> func)
+void AdjacencyMatrixGraph::forEachNeighbor(int vertex, std::function<bool (int, int, int)> func)
 {
     for(int i = 0; i < adjMatrix[vertex].size(); ++i)
     {
         if(adjMatrix[vertex][i] != INT_MIN)
         {
-            func(vertex, i, adjMatrix[vertex][i]);
+            if(!func(vertex, i, adjMatrix[vertex][i]))
+            {
+                return;
+            }
         }
     }
 }

@@ -278,6 +278,7 @@ void GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
 void GraphWidget::registerAlgorithmVisualizers()
 {
     algorithmVisualizers.append(new BFSVisualizer(this));
+    algorithmVisualizers.append(new BFSShortestPathVisualizer(this));
     algorithmVisualizers.append(new DFSVisualizer(this));
 }
 
@@ -407,6 +408,8 @@ void GraphWidget::paintEdges(QPainter &painter)
                 painter.drawPolygon(QPolygonF({end, arrowP1, arrowP2}));
             }
         }
+
+        return true;
     };
     graph->forEachEdge(func);
 }
@@ -421,6 +424,8 @@ void GraphWidget::paintNodes(QPainter &painter)
         painter.setBrush(graphNodeVisualData[value].color);
 
         painter.drawEllipse(graphNodeVisualData[value].location, nodeRadius, nodeRadius);
+
+        return true;
     };
     graph->forEachNode(func);
 }
@@ -448,6 +453,8 @@ void GraphWidget::paintNodeValues(QPainter &painter)
                                     , textHeight);
 
         painter.drawText(backgroundRect, Qt::AlignCenter, valueText);
+
+        return true;
     };
     graph->forEachNode(func);
 }
@@ -481,6 +488,8 @@ void GraphWidget::paintWeights(QPainter &painter)
 
         painter.setPen(textPen);
         painter.drawText(backgroundRect, Qt::AlignCenter, weightText);
+
+        return true;
     };
     graph->forEachEdge(func);
 }

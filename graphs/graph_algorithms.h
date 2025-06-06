@@ -56,7 +56,7 @@ public:
 
 protected:
     void execute() override;
-    void BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<void(int, int, int)> forEachNeighbourFunc);
+    void BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<bool(int, int, int)> forEachNeighbourFunc);
 };
 
 class DFSIterative : public GraphAlgorithm

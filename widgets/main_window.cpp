@@ -35,5 +35,5 @@ void MainWindow::setupUi()
 
     horizontalLayout->addWidget(tabWidget);
 
-    tabWidget->setCurrentIndex(1);
+    //tabWidget->setCurrentIndex(1);
 }
