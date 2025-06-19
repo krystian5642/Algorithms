@@ -35,7 +35,7 @@ public:
     virtual void loadAction() = 0;
     virtual void clearAction() = 0;
     virtual void generateRandomDataStructureAction() = 0;
-    virtual void visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisualizer, bool pause) = 0;
+    virtual bool visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisualizer, bool pause) = 0;
     virtual void registerAlgorithmVisualizers();
 
     const QList<AlgorithmVisualizer*>& getAlgorithmVisualizers() const;

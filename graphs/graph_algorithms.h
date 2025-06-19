@@ -80,4 +80,14 @@ protected:
     void DFSHelper(int begin, QList<bool>& visited);
 };
 
+class TreeCenters : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit TreeCenters(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+};
+
 #endif // GRAPH_AlGORITHMS_H

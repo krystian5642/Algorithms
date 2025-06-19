@@ -43,6 +43,8 @@ void Graph::generateRandomEdges(const double addEdgePropability)
 QJsonObject Graph::toJsonObject()
 {
     QJsonObject graphAsJsonObject;
+    graphAsJsonObject["isDirected"] = isDirected;
+
     forEachNode([&](int value)
     {
         QJsonArray edgesAsJsonArray;
@@ -65,35 +67,45 @@ QJsonObject Graph::toJsonObject()
 
 void Graph::fromJsonObject(const QJsonObject &jsonObject)
 {
+    setIsDirected(jsonObject["isDirected"].toBool());
+
     for (auto it = jsonObject.constBegin(); it != jsonObject.constEnd(); ++it)
     {
-        addNode();
+        bool ok = false;
+        it.key().toInt(&ok);
+        if(ok)
+        {
+            addNode();
+        }
     }
 
     for (auto it = jsonObject.constBegin(); it != jsonObject.constEnd(); ++it)
     {
-        const QJsonArray edgesAsJsonArray = it->toArray();
-        for(const auto& edgeAsJsonValue : edgesAsJsonArray)
+        if(it->isArray())
         {
-            const QJsonObject edgeAsJsonObject = edgeAsJsonValue.toObject();
-            addEdge(it.key().toInt(), edgeAsJsonObject["end"].toInt(), edgeAsJsonObject["weight"].toInt());
+            const QJsonArray edgesAsJsonArray = it->toArray();
+            for(const auto& edgeAsJsonValue : edgesAsJsonArray)
+            {
+                const QJsonObject edgeAsJsonObject = edgeAsJsonValue.toObject();
+                addEdge(it.key().toInt(), edgeAsJsonObject["end"].toInt(), edgeAsJsonObject["weight"].toInt());
+            }
         }
     }
 }
 
-QString Graph::print() const
+void Graph::print() const
 {
     QString graphAsText("Graph : \n");
 
     auto forEachNeighbourFunc = [&](int start, int neighbour, int weight)
     {
-        graphAsText.append(" -> " + QString::number(neighbour));
+        graphAsText.append(" [ " + QString::number(neighbour) + " , weight : " + QString::number(weight) + " ] ");
         return true;
     };
 
     auto forEachNodeFunc = [&](int value)
     {
-        graphAsText.append(QString::number(value));
+        graphAsText.append(QString::number(value) + " -> ");
         forEachNeighbor(value, forEachNeighbourFunc);
         graphAsText.append('\n');
 
@@ -102,7 +114,7 @@ QString Graph::print() const
 
     forEachNode(forEachNodeFunc);
 
-    return graphAsText;
+    qDebug().noquote() << graphAsText;
 }
 
 bool Graph::getIsDirected() const
@@ -130,6 +142,20 @@ void Graph::forEachNeighbor(int vertex, std::function<bool (int, int, int)> func
     const_cast<Graph*>(this)->forEachNeighbor(vertex, func);
 }
 
+qsizetype Graph::getNeighboursNum(int vertex) const
+{
+    qsizetype neighboursNum = 0;
+    auto countNeighbours = [&](int start, int neighbour, int weight)
+    {
+        neighboursNum++;
+        return true;
+    };
+
+    forEachNeighbor(vertex, countNeighbours);
+
+    return neighboursNum;
+}
+
 AdjacencyListGraph::AdjacencyListGraph(QObject *parent, bool inIsDirected)
     : Graph(parent, inIsDirected)
 {
@@ -147,7 +173,7 @@ void AdjacencyListGraph::addNode()
 
 void AdjacencyListGraph::addEdge(int start, int end, int weight)
 {
-    if(start < 0 || end < 0)
+    if(start < 0 || end < 0 || hasEdgeTo(start, end))
     {
         return;
     }
@@ -160,7 +186,7 @@ void AdjacencyListGraph::addEdge(int start, int end, int weight)
     adjList[start].push_back(Edge{end, weight});
     emit onEdgeAdded();
 
-    if(!isDirected)
+    if(!isDirected && !hasEdgeTo(end, start))
     {
         if(end >= adjList.size())
         {
@@ -279,6 +305,16 @@ void AdjacencyListGraph::forEachNeighbor(int vertex, std::function<bool (int, in
             return;
         }
     }
+}
+
+qsizetype AdjacencyListGraph::getNeighboursNum(int vertex) const
+{
+    if(adjList.size() <= vertex)
+    {
+        return 0;
+    }
+
+    return adjList[vertex].size();
 }
 
 AdjacencyMatrixGraph::AdjacencyMatrixGraph(QObject *parent, bool inIsDirected, int vertices)
@@ -443,4 +479,18 @@ void AdjacencyMatrixGraph::forEachNeighbor(int vertex, std::function<bool (int, 
             }
         }
     }
+}
+
+qsizetype AdjacencyMatrixGraph::getNeighboursNum(int vertex) const
+{
+    qsizetype neighboursNum = 0;
+    auto countNeighbours = [&](int start, int neighbour, int weight)
+    {
+        neighboursNum++;
+        return true;
+    };
+
+    Graph::forEachNeighbor(vertex, countNeighbours);
+
+    return neighboursNum;
 }

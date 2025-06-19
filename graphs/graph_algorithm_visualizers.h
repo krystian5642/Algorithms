@@ -4,6 +4,8 @@
 #include "../core/algorithm_visualizer.h"
 #include "edge_list.h"
 
+#include <QStack>
+
 class GraphWidget;
 class Graph;
 
@@ -16,6 +18,9 @@ class GraphAlgorithmVisualizer : public AlgorithmVisualizer
 public:
     explicit GraphAlgorithmVisualizer(QObject *parent = nullptr);
     virtual ~GraphAlgorithmVisualizer() = 0;
+
+    virtual bool supportsDirectedGraph() const;
+    virtual bool supportsUndirectedGraph() const;
 
     void clear() override;
 
@@ -97,7 +102,47 @@ public:
     void run(QWidget* widget) override;
 
 private:
-    void DFSHelper(int start, QList<int>& visited);
+    void DFSHelper(int begin, QList<bool>& visited);
 };
+
+class TreeCentersVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit TreeCentersVisualizer(QObject *parent = nullptr);
+
+    void run(QWidget* widget) override;
+    void clear() override;
+    QWidget* createPropertiesWidget(QWidget* parent) override;
+
+protected:
+    void updateVisualization() override;
+
+    QList<QList<int>> visitedLeafLayers;
+    QList<int> centers;
+};
+
+class TopologicalSortVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit TopologicalSortVisualizer(QObject *parent = nullptr);
+
+    void run(QWidget* widget) override;
+    void clear() override;
+
+    bool supportsUndirectedGraph() const override;
+
+protected:
+    void updateVisualization() override;
+
+    QStack<int> topologicalOrder;
+
+private:
+    void TopologicalSortHelper(int begin, QList<bool>& visited);
+};
+
+
+
 
 #endif // GRAPHALGORITHMVISUALIZERS_H

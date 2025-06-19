@@ -66,14 +66,23 @@ GraphWidget::GraphWidget(QWidget *parent)
     actionRemoveEdge->setIcon(icon3);
     connect(actionRemoveEdge, &QAction::triggered, this, &GraphWidget::onActionRemoveEdgeTriggered);
 
+    QAction* actionResetGraphColor = new QAction(this);
+    QIcon icon4;
+    icon4.addFile(QString::fromUtf8(":/icons/reset_color.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    actionResetGraphColor->setIcon(icon4);
+    connect(actionResetGraphColor, &QAction::triggered, this, &GraphWidget::onActionResetGraphColorTriggered);
+
 #if QT_CONFIG(tooltip)
     actionGenerateRandomEdges->setToolTip("Generate random edges");
     actionAddEdge->setToolTip("Add edge");
+    actionRemoveEdge->setToolTip("Remove edge");
+    actionResetGraphColor->setToolTip("Reset graph color");
 #endif
 
     additionalActions.push_back(actionGenerateRandomEdges);
     additionalActions.push_back(actionAddEdge);
     additionalActions.push_back(actionRemoveEdge);
+    additionalActions.push_back(actionResetGraphColor);
 
     dataStructureVisualBuilders.push_back(new GeneralGraphVisualBuilder(this));
     dataStructureVisualBuilders.push_back(new GridGraphVisualBuilder(this));
@@ -137,6 +146,11 @@ void GraphWidget::setNodeColor(int value, const QColor& color, bool callUpdate)
             update();
         }
     }
+}
+
+QColor GraphWidget::getNodeColor(int value)
+{
+    return graphNodeVisualData.size() > value ? graphNodeVisualData[value].color : QColor{};
 }
 
 void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool callUpdate)
@@ -247,7 +261,7 @@ void GraphWidget::generateRandomDataStructureAction()
     }
 }
 
-void GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisualizer, bool pause)
+bool GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisualizer, bool pause)
 {
     if(!pause && algorithmVisualizer)
     {
@@ -257,22 +271,35 @@ void GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
         }
         else
         {
-            setNodesAndEdgesToBlack();
-
             GraphAlgorithmVisualizer* graphAlgorithmVisualizer = qobject_cast<GraphAlgorithmVisualizer*>(algorithmVisualizer);
-            graphAlgorithmVisualizer->clear();
-            graphAlgorithmVisualizer->setGraph(graph);
+            if(graph->getIsDirected() && !graphAlgorithmVisualizer->supportsDirectedGraph())
+            {
+                QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", "Cannot run this algorithm on directed graph");
+                return false;
+            }
+            else if(!graph->getIsDirected() && !graphAlgorithmVisualizer->supportsUndirectedGraph())
+            {
+                QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", "Cannot run this algorithm on undirected graph");
+                return false;
+            }
+            else
+            {
+                setNodesAndEdgesToBlack();
 
-            currentAlgorithmVisualizer = graphAlgorithmVisualizer;
-            connect(currentAlgorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
+                graphAlgorithmVisualizer->clear();
+                graphAlgorithmVisualizer->setGraph(graph);
 
-            currentAlgorithmVisualizer->run(this);
+                currentAlgorithmVisualizer = graphAlgorithmVisualizer;
+
+                currentAlgorithmVisualizer->run(this);
+            }
         }
     }
     else if(currentAlgorithmVisualizer)
     {
         currentAlgorithmVisualizer->setPause(true);
     }
+    return true;
 }
 
 void GraphWidget::registerAlgorithmVisualizers()
@@ -280,6 +307,13 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new BFSVisualizer(this));
     algorithmVisualizers.append(new BFSShortestPathVisualizer(this));
     algorithmVisualizers.append(new DFSVisualizer(this));
+    algorithmVisualizers.append(new TreeCentersVisualizer(this));
+    algorithmVisualizers.append(new TopologicalSortVisualizer(this));
+
+    for(auto* algorithmVisualizer : algorithmVisualizers)
+    {
+        connect(algorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
+    }
 }
 
 void GraphWidget::onActionGenerateRandomEdgesTriggered()
@@ -314,9 +348,14 @@ void GraphWidget::onActionRemoveEdgeTriggered()
     }
 }
 
+void GraphWidget::onActionResetGraphColorTriggered()
+{
+    clearVisualization();
+    setNodesAndEdgesToBlack();
+}
+
 void GraphWidget::onAlgorithmVisualizerFinished()
 {
-    disconnect(currentAlgorithmVisualizer, &AlgorithmVisualizer::finished, this, &GraphWidget::onAlgorithmVisualizerFinished);
     currentAlgorithmVisualizer = nullptr;
 }
 

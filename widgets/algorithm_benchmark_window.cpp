@@ -294,7 +294,6 @@ void AlgorithmBenchmarkWindow::setupUi()
 
     verticalLayout = new QVBoxLayout(layoutHolder);
     verticalLayout->addWidget(algorithmsTreeView, 1);
-    verticalLayout->addStretch(1);
 
     QHBoxLayout* horizontalLayout = new QHBoxLayout(centralWidget);
     horizontalLayout->addWidget(layoutHolder);
@@ -413,6 +412,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
 
     algorithmsList.append(new DFSIterative);
     algorithmsList.append(new DFSRecursive);
+
+    algorithmsList.append(new TreeCenters);
 
     for(auto* algorithm : algorithmsList)
     {

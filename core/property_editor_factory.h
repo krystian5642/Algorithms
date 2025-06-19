@@ -19,7 +19,7 @@ public:
     void registerCreateWidgetForType(int type, CreateWidgetFunction func);
     QWidget* createPropertyWidget(const QMetaProperty& property, QObject* propertyObject, QWidget* parent);
 
-    QWidget* createPropertiesWidget(QObject *object, QWidget* parent = nullptr);
+    QWidget* createPropertiesWidget(QObject *object, QWidget* parent = nullptr, const QStringList& hiddenProperties = {});
     void addStringListComboBox(QWidget *propertiesWidget, const QStringList &values, const QString& title, QString &changedValue);
 
 private:

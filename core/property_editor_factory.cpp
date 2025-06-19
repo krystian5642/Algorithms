@@ -54,7 +54,7 @@ QWidget *PropertyEditorFactory::createPropertyWidget(const QMetaProperty &proper
     return nullptr;
 }
 
-QWidget *PropertyEditorFactory::createPropertiesWidget(QObject *object, QWidget* parent)
+QWidget *PropertyEditorFactory::createPropertiesWidget(QObject *object, QWidget* parent, const QStringList& hiddenProperties)
 {
     if(!object)
     {
@@ -72,7 +72,8 @@ QWidget *PropertyEditorFactory::createPropertiesWidget(QObject *object, QWidget*
     for (int i = 0; i < myMetaObject->propertyCount(); ++i)
     {
         const QMetaProperty metaProperty = myMetaObject->property(i);
-        if(QString(metaProperty.name()) != "objectName")
+        const QString propertyNameAsString(metaProperty.name());
+        if(propertyNameAsString != "objectName" && !hiddenProperties.contains(propertyNameAsString))
         {
             layout->addRow(PropertyEditorFactoryUtils::convertCamelCaseToSpaces(metaProperty.name()), createPropertyWidget(metaProperty, object, propertiesWidget));
         }
@@ -140,7 +141,7 @@ PropertyEditorFactory::PropertyEditorFactory()
 
         QObject::connect(checkBox, &QCheckBox::checkStateChanged, propertyObject, [property, propertyObject](Qt::CheckState newCheckState)
         {
-            propertyObject->setProperty(property.name(), newCheckState == Qt::CheckState::Checked ? true : false);
+            propertyObject->setProperty(property.name(), newCheckState == Qt::CheckState::Checked);
         });
 
         return checkBox;

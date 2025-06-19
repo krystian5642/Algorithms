@@ -149,7 +149,7 @@ void GraphAlgorithm::debugRun()
     QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->createDataStructure()));
     graph = testGraph.get();
 
-    qDebug().noquote() << testGraph->print();
+    testGraph->print();
 
     execute();
 }
@@ -285,6 +285,8 @@ void DFSRecursive::execute()
 
 void DFSRecursive::DFSHelper(int begin, QList<bool>& visited)
 {
+    visited[begin] = true;
+
     auto func = [&](int start, int neighbour, int weight)
     {
         if(!visited[neighbour])
@@ -297,3 +299,68 @@ void DFSRecursive::DFSHelper(int begin, QList<bool>& visited)
 
     graph->forEachNeighbor(begin, func);
 }
+
+TreeCenters::TreeCenters(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Tree Centers");
+
+    dataStructureBuilders.clear();
+    dataStructureBuilders.push_back(new TreeGraphBuilder(this));
+}
+
+void TreeCenters::execute()
+{
+    const qsizetype verticesNum = graph->getVerticesNum();
+
+    QList<qsizetype> nodeDegrees;
+    nodeDegrees.reserve(verticesNum);
+
+    QList<int> leafNodes;
+
+    auto forEachNode = [&](int value)
+    {
+        nodeDegrees.push_back(graph->getNeighboursNum(value));
+
+        if(nodeDegrees[value] == 0 || nodeDegrees[value] == 1)
+        {
+            leafNodes.push_back(value);
+            nodeDegrees[value] = 0;
+        }
+
+        return true;
+    };
+
+    graph->forEachNode(forEachNode);
+
+    qsizetype count = leafNodes.size();
+    while(count < verticesNum)
+    {
+        QList<int> newLeafNodes;
+
+        auto forEachNeighbour = [&](int value, int neighbour, int weight)
+        {
+            if(--nodeDegrees[neighbour] == 1)
+            {
+                newLeafNodes.push_back(neighbour);
+            }
+            return true;
+        };
+
+        for(int leafNode : leafNodes)
+        {
+            graph->forEachNeighbor(leafNode, forEachNeighbour);
+        }
+
+        count += newLeafNodes.size();
+
+        leafNodes = newLeafNodes;
+    }
+
+    const QList<int> centers = leafNodes;
+}
+
+
+
+
+

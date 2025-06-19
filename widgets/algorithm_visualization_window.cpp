@@ -91,7 +91,10 @@ void AlgorithmVisualizationWindow::onActionRunAlgorithmTriggered(bool isOn)
         AlgorithmVisualizer* algorithmVisualizer = getSelectedAlgorithmVisualizer();
         if(algorithmVisualizer)
         {
-            dataStructureWidget->visualizeAlgorithmAction(getSelectedAlgorithmVisualizer(), false);
+            if(!dataStructureWidget->visualizeAlgorithmAction(getSelectedAlgorithmVisualizer(), false))
+            {
+                onAlgorithmVisualizerFinished();
+            }
         }
         else
         {
@@ -140,8 +143,6 @@ void AlgorithmVisualizationWindow::onAlgorithmVisualizerTreeItemClicked(const QM
     }
     else
     {
-        verticalLayout->addStretch(1);
-
         newWidget = qvariant_cast<DataStructureWidget*>(index.data(Qt::UserRole));
     }
 
@@ -214,7 +215,6 @@ void AlgorithmVisualizationWindow::setupUi()
 
     verticalLayout = new QVBoxLayout(layoutHolder);
     verticalLayout->addWidget(algorithmsTreeView, 1);
-    verticalLayout->addStretch(1);
 
     horizontalLayout = new QHBoxLayout(centralWidget);
     horizontalLayout->addWidget(layoutHolder);

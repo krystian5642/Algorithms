@@ -7,7 +7,7 @@
 #include <QRandomGenerator>
 
 GraphBuilder::GraphBuilder(QObject *parent)
-    : DataStructureBuilder{parent}
+    : DataStructureBuilder(parent)
     , buildIterations(100)
 {
     dataStructures.push_back(qMakePair("Adjacency List",   []() {return new AdjacencyListGraph; }));
@@ -21,7 +21,7 @@ GraphBuilder::~GraphBuilder()
 
 QWidget *GraphBuilder::createPropertiesWidget(QWidget *parent)
 {
-    QWidget* propertiesWidget  = DataStructureBuilder::createPropertiesWidget(parent);
+    QWidget* propertiesWidget = DataStructureBuilder::createPropertiesWidget(parent);
 
     QStringList stringList;
     stringList.reserve(dataStructures.size());
@@ -74,7 +74,7 @@ void GraphBuilder::setIsGraphDirected(bool newIsGraphDirected)
 }
 
 GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
-    : GraphBuilder{parent}
+    : GraphBuilder(parent)
     , addEdgePropability(0.5)
 {
     setObjectName("General Graph");
@@ -111,7 +111,7 @@ void GeneralGraphBuilder::setAddEdgePropability(double newAddEdgePropability)
 }
 
 GridGraphBuilder::GridGraphBuilder(QObject *parent)
-    : GraphBuilder{parent}
+    : GraphBuilder(parent)
 {
     setObjectName("Grid Graph");
 }
@@ -143,6 +143,33 @@ DataStructure *GridGraphBuilder::createDataStructure()
 
             prevValue = value;
         }
+    }
+
+    return graph;
+}
+
+TreeGraphBuilder::TreeGraphBuilder(QObject *parent)
+    : GraphBuilder(parent)
+{
+    setObjectName("Tree Graph Builder");
+    isGraphDirected = false;
+
+    hiddenProperties.push_back("isGraphDirected");
+}
+
+DataStructure *TreeGraphBuilder::createDataStructure()
+{
+    Graph* graph = createGraph();
+
+    graph->addNode(); // root
+    int parent = 0;
+
+    for(int i = 1; i <= buildIterations * 2; i+=2)
+    {
+        graph->addEdge(i, parent);
+        graph->addEdge(i + 1, parent);
+
+        parent = i;
     }
 
     return graph;

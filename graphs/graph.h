@@ -18,7 +18,7 @@ public:
     QJsonObject toJsonObject();
     void fromJsonObject(const QJsonObject& jsonObject);
 
-    QString print() const override;
+    void print() const override;
 
     bool getIsDirected() const;
     void setIsDirected(bool newIsDirected);
@@ -31,6 +31,7 @@ public:
     virtual qsizetype getVerticesNum() const = 0;
     virtual void clear() = 0;
     virtual int getRandomValue(bool* found = nullptr) const = 0;
+    virtual qsizetype getNeighboursNum(int vertex) const = 0;
 
     /** if func returns false, next node will not be processed, forEachNode is supposed to end execution too */
     virtual void forEachNode(std::function<bool(int)> func) = 0;
@@ -71,6 +72,7 @@ public:
     void forEachNode(std::function<bool(int)> func) override;
     void forEachEdge(std::function<bool(int, int, int)> func) override;
     void forEachNeighbor(int vertex, std::function<bool(int, int, int)> func) override;
+    qsizetype getNeighboursNum(int vertex) const override;
 
 private:
     struct Edge
@@ -109,6 +111,7 @@ public:
     void forEachNode(std::function<bool(int)> func) override;
     void forEachEdge(std::function<bool(int, int, int)> func) override;
     void forEachNeighbor(int vertex, std::function<bool(int, int, int)> func) override;
+    qsizetype getNeighboursNum(int vertex) const override;
 
 private:
     using Neighbours = QList<int>;

@@ -17,7 +17,7 @@ DataStructureBuilder::~DataStructureBuilder()
 
 QWidget *DataStructureBuilder::createPropertiesWidget(QWidget *parent)
 {
-    return PropertyEditorFactory::get().createPropertiesWidget(this, parent);
+    return PropertyEditorFactory::get().createPropertiesWidget(this, parent, hiddenProperties);
 }
 
 void DataStructureBuilder::appendPropertiesInfo(QString &infoText)

@@ -38,6 +38,7 @@ public:
     void fromJsonObject(const QJsonObject& jsonObj);
 
     void setNodeColor(int value, const QColor& color, bool callUpdate = true);
+    QColor getNodeColor(int value);
     void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
     void setNodesAndEdgesToBlack();
 
@@ -52,13 +53,14 @@ public:
     void loadAction() override;
     void clearAction() override;
     void generateRandomDataStructureAction() override;
-    void visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisualizer, bool pause) override;
+    bool visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisualizer, bool pause) override;
     void registerAlgorithmVisualizers() override;
 
 private slots:
     void onActionGenerateRandomEdgesTriggered();
     void onActionAddEdgeTriggered();
     void onActionRemoveEdgeTriggered();
+    void onActionResetGraphColorTriggered();
 
     void onAlgorithmVisualizerFinished();
 

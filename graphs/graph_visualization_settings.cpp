@@ -2,7 +2,7 @@
 
 GraphVisualizationSettings::GraphVisualizationSettings(QObject *parent)
     : QObject{parent}
-    , showWeights(true)
+    , showWeights(false)
     , graphDirected(true)
 {
 

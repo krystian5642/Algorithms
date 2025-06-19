@@ -19,6 +19,8 @@ public:
 
 protected:
     QList<QPair<QString, std::function<DataStructure*()>>> dataStructures;
+
+    QStringList hiddenProperties;
 };
 
 #endif // DATA_STRUCTURE_BUILDER_H

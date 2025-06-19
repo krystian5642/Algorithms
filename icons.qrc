@@ -11,5 +11,6 @@
         <file>icons/add_edge.png</file>
         <file>icons/remove_edge.png</file>
         <file>icons/debug.png</file>
+        <file>icons/reset_color.png</file>
     </qresource>
 </RCC>

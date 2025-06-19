@@ -15,6 +15,16 @@ GraphAlgorithmVisualizer::GraphAlgorithmVisualizer(QObject *parent)
 
 }
 
+bool GraphAlgorithmVisualizer::supportsDirectedGraph() const
+{
+    return true;
+}
+
+bool GraphAlgorithmVisualizer::supportsUndirectedGraph() const
+{
+    return true;
+}
+
 GraphAlgorithmVisualizer::~GraphAlgorithmVisualizer()
 {
 
@@ -82,7 +92,8 @@ void GraphAlgorithmVisualizer::updateVisualization()
 
         resultIndex++;
     }
-    else
+
+    if(!resultEdgeList.isValidIndex(resultIndex))
     {
         clear();
         emit finished();
@@ -306,7 +317,8 @@ void BFSShortestPathVisualizer::updateVisualization()
             resultIndex++;
         }
     }
-    else
+
+    if(!resultEdgeList.isValidIndex(resultIndex))
     {
         clear();
         emit finished();
@@ -328,7 +340,7 @@ void DFSVisualizer::run(QWidget *widget)
 
     if(start < graph->getVerticesNum())
     {
-        QList<int> visited;
+        QList<bool> visited;
         visited.fill(false, graph->getVerticesNum());
 
         resultEdgeList.reserve(graph->getEdgesNum());
@@ -346,8 +358,10 @@ void DFSVisualizer::run(QWidget *widget)
     }
 }
 
-void DFSVisualizer::DFSHelper(int begin, QList<int>& visited)
+void DFSVisualizer::DFSHelper(int begin, QList<bool>& visited)
 {
+    visited[begin] = true;
+
     auto func = [&](int start, int neighbour, int weight)
     {
         resultEdgeList.add(start, neighbour, graph->getIsDirected());
@@ -362,3 +376,226 @@ void DFSVisualizer::DFSHelper(int begin, QList<int>& visited)
 
     graph->forEachNeighbor(begin, func);
 }
+
+TreeCentersVisualizer::TreeCentersVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+{
+    setObjectName("Tree Centers");
+}
+
+void TreeCentersVisualizer::run(QWidget *widget)
+{
+    const qsizetype verticesNum = graph->getVerticesNum();
+
+    QList<qsizetype> nodeDegrees;
+    nodeDegrees.reserve(verticesNum);
+
+    QList<int> leafNodes;
+
+    auto forEachNode = [&](int value)
+    {
+        nodeDegrees.push_back(graph->getNeighboursNum(value));
+
+        if(nodeDegrees[value] == 0 || nodeDegrees[value] == 1)
+        {
+            leafNodes.push_back(value);
+            nodeDegrees[value] = 0;
+        }
+
+        return true;
+    };
+
+    graph->forEachNode(forEachNode);
+
+    qsizetype count = leafNodes.size();
+    while(count < verticesNum)
+    {
+        visitedLeafLayers.push_back(leafNodes);
+
+        QList<int> newLeafNodes;
+
+        auto forEachNeighbour = [&](int value, int neighbour, int weight)
+        {
+            if(--nodeDegrees[neighbour] == 1)
+            {
+                newLeafNodes.push_back(neighbour);
+            }
+            return true;
+        };
+
+        for(int leafNode : leafNodes)
+        {
+            graph->forEachNeighbor(leafNode, forEachNeighbour);
+        }
+
+        count += newLeafNodes.size();
+
+        leafNodes = newLeafNodes;
+    }
+
+    centers = leafNodes;
+
+    graphWidget = qobject_cast<GraphWidget*>(widget);
+
+    updateVisualization();
+    visualizationTimer.start();
+}
+
+void TreeCentersVisualizer::clear()
+{
+    GraphAlgorithmVisualizer::clear();
+
+    visitedLeafLayers.clear();
+    centers.clear();
+}
+
+QWidget *TreeCentersVisualizer::createPropertiesWidget(QWidget *parent)
+{
+    return nullptr;
+}
+
+void TreeCentersVisualizer::updateVisualization()
+{
+    if(visitedLeafLayers.size() > resultIndex)
+    {
+        const QList<int>& leafLayer = visitedLeafLayers[resultIndex];
+        for(int node : leafLayer)
+        {
+            graphWidget->setNodeColor(node, Qt::gray, false);
+        }
+        graphWidget->update();
+
+        resultIndex++;
+    }
+    else
+    {
+        for(int center : centers)
+        {
+            graphWidget->setNodeColor(center, Qt::green, false);
+        }
+        graphWidget->update();
+
+        clear();
+        emit finished();
+    }
+}
+
+TopologicalSortVisualizer::TopologicalSortVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+{
+    setObjectName("Topological Sort");
+}
+
+void TopologicalSortVisualizer::run(QWidget *widget)
+{
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
+
+    const qsizetype verticesNum = graph->getVerticesNum();
+
+    if(start < verticesNum)
+    {
+        QList<bool> visited;
+        visited.fill(false, verticesNum);
+
+        topologicalOrder.reserve(verticesNum);
+        resultEdgeList.reserve(graph->getEdgesNum());
+
+        TopologicalSortHelper(start, visited);
+
+        auto forEachNode = [&](int value)
+        {
+            TopologicalSortHelper(value, visited);
+            return true;
+        };
+        graph->forEachNode(forEachNode);
+
+        graphWidget = qobject_cast<GraphWidget*>(widget);
+
+        graphWidget->setNodeColor(start, Qt::red);
+        visualizationTimer.start();
+    }
+    else
+    {
+        showStartIsInvalidInfo();
+        emit finished();
+    }
+}
+
+void TopologicalSortVisualizer::clear()
+{
+    GraphAlgorithmVisualizer::clear();
+
+    topologicalOrder.clear();
+}
+
+bool TopologicalSortVisualizer::supportsUndirectedGraph() const
+{
+    return false;
+}
+
+void TopologicalSortVisualizer::updateVisualization()
+{
+    if(resultEdgeList.isValidIndex(resultIndex))
+    {
+        if(graphWidget->getNodeColor(resultEdgeList[resultIndex].getStart()) != Qt::red)
+        {
+            graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red);
+        }
+        else
+        {
+            graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
+
+            graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
+            resultIndex++;
+        }
+    }
+    else if(!topologicalOrder.empty())
+    {
+        graphWidget->setNodeColor(topologicalOrder.pop(), Qt::green);
+    }
+
+    if(!resultEdgeList.isValidIndex(resultIndex) && topologicalOrder.empty())
+    {
+        clear();
+        emit finished();
+    }
+}
+
+void TopologicalSortVisualizer::TopologicalSortHelper(int begin, QList<bool>& visited)
+{
+    visited[begin] = true;
+
+    auto forEachNeighbour = [&](int start, int neighbour, int weight)
+    {
+        resultEdgeList.add(start, neighbour, true);
+
+        if(!visited[neighbour])
+        {
+            visited[neighbour] = true;
+            TopologicalSortHelper(neighbour, visited);
+        }
+        return true;
+    };
+
+    graph->forEachNeighbor(begin, forEachNeighbour);
+
+    if(!topologicalOrder.contains(begin))
+    {
+        topologicalOrder.push(begin);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

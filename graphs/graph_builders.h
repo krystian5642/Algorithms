@@ -62,4 +62,13 @@ public:
     DataStructure* createDataStructure() override;
 };
 
+class TreeGraphBuilder : public GraphBuilder
+{
+    Q_OBJECT
+public:
+    explicit TreeGraphBuilder(QObject *parent = nullptr);
+
+    DataStructure* createDataStructure() override;
+};
+
 #endif // GENERAL_GRAPH_BUILDER_H
