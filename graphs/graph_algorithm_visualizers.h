@@ -50,7 +50,6 @@ protected:
 
 protected:
     EdgeList resultEdgeList;
-    qsizetype resultIndex;
 };
 
 class BFSVisualizer : public GraphAlgorithmVisualizer

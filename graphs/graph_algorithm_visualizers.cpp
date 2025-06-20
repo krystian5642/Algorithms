@@ -10,7 +10,6 @@ GraphAlgorithmVisualizer::GraphAlgorithmVisualizer(QObject *parent)
     , start(0)
     , randomStart(false)
     , graph(nullptr)
-    , resultIndex(0)
 {
 
 }
@@ -36,7 +35,6 @@ void GraphAlgorithmVisualizer::clear()
 
     visualizationTimer.stop();
     resultEdgeList.clear();
-    resultIndex = 0;
 }
 
 int GraphAlgorithmVisualizer::getStart() const
@@ -83,17 +81,17 @@ void GraphAlgorithmVisualizer::setGraph(Graph *newGraph)
 
 void GraphAlgorithmVisualizer::updateVisualization()
 {
-    if(resultEdgeList.isValidIndex(resultIndex))
+    if(!resultEdgeList.empty())
     {
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red, false);
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
+        const Edge edge = resultEdgeList.takeFirst();
 
-        graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
+        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
+        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
 
-        resultIndex++;
+        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
     }
 
-    if(!resultEdgeList.isValidIndex(resultIndex))
+    if(resultEdgeList.empty())
     {
         clear();
         emit finished();
@@ -289,14 +287,16 @@ void BFSShortestPathVisualizer::setRandomEnd(bool newRandomEnd)
 
 void BFSShortestPathVisualizer::updateVisualization()
 {
-    if(resultEdgeList.isValidIndex(resultIndex))
+    if(!resultEdgeList.empty())
     {
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red, false);
-        graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
+        const Edge edge = resultEdgeList.takeFirst();
 
-        graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
+        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
+        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
 
-        if(!resultPath.isEmpty() && resultEdgeList[resultIndex].getEnd() == resultPath.last())
+        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
+
+        if(!resultPath.empty() && edge.getEnd() == resultPath.last())
         {
             for(int i = 1; i < resultPath.size(); ++i)
             {
@@ -308,17 +308,10 @@ void BFSShortestPathVisualizer::updateVisualization()
                 }
             }
             graphWidget->update();
-
-            clear();
-            emit finished();
-        }
-        else
-        {
-            resultIndex++;
         }
     }
 
-    if(!resultEdgeList.isValidIndex(resultIndex))
+    if(resultEdgeList.empty())
     {
         clear();
         emit finished();
@@ -452,16 +445,14 @@ QWidget *TreeCentersVisualizer::createPropertiesWidget(QWidget *parent)
 
 void TreeCentersVisualizer::updateVisualization()
 {
-    if(visitedLeafLayers.size() > resultIndex)
+    if(!visitedLeafLayers.empty())
     {
-        const QList<int>& leafLayer = visitedLeafLayers[resultIndex];
+        const QList<int> leafLayer = visitedLeafLayers.takeFirst();
         for(int node : leafLayer)
         {
             graphWidget->setNodeColor(node, Qt::gray, false);
         }
         graphWidget->update();
-
-        resultIndex++;
     }
     else
     {
@@ -470,7 +461,10 @@ void TreeCentersVisualizer::updateVisualization()
             graphWidget->setNodeColor(center, Qt::green, false);
         }
         graphWidget->update();
+    }
 
+    if(visitedLeafLayers.empty())
+    {
         clear();
         emit finished();
     }
@@ -534,18 +528,20 @@ bool TopologicalSortVisualizer::supportsUndirectedGraph() const
 
 void TopologicalSortVisualizer::updateVisualization()
 {
-    if(resultEdgeList.isValidIndex(resultIndex))
+    if(!resultEdgeList.empty())
     {
-        if(graphWidget->getNodeColor(resultEdgeList[resultIndex].getStart()) != Qt::red)
+        const Edge& edge = resultEdgeList.first();
+        if(graphWidget->getNodeColor(edge.getStart()) != Qt::red)
         {
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red);
+            graphWidget->setNodeColor(edge.getStart(), Qt::red);
         }
         else
         {
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
+            graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
 
-            graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
-            resultIndex++;
+            graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
+
+            resultEdgeList.takeFirst();
         }
     }
     else if(!topologicalOrder.empty())
@@ -553,7 +549,7 @@ void TopologicalSortVisualizer::updateVisualization()
         graphWidget->setNodeColor(topologicalOrder.pop(), Qt::green);
     }
 
-    if(!resultEdgeList.isValidIndex(resultIndex) && topologicalOrder.empty())
+    if(resultEdgeList.empty() && topologicalOrder.empty())
     {
         clear();
         emit finished();
@@ -652,18 +648,20 @@ bool KahnsAlgorithmVisualizer::supportsUndirectedGraph() const
 
 void KahnsAlgorithmVisualizer::updateVisualization()
 {
-    if(resultEdgeList.isValidIndex(resultIndex))
+    if(!resultEdgeList.empty())
     {
-        if(graphWidget->getNodeColor(resultEdgeList[resultIndex].getStart()) != Qt::red)
+        const Edge& edge = resultEdgeList.first();
+        if(graphWidget->getNodeColor(edge.getStart()) != Qt::red)
         {
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red);
+            graphWidget->setNodeColor(edge.getStart(), Qt::red);
         }
         else
         {
-            graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
+            graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
 
-            graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
-            resultIndex++;
+            graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
+
+            resultEdgeList.takeFirst();
         }
     }
     else if(!topologicalOrder.empty())
@@ -671,7 +669,7 @@ void KahnsAlgorithmVisualizer::updateVisualization()
         graphWidget->setNodeColor(topologicalOrder.takeFirst(), Qt::green);
     }
 
-    if(!resultEdgeList.isValidIndex(resultIndex) && topologicalOrder.empty())
+    if(resultEdgeList.empty() && topologicalOrder.empty())
     {
         clear();
         emit finished();

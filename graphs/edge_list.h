@@ -33,6 +33,7 @@ public:
 
     void add(int start, int end, bool directed);
     void reserve(qsizetype size);
+    const Edge& first() const;
     Edge takeFirst();
     bool empty() const;
 
