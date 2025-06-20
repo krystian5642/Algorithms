@@ -416,6 +416,7 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new TreeCenters);
 
     algorithmsList.append(new TopologicalSort);
+    algorithmsList.append(new KahnsAlgorithm);
 
     for(auto* algorithm : algorithmsList)
     {

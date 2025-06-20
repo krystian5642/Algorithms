@@ -31,6 +31,7 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
+    dataStructureBuilders.push_back(new TreeGraphBuilder(this));
 }
 
 GraphAlgorithm::~GraphAlgorithm()
@@ -196,7 +197,7 @@ void BFSIterative::execute()
     nodeQueue.enqueue(0);
     visited[0] = true;
 
-    auto func = [&](int start, int neighbour, int weight)
+    auto forEachNeighbour = [&](int start, int neighbour, int weight)
     {
         if(!visited[neighbour])
         {
@@ -209,7 +210,7 @@ void BFSIterative::execute()
     while(!nodeQueue.empty())
     {
         const int first = nodeQueue.dequeue();
-        graph->forEachNeighbour(first, func);
+        graph->forEachNeighbour(first, forEachNeighbour);
     }
 }
 
@@ -304,21 +305,18 @@ void DFSRecursive::execute()
 
 void DFSRecursive::DFSHelper(int begin, QList<bool>& visited)
 {
-    if(!visited[begin])
+    visited[begin] = true;
+
+    auto func = [&](int start, int neighbour, int weight)
     {
-        visited[begin] = true;
-
-        auto func = [&](int start, int neighbour, int weight)
+        if(!visited[neighbour])
         {
-            if(!visited[neighbour])
-            {
-                DFSHelper(neighbour, visited);
-            }
-            return true;
-        };
+            DFSHelper(neighbour, visited);
+        }
+        return true;
+    };
 
-        graph->forEachNeighbour(begin, func);
-    }
+    graph->forEachNeighbour(begin, func);
 }
 
 TreeCenters::TreeCenters(QObject *parent)
@@ -405,20 +403,67 @@ void TopologicalSort::execute()
 
 void TopologicalSort::TopologicalSortHelper(int begin, QList<bool> &visited, QStack<int>& topologicalOrder)
 {
-    if(!visited[begin])
+    visited[begin] = true;
+
+    auto forEachNeighbour = [&](int start, int neighbour, int weight)
     {
-        visited[begin] = true;
-
-        auto forEachNeighbour = [&](int start, int neighbour, int weight)
+        if(!visited[neighbour])
         {
-            if(!visited[neighbour])
-            {
-                TopologicalSortHelper(neighbour, visited, topologicalOrder);
-            }
-            return true;
-        };
+            TopologicalSortHelper(neighbour, visited, topologicalOrder);
+        }
+        return true;
+    };
 
-        graph->forEachNeighbour(begin, forEachNeighbour);
-        topologicalOrder.push(begin);
+    graph->forEachNeighbour(begin, forEachNeighbour);
+    topologicalOrder.push(begin);
+}
+
+KahnsAlgorithm::KahnsAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Kahn's Algorithm (Topological Sort)");
+}
+
+void KahnsAlgorithm::execute()
+{
+    QList<int> nodeDegrees = graph->getNodeDegrees();
+
+    QList<int> topologicalOrder;
+    topologicalOrder.reserve(graph->getNodesNum());
+
+    QQueue<int> nodeQueue;
+
+    auto forEachNode = [&](int value)
+    {
+        if(nodeDegrees[value] == 0)
+        {
+            nodeQueue.enqueue(value);
+        }
+
+        return true;
+    };
+
+    graph->forEachNode(forEachNode);
+
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        if(--nodeDegrees[neighbour] == 0)
+        {
+            nodeQueue.enqueue(neighbour);
+        }
+        return true;
+    };
+
+    while(!nodeQueue.empty())
+    {
+        const int first = nodeQueue.dequeue();
+        topologicalOrder.push_back(first);
+        graph->forEachNeighbour(first, forEachNeighbour);
     }
+
+    if(topologicalOrder.size() < graph->getNodesNum())
+    {
+        topologicalOrder.clear(); // cycle
+    }
+
 }

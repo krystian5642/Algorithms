@@ -628,6 +628,11 @@ void KahnsAlgorithmVisualizer::run(QWidget *widget)
         graph->forEachNeighbour(first, forEachNeighbour);
     }
 
+    if(topologicalOrder.size() < graph->getNodesNum())
+    {
+        topologicalOrder.clear(); // cycle
+    }
+
     graphWidget = qobject_cast<GraphWidget*>(widget);
 
     graphWidget->setNodeColor(0, Qt::red);

@@ -101,4 +101,14 @@ protected:
     void TopologicalSortHelper(int begin, QList<bool>& visited, QStack<int>& topologicalOrder);
 };
 
+class KahnsAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit KahnsAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+};
+
 #endif // GRAPH_AlGORITHMS_H
