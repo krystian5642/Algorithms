@@ -48,7 +48,7 @@ QJsonObject Graph::toJsonObject()
     forEachNode([&](int value)
     {
         QJsonArray edgesAsJsonArray;
-        forEachNeighbor(value, [&](int start, int end, int weight)
+        forEachNeighbour(value, [&](int start, int end, int weight)
         {
             QJsonObject edgeAsJsonObject;
             edgeAsJsonObject["end"] = end;
@@ -107,7 +107,7 @@ void Graph::print() const
     auto forEachNodeFunc = [&](int value)
     {
         graphAsText.append(QString::number(value) + " -> ");
-        forEachNeighbor(value, forEachNeighbourFunc);
+        forEachNeighbour(value, forEachNeighbourFunc);
         graphAsText.append('\n');
 
         return true;
@@ -139,12 +139,34 @@ void Graph::forEachEdge(std::function<bool (int, int, int)> func) const
     const_cast<Graph*>(this)->forEachEdge(func);
 }
 
-void Graph::forEachNeighbor(int vertex, std::function<bool (int, int, int)> func) const
+void Graph::forEachNeighbour(int node, std::function<bool (int, int, int)> func) const
 {
-    const_cast<Graph*>(this)->forEachNeighbor(vertex, func);
+    const_cast<Graph*>(this)->forEachNeighbour(node, func);
 }
 
-qsizetype Graph::getNeighboursNum(int vertex) const
+QList<int> Graph::getNodeDegrees() const
+{
+    QList<int> nodeDegrees;
+    nodeDegrees.fill(0, getNodesNum());
+
+    auto forEachNeighbourFunc = [&](int start, int neighbour, int weight)
+    {
+        ++nodeDegrees[neighbour];
+        return true;
+    };
+
+    auto forEachNodeFunc = [&](int value)
+    {
+        forEachNeighbour(value, forEachNeighbourFunc);
+        return true;
+    };
+
+    forEachNode(forEachNodeFunc);
+
+    return nodeDegrees;
+}
+
+qsizetype Graph::getNeighboursNum(int node) const
 {
     qsizetype neighboursNum = 0;
     auto countNeighbours = [&](int start, int neighbour, int weight)
@@ -153,7 +175,7 @@ qsizetype Graph::getNeighboursNum(int vertex) const
         return true;
     };
 
-    forEachNeighbor(vertex, countNeighbours);
+    forEachNeighbour(node, countNeighbours);
 
     return neighboursNum;
 }
@@ -245,7 +267,7 @@ qsizetype AdjacencyListGraph::getEdgesNum() const
     return edgesNum;
 }
 
-qsizetype AdjacencyListGraph::getVerticesNum() const
+qsizetype AdjacencyListGraph::getNodesNum() const
 {
     return adjList.size();
 }
@@ -298,43 +320,43 @@ void AdjacencyListGraph::forEachEdge(std::function<bool (int, int, int)> func)
     }
 }
 
-void AdjacencyListGraph::forEachNeighbor(int vertex, std::function<bool (int, int, int)> func)
+void AdjacencyListGraph::forEachNeighbour(int node, std::function<bool (int, int, int)> func)
 {
-    for(const Edge& edge : adjList[vertex])
+    for(const Edge& edge : adjList[node])
     {
-        if(!func(vertex, edge.endValue, edge.weight))
+        if(!func(node, edge.endValue, edge.weight))
         {
             return;
         }
     }
 }
 
-qsizetype AdjacencyListGraph::getNeighboursNum(int vertex) const
+qsizetype AdjacencyListGraph::getNeighboursNum(int node) const
 {
-    if(adjList.size() <= vertex)
+    if(adjList.size() <= node)
     {
         return 0;
     }
 
-    return adjList[vertex].size();
+    return adjList[node].size();
 }
 
-AdjacencyMatrixGraph::AdjacencyMatrixGraph(QObject *parent, bool inIsDirected, int vertices)
+AdjacencyMatrixGraph::AdjacencyMatrixGraph(QObject *parent, bool inIsDirected, int nodes)
     : Graph(parent, inIsDirected)
 {
-    adjMatrix.fill(QList<int>{}, vertices);
+    adjMatrix.fill(QList<int>{}, nodes);
     for(auto& neighbours : adjMatrix)
     {
-        neighbours.fill(INT_MIN, vertices);
+        neighbours.fill(INT_MIN, nodes);
     }
 }
 
 void AdjacencyMatrixGraph::addNode()
 {
-    const qsizetype verticesNum = getVerticesNum();
+    const qsizetype nodesNum = getNodesNum();
 
-    adjMatrix.push_back(QList<int>(verticesNum + 1, INT_MIN));
-    for(int i = 0; i < verticesNum; ++i)
+    adjMatrix.push_back(QList<int>(nodesNum + 1, INT_MIN));
+    for(int i = 0; i < nodesNum; ++i)
     {
         adjMatrix[i].push_back(INT_MIN);
     }
@@ -413,7 +435,7 @@ qsizetype AdjacencyMatrixGraph::getEdgesNum() const
     return edgesNum;
 }
 
-qsizetype AdjacencyMatrixGraph::getVerticesNum() const
+qsizetype AdjacencyMatrixGraph::getNodesNum() const
 {
     return adjMatrix.size();
 }
@@ -469,13 +491,13 @@ void AdjacencyMatrixGraph::forEachEdge(std::function<bool (int, int, int)> func)
     }
 }
 
-void AdjacencyMatrixGraph::forEachNeighbor(int vertex, std::function<bool (int, int, int)> func)
+void AdjacencyMatrixGraph::forEachNeighbour(int node, std::function<bool (int, int, int)> func)
 {
-    for(int i = 0; i < adjMatrix[vertex].size(); ++i)
+    for(int i = 0; i < adjMatrix[node].size(); ++i)
     {
-        if(adjMatrix[vertex][i] != INT_MIN)
+        if(adjMatrix[node][i] != INT_MIN)
         {
-            if(!func(vertex, i, adjMatrix[vertex][i]))
+            if(!func(node, i, adjMatrix[node][i]))
             {
                 return;
             }
@@ -483,7 +505,7 @@ void AdjacencyMatrixGraph::forEachNeighbor(int vertex, std::function<bool (int, 
     }
 }
 
-qsizetype AdjacencyMatrixGraph::getNeighboursNum(int vertex) const
+qsizetype AdjacencyMatrixGraph::getNeighboursNum(int node) const
 {
     qsizetype neighboursNum = 0;
     auto countNeighbours = [&](int start, int neighbour, int weight)
@@ -492,7 +514,7 @@ qsizetype AdjacencyMatrixGraph::getNeighboursNum(int vertex) const
         return true;
     };
 
-    Graph::forEachNeighbor(vertex, countNeighbours);
+    Graph::forEachNeighbour(node, countNeighbours);
 
     return neighboursNum;
 }

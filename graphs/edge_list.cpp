@@ -37,6 +37,16 @@ void EdgeList::reserve(qsizetype size)
     helperSet.reserve(size);
 }
 
+Edge EdgeList::takeFirst()
+{
+    return edges.takeFirst();
+}
+
+bool EdgeList::empty() const
+{
+    return edges.empty();
+}
+
 const Edge& EdgeList::getLastEdge() const
 {
     return edges.last();

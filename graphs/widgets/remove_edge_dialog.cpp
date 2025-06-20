@@ -31,7 +31,7 @@ void RemoveEdgeDialog::setupUi(const Graph *graph)
 
     QFormLayout* formLayout = new QFormLayout;
 
-    const QIntValidator* removeEdgeValidator = new QIntValidator(0, graph->getVerticesNum() - 1, formLayout);
+    const QIntValidator* removeEdgeValidator = new QIntValidator(0, graph->getNodesNum() - 1, formLayout);
 
     lineEditStart = new QLineEdit("0", this);
     lineEditStart->setValidator(removeEdgeValidator);

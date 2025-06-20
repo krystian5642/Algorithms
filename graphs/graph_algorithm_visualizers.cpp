@@ -118,13 +118,13 @@ void BFSVisualizer::run(QWidget *widget)
         setStart(graph->getRandomValue());
     }
 
-    if(start < graph->getVerticesNum())
+    if(start < graph->getNodesNum())
     {
         QQueue<int> nodeQueue;
-        nodeQueue.reserve(graph->getVerticesNum());
+        nodeQueue.reserve(graph->getNodesNum());
 
         QList<bool> visited;
-        visited.fill(false, graph->getVerticesNum());
+        visited.fill(false, graph->getNodesNum());
 
         resultEdgeList.reserve(graph->getEdgesNum());
 
@@ -146,7 +146,7 @@ void BFSVisualizer::run(QWidget *widget)
         while(!nodeQueue.empty())
         {
             const int first = nodeQueue.dequeue();
-            graph->forEachNeighbor(first, func);
+            graph->forEachNeighbour(first, func);
         }
 
         graphWidget = qobject_cast<GraphWidget*>(widget);
@@ -181,15 +181,15 @@ void BFSShortestPathVisualizer::run(QWidget *widget)
         setEnd(graph->getRandomValue());
     }
 
-    const qsizetype verticesNum = graph->getVerticesNum();
+    const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start < verticesNum && end < verticesNum)
+    if(start < nodesNum && end < nodesNum)
     {
         QQueue<int> nodeQueue;
-        nodeQueue.reserve(verticesNum);
+        nodeQueue.reserve(nodesNum);
 
         QList<bool> visited;
-        visited.fill(false, verticesNum);
+        visited.fill(false, nodesNum);
 
         resultEdgeList.reserve(graph->getEdgesNum());
 
@@ -197,7 +197,7 @@ void BFSShortestPathVisualizer::run(QWidget *widget)
         visited[start] = true;
 
         QList<int> prev;
-        prev.fill(INT_MIN, verticesNum);
+        prev.fill(INT_MIN, nodesNum);
 
         auto func = [&](int value, int neighbour, int weight)
         {
@@ -222,7 +222,7 @@ void BFSShortestPathVisualizer::run(QWidget *widget)
         while(!nodeQueue.empty())
         {
             const int first = nodeQueue.dequeue();
-            graph->forEachNeighbor(first, func);
+            graph->forEachNeighbour(first, func);
         }
 
         resultPath.push_back(end);
@@ -338,10 +338,10 @@ void DFSVisualizer::run(QWidget *widget)
         setStart(graph->getRandomValue());
     }
 
-    if(start < graph->getVerticesNum())
+    if(start < graph->getNodesNum())
     {
         QList<bool> visited;
-        visited.fill(false, graph->getVerticesNum());
+        visited.fill(false, graph->getNodesNum());
 
         resultEdgeList.reserve(graph->getEdgesNum());
 
@@ -373,7 +373,7 @@ void DFSVisualizer::DFSHelper(int begin, QList<bool>& visited)
         return true;
     };
 
-    graph->forEachNeighbor(begin, func);
+    graph->forEachNeighbour(begin, func);
 }
 
 TreeCentersVisualizer::TreeCentersVisualizer(QObject *parent)
@@ -384,17 +384,14 @@ TreeCentersVisualizer::TreeCentersVisualizer(QObject *parent)
 
 void TreeCentersVisualizer::run(QWidget *widget)
 {
-    const qsizetype verticesNum = graph->getVerticesNum();
+    const qsizetype nodesNum = graph->getNodesNum();
 
-    QList<qsizetype> nodeDegrees;
-    nodeDegrees.reserve(verticesNum);
+    QList<int> nodeDegrees = graph->getNodeDegrees();
 
     QList<int> leafNodes;
 
     auto forEachNode = [&](int value)
     {
-        nodeDegrees.push_back(graph->getNeighboursNum(value));
-
         if(nodeDegrees[value] == 0 || nodeDegrees[value] == 1)
         {
             leafNodes.push_back(value);
@@ -407,7 +404,7 @@ void TreeCentersVisualizer::run(QWidget *widget)
     graph->forEachNode(forEachNode);
 
     qsizetype count = leafNodes.size();
-    while(count < verticesNum)
+    while(count < nodesNum)
     {
         visitedLeafLayers.push_back(leafNodes);
 
@@ -424,7 +421,7 @@ void TreeCentersVisualizer::run(QWidget *widget)
 
         for(int leafNode : leafNodes)
         {
-            graph->forEachNeighbor(leafNode, forEachNeighbour);
+            graph->forEachNeighbour(leafNode, forEachNeighbour);
         }
 
         count += newLeafNodes.size();
@@ -492,14 +489,14 @@ void TopologicalSortVisualizer::run(QWidget *widget)
         setStart(graph->getRandomValue());
     }
 
-    const qsizetype verticesNum = graph->getVerticesNum();
+    const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start < verticesNum)
+    if(start < nodesNum)
     {
         QList<bool> visited;
-        visited.fill(false, verticesNum);
+        visited.fill(false, nodesNum);
 
-        topologicalOrder.reserve(verticesNum);
+        topologicalOrder.reserve(nodesNum);
         resultEdgeList.reserve(graph->getEdgesNum());
 
         TopologicalSortHelper(start, visited);
@@ -578,7 +575,7 @@ void TopologicalSortVisualizer::TopologicalSortHelper(int begin, QList<bool>& vi
         return true;
     };
 
-    graph->forEachNeighbor(begin, forEachNeighbour);
+    graph->forEachNeighbour(begin, forEachNeighbour);
 
     if(!topologicalOrder.contains(begin))
     {
@@ -586,3 +583,97 @@ void TopologicalSortVisualizer::TopologicalSortHelper(int begin, QList<bool>& vi
     }
 }
 
+
+KahnsAlgorithmVisualizer::KahnsAlgorithmVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+{
+    setObjectName("Kahn's Algorithm (Topological Sort)");
+
+    hiddenProperties.push_back("start");
+    hiddenProperties.push_back("randomStart");
+}
+
+void KahnsAlgorithmVisualizer::run(QWidget *widget)
+{
+    QList<int> nodeDegrees = graph->getNodeDegrees();
+
+    topologicalOrder.reserve(graph->getNodesNum());
+    resultEdgeList.reserve(graph->getEdgesNum());
+
+    QQueue<int> nodeQueue;
+
+    auto forEachNode = [&](int value)
+    {
+        if(nodeDegrees[value] == 0)
+        {
+            nodeQueue.enqueue(value);
+        }
+
+        return true;
+    };
+
+    graph->forEachNode(forEachNode);
+
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        resultEdgeList.add(value, neighbour, true);
+
+        if(--nodeDegrees[neighbour] == 0)
+        {
+            nodeQueue.enqueue(neighbour);
+        }
+        return true;
+    };
+
+    while(!nodeQueue.empty())
+    {
+        const int first = nodeQueue.dequeue();
+        topologicalOrder.push_back(first);
+        graph->forEachNeighbour(first, forEachNeighbour);
+    }
+
+    graphWidget = qobject_cast<GraphWidget*>(widget);
+
+    graphWidget->setNodeColor(0, Qt::red);
+    visualizationTimer.start();
+}
+
+void KahnsAlgorithmVisualizer::clear()
+{
+    GraphAlgorithmVisualizer::clear();
+
+    topologicalOrder.clear();
+}
+
+bool KahnsAlgorithmVisualizer::supportsUndirectedGraph() const
+{
+    return false;
+}
+
+void KahnsAlgorithmVisualizer::updateVisualization()
+{
+    if(resultEdgeList.isValidIndex(resultIndex))
+    {
+        if(graphWidget->getNodeColor(resultEdgeList[resultIndex].getStart()) != Qt::red)
+        {
+            graphWidget->setNodeColor(resultEdgeList[resultIndex].getStart(), Qt::red);
+        }
+        else
+        {
+            graphWidget->setNodeColor(resultEdgeList[resultIndex].getEnd(), Qt::red, false);
+
+            graphWidget->setEdgeColor(resultEdgeList[resultIndex].getStart(), resultEdgeList[resultIndex].getEnd(), Qt::red);
+            resultIndex++;
+        }
+    }
+    else if(!topologicalOrder.empty())
+    {
+        graphWidget->setNodeColor(topologicalOrder.takeFirst(), Qt::green);
+    }
+
+    if(!resultEdgeList.isValidIndex(resultIndex) && topologicalOrder.empty())
+    {
+        clear();
+        emit finished();
+    }
+}

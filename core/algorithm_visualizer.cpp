@@ -41,7 +41,7 @@ void AlgorithmVisualizer::setPause(bool pause)
 
 QWidget *AlgorithmVisualizer::createPropertiesWidget(QWidget* parent)
 {
-    return PropertyEditorFactory::get().createPropertiesWidget(this, parent);
+    return PropertyEditorFactory::get().createPropertiesWidget(this, parent, hiddenProperties);
 }
 
 int AlgorithmVisualizer::getStepTime() const

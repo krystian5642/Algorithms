@@ -33,6 +33,8 @@ public:
 
     void add(int start, int end, bool directed);
     void reserve(qsizetype size);
+    Edge takeFirst();
+    bool empty() const;
 
     const Edge& getLastEdge() const;
     bool isValidIndex(qsizetype index) const;

@@ -142,7 +142,22 @@ private:
     void TopologicalSortHelper(int begin, QList<bool>& visited);
 };
 
+class KahnsAlgorithmVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit KahnsAlgorithmVisualizer(QObject *parent = nullptr);
 
+    void run(QWidget* widget) override;
+    void clear() override;
+
+    bool supportsUndirectedGraph() const override;
+
+protected:
+    void updateVisualization() override;
+
+    QList<int> topologicalOrder;
+};
 
 
 #endif // GRAPHALGORITHMVISUALIZERS_H

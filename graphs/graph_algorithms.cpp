@@ -129,7 +129,7 @@ void GraphAlgorithm::run()
         ULONG64 end;
         QueryThreadCycleTime(GetCurrentThread(), &end);
 
-        const QPointF point(complexityFunc(i, testGraph->getVerticesNum(), testGraph->getEdgesNum()), end - start);
+        const QPointF point(complexityFunc(i, testGraph->getNodesNum(), testGraph->getEdgesNum()), end - start);
         result.append(point);
     }
 
@@ -188,10 +188,10 @@ BFSIterative::BFSIterative(QObject *parent)
 void BFSIterative::execute()
 {
     QQueue<int> nodeQueue;
-    nodeQueue.reserve(graph->getVerticesNum());
+    nodeQueue.reserve(graph->getNodesNum());
 
     QList<bool> visited;
-    visited.fill(false, graph->getVerticesNum());
+    visited.fill(false, graph->getNodesNum());
 
     nodeQueue.enqueue(0);
     visited[0] = true;
@@ -209,7 +209,7 @@ void BFSIterative::execute()
     while(!nodeQueue.empty())
     {
         const int first = nodeQueue.dequeue();
-        graph->forEachNeighbor(first, func);
+        graph->forEachNeighbour(first, func);
     }
 }
 
@@ -222,10 +222,10 @@ BFSRecursive::BFSRecursive(QObject *parent)
 void BFSRecursive::execute()
 {
     QQueue<int> nodeQueue;
-    nodeQueue.reserve(graph->getVerticesNum());
+    nodeQueue.reserve(graph->getNodesNum());
 
     QList<bool> visited;
-    visited.fill(false, graph->getVerticesNum());
+    visited.fill(false, graph->getNodesNum());
 
     nodeQueue.enqueue(0);
     visited[0] = true;
@@ -251,7 +251,7 @@ void BFSRecursive::BFSRecursiveHelper(QQueue<int>& nodeQueue, std::function<bool
     }
 
     const int first = nodeQueue.dequeue();
-    graph->forEachNeighbor(first, forEachNeighbourFunc);
+    graph->forEachNeighbour(first, forEachNeighbourFunc);
     BFSRecursiveHelper(nodeQueue, forEachNeighbourFunc);
 }
 
@@ -264,11 +264,11 @@ DFSIterative::DFSIterative(QObject *parent)
 void DFSIterative::execute()
 {
     QList<bool> visited;
-    visited.fill(false, graph->getVerticesNum());
+    visited.fill(false, graph->getNodesNum());
     visited[0] = true;
 
     QStack<int> nodesStack;
-    nodesStack.reserve(graph->getVerticesNum());
+    nodesStack.reserve(graph->getNodesNum());
     nodesStack.push(0);
 
     auto func = [&](int start, int neighbour, int weight)
@@ -284,7 +284,7 @@ void DFSIterative::execute()
     while(!nodesStack.isEmpty())
     {
         const int first = nodesStack.pop();
-        graph->forEachNeighbor(first, func);
+        graph->forEachNeighbour(first, func);
     }
 }
 
@@ -297,7 +297,7 @@ DFSRecursive::DFSRecursive(QObject *parent)
 void DFSRecursive::execute()
 {
     QList<bool> visited;
-    visited.fill(false, graph->getVerticesNum());
+    visited.fill(false, graph->getNodesNum());
 
     DFSHelper(0, visited);
 }
@@ -317,7 +317,7 @@ void DFSRecursive::DFSHelper(int begin, QList<bool>& visited)
             return true;
         };
 
-        graph->forEachNeighbor(begin, func);
+        graph->forEachNeighbour(begin, func);
     }
 }
 
@@ -332,17 +332,14 @@ TreeCenters::TreeCenters(QObject *parent)
 
 void TreeCenters::execute()
 {
-    const qsizetype verticesNum = graph->getVerticesNum();
+    const qsizetype nodesNum = graph->getNodesNum();
 
-    QList<qsizetype> nodeDegrees;
-    nodeDegrees.reserve(verticesNum);
+    QList<int> nodeDegrees = graph->getNodeDegrees();
 
     QList<int> leafNodes;
 
     auto forEachNode = [&](int value)
     {
-        nodeDegrees.push_back(graph->getNeighboursNum(value));
-
         if(nodeDegrees[value] == 0 || nodeDegrees[value] == 1)
         {
             leafNodes.push_back(value);
@@ -355,7 +352,7 @@ void TreeCenters::execute()
     graph->forEachNode(forEachNode);
 
     qsizetype count = leafNodes.size();
-    while(count < verticesNum)
+    while(count < nodesNum)
     {
         QList<int> newLeafNodes;
 
@@ -370,7 +367,7 @@ void TreeCenters::execute()
 
         for(int leafNode : leafNodes)
         {
-            graph->forEachNeighbor(leafNode, forEachNeighbour);
+            graph->forEachNeighbour(leafNode, forEachNeighbour);
         }
 
         count += newLeafNodes.size();
@@ -393,10 +390,10 @@ TopologicalSort::TopologicalSort(QObject *parent)
 void TopologicalSort::execute()
 {
     QList<bool> visited;
-    visited.fill(false, graph->getVerticesNum());
+    visited.fill(false, graph->getNodesNum());
 
     QStack<int> topologicalOrder;
-    topologicalOrder.reserve(graph->getVerticesNum());
+    topologicalOrder.reserve(graph->getNodesNum());
 
     auto forEachNode = [&](int value)
     {
@@ -404,14 +401,6 @@ void TopologicalSort::execute()
         return true;
     };
     graph->forEachNode(forEachNode);
-
-    qDebug() << "sdsad : ";
-    qDebug() << "";
-    while(!topologicalOrder.empty())
-    {
-        qDebug() << topologicalOrder.pop();
-    }
-
 }
 
 void TopologicalSort::TopologicalSortHelper(int begin, QList<bool> &visited, QStack<int>& topologicalOrder)
@@ -429,7 +418,7 @@ void TopologicalSort::TopologicalSortHelper(int begin, QList<bool> &visited, QSt
             return true;
         };
 
-        graph->forEachNeighbor(begin, forEachNeighbour);
+        graph->forEachNeighbour(begin, forEachNeighbour);
         topologicalOrder.push(begin);
     }
 }

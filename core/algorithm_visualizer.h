@@ -30,6 +30,8 @@ signals:
 protected:
     virtual void updateVisualization() = 0;
 
+    QStringList hiddenProperties;
+
     QTimer visualizationTimer;
     int stepTime;
 };

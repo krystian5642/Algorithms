@@ -305,10 +305,11 @@ bool GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
 void GraphWidget::registerAlgorithmVisualizers()
 {
     algorithmVisualizers.append(new BFSVisualizer(this));
-    algorithmVisualizers.append(new BFSShortestPathVisualizer(this));
-    algorithmVisualizers.append(new DFSVisualizer(this));
-    algorithmVisualizers.append(new TreeCentersVisualizer(this));
+    algorithmVisualizers.append(new BFSShortestPathVisualizer(this));  
+    algorithmVisualizers.append(new DFSVisualizer(this)); 
+    algorithmVisualizers.append(new TreeCentersVisualizer(this)); 
     algorithmVisualizers.append(new TopologicalSortVisualizer(this));
+    algorithmVisualizers.append(new KahnsAlgorithmVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {
