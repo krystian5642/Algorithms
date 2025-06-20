@@ -415,6 +415,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
 
     algorithmsList.append(new TreeCenters);
 
+    algorithmsList.append(new TopologicalSort);
+
     for(auto* algorithm : algorithmsList)
     {
         connect(algorithm, &Algorithm::started, this, &AlgorithmBenchmarkWindow::onAlgorithmStarted);

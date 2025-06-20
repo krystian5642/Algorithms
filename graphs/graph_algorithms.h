@@ -90,4 +90,15 @@ protected:
     void execute() override;
 };
 
+class TopologicalSort : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit TopologicalSort(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+    void TopologicalSortHelper(int begin, QList<bool>& visited, QStack<int>& topologicalOrder);
+};
+
 #endif // GRAPH_AlGORITHMS_H

@@ -18,7 +18,9 @@ public:
     QJsonObject toJsonObject();
     void fromJsonObject(const QJsonObject& jsonObject);
 
+#ifdef QT_DEBUG
     void print() const override;
+#endif
 
     bool getIsDirected() const;
     void setIsDirected(bool newIsDirected);

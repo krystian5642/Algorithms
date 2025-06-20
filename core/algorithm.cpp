@@ -13,12 +13,6 @@ Algorithm::Algorithm(QObject* parent)
     , requestedEnd(false)
 {
     setAutoDelete(false);
-
-    complexityList.push_back(qMakePair("O(1)",   [](int I, int V, int E) { return I; }));
-    complexityList.push_back(qMakePair("O(V)",   [](int I, int V, int E) { return V; }));
-    complexityList.push_back(qMakePair("O(E)",   [](int I, int V, int E) { return E; }));
-    complexityList.push_back(qMakePair("O(V+E)", [](int I, int V, int E) { return V + E; }));
-    complexityList.push_back(qMakePair("O(V^2)", [](int I, int V, int E) { return V * V; }));
 }
 
 Algorithm::~Algorithm()

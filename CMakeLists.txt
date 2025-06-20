@@ -23,7 +23,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         widgets/algorithm_visualization_window.h  widgets/algorithm_visualization_window.cpp
-        icons.qrc
         core/algorithm.cpp core/algorithm.h core/algorithm_visualizer.cpp core/algorithm_visualizer.h core/widgets/data_structure_widget.cpp core/widgets/data_structure_widget.h
         graphs/edge_list.cpp graphs/edge_list.h graphs/graph.cpp graphs/graph.h graphs/graph_algorithms.cpp graphs/graph_algorithms.h graphs/graph_algorithm_visualizers.cpp graphs/graph_algorithm_visualizers.h
         graphs/widgets/graph_widget.h graphs/widgets/graph_widget.cpp
@@ -41,6 +40,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graphs/graph_visualization_settings.h graphs/graph_visualization_settings.cpp
         core/utils.h
         graphs/widgets/remove_edge_dialog.h graphs/widgets/remove_edge_dialog.cpp
+
+        icons.qrc
 
     )
 # Define target properties for Android with Qt 6 as:

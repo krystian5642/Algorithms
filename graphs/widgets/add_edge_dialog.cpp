@@ -44,7 +44,7 @@ void AddEdgeDialog::setupUi(const Graph* graph)
     lineEditEnd = new QLineEdit("0", this);
     lineEditEnd->setValidator(addEdgeValidator);
 
-    lineEditWeight = new QLineEdit("0", this);
+    lineEditWeight = new QLineEdit("1", this);
 
     formLayout->addRow("Start : ", lineEditStart);
     formLayout->addRow("End : ", lineEditEnd);

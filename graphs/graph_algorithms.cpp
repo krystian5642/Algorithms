@@ -22,6 +22,13 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     , graph(nullptr)
     , builderPropertiesWidget(nullptr)
 {
+    complexityList.push_back(qMakePair("O(1)",     [](int I, int V, int E) { return I; }));
+    complexityList.push_back(qMakePair("O(V)",     [](int I, int V, int E) { return V; }));
+    complexityList.push_back(qMakePair("O(E)",     [](int I, int V, int E) { return E; }));
+    complexityList.push_back(qMakePair("O(V+E)",   [](int I, int V, int E) { return V + E; }));
+    complexityList.push_back(qMakePair("O(2*V+E)", [](int I, int V, int E) { return 2*V + E; }));
+    complexityList.push_back(qMakePair("O(V^2)",   [](int I, int V, int E) { return V * V; }));
+
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
 }
@@ -143,11 +150,23 @@ void GraphAlgorithm::run()
 #ifdef QT_DEBUG
 void GraphAlgorithm::debugRun()
 {
-    GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
-    graphBuilder->buildIterations = 4;
+    //GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    //graphBuilder->buildIterations = 4;
 
-    QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(graphBuilder->createDataStructure()));
+    QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(new AdjacencyListGraph()));
     graph = testGraph.get();
+
+    for(int i = 0; i < 5; ++i)
+    {
+        const_cast<Graph*>(graph)->addNode();
+    }
+
+    Graph* gg = const_cast<Graph*>(graph);
+    gg->setIsDirected(true);
+    gg->addEdge(0, 1);
+    gg->addEdge(1, 3);
+    gg->addEdge(2, 4);
+    gg->addEdge(4, 3);
 
     testGraph->print();
 
@@ -285,19 +304,21 @@ void DFSRecursive::execute()
 
 void DFSRecursive::DFSHelper(int begin, QList<bool>& visited)
 {
-    visited[begin] = true;
-
-    auto func = [&](int start, int neighbour, int weight)
+    if(!visited[begin])
     {
-        if(!visited[neighbour])
-        {
-            visited[neighbour] = true;
-            DFSHelper(neighbour, visited);
-        }
-        return true;
-    };
+        visited[begin] = true;
 
-    graph->forEachNeighbor(begin, func);
+        auto func = [&](int start, int neighbour, int weight)
+        {
+            if(!visited[neighbour])
+            {
+                DFSHelper(neighbour, visited);
+            }
+            return true;
+        };
+
+        graph->forEachNeighbor(begin, func);
+    }
 }
 
 TreeCenters::TreeCenters(QObject *parent)
@@ -360,7 +381,55 @@ void TreeCenters::execute()
     const QList<int> centers = leafNodes;
 }
 
+TopologicalSort::TopologicalSort(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Topological Sort (Recursive)");
 
+    dataStructureBuilders.clear();
+    dataStructureBuilders.push_back(new TreeGraphBuilder(this));
+}
 
+void TopologicalSort::execute()
+{
+    QList<bool> visited;
+    visited.fill(false, graph->getVerticesNum());
 
+    QStack<int> topologicalOrder;
+    topologicalOrder.reserve(graph->getVerticesNum());
 
+    auto forEachNode = [&](int value)
+    {
+        TopologicalSortHelper(value, visited, topologicalOrder);
+        return true;
+    };
+    graph->forEachNode(forEachNode);
+
+    qDebug() << "sdsad : ";
+    qDebug() << "";
+    while(!topologicalOrder.empty())
+    {
+        qDebug() << topologicalOrder.pop();
+    }
+
+}
+
+void TopologicalSort::TopologicalSortHelper(int begin, QList<bool> &visited, QStack<int>& topologicalOrder)
+{
+    if(!visited[begin])
+    {
+        visited[begin] = true;
+
+        auto forEachNeighbour = [&](int start, int neighbour, int weight)
+        {
+            if(!visited[neighbour])
+            {
+                TopologicalSortHelper(neighbour, visited, topologicalOrder);
+            }
+            return true;
+        };
+
+        graph->forEachNeighbor(begin, forEachNeighbour);
+        topologicalOrder.push(begin);
+    }
+}

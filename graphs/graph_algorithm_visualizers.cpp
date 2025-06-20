@@ -368,7 +368,6 @@ void DFSVisualizer::DFSHelper(int begin, QList<bool>& visited)
 
         if(!visited[neighbour])
         {
-            visited[neighbour] = true;
             DFSHelper(neighbour, visited);
         }
         return true;
@@ -574,7 +573,6 @@ void TopologicalSortVisualizer::TopologicalSortHelper(int begin, QList<bool>& vi
 
         if(!visited[neighbour])
         {
-            visited[neighbour] = true;
             TopologicalSortHelper(neighbour, visited);
         }
         return true;
@@ -587,15 +585,4 @@ void TopologicalSortVisualizer::TopologicalSortHelper(int begin, QList<bool>& vi
         topologicalOrder.push(begin);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 

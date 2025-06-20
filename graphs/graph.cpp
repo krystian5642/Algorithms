@@ -93,6 +93,7 @@ void Graph::fromJsonObject(const QJsonObject &jsonObject)
     }
 }
 
+#ifdef QT_DEBUG
 void Graph::print() const
 {
     QString graphAsText("Graph : \n");
@@ -116,6 +117,7 @@ void Graph::print() const
 
     qDebug().noquote() << graphAsText;
 }
+#endif
 
 bool Graph::getIsDirected() const
 {
