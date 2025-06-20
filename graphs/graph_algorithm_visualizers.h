@@ -52,7 +52,7 @@ protected:
     EdgeList resultEdgeList;
 };
 
-class BFSVisualizer : public GraphAlgorithmVisualizer
+class BFSVisualizer final : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 public:
@@ -61,7 +61,7 @@ public:
     void run(QWidget* widget) override;
 };
 
-class BFSShortestPathVisualizer : public GraphAlgorithmVisualizer
+class BFSShortestPathVisualizer final : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 
@@ -89,10 +89,11 @@ protected:
     int end;
     bool randomEnd;
 
+private:
     QList<int> resultPath;
 };
 
-class DFSVisualizer : public GraphAlgorithmVisualizer
+class DFSVisualizer final : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 public:
@@ -104,7 +105,7 @@ private:
     void DFSHelper(int begin, QList<bool>& visited);
 };
 
-class TreeCentersVisualizer : public GraphAlgorithmVisualizer
+class TreeCentersVisualizer final : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 public:
@@ -117,11 +118,12 @@ public:
 protected:
     void updateVisualization() override;
 
+private:
     QList<QList<int>> visitedLeafLayers;
     QList<int> centers;
 };
 
-class TopologicalSortVisualizer : public GraphAlgorithmVisualizer
+class TopologicalSortVisualizer final : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 public:
@@ -135,13 +137,13 @@ public:
 protected:
     void updateVisualization() override;
 
-    QStack<int> topologicalOrder;
-
 private:
     void TopologicalSortHelper(int begin, QList<bool>& visited);
+
+    QStack<int> topologicalOrder;
 };
 
-class KahnsAlgorithmVisualizer : public GraphAlgorithmVisualizer
+class KahnsAlgorithmVisualizer final : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
 public:
@@ -155,7 +157,45 @@ public:
 protected:
     void updateVisualization() override;
 
+private:
     QList<int> topologicalOrder;
+};
+
+class SSSPonDAGVisualizer final : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+
+    Q_PROPERTY(int end READ getEnd WRITE setEnd NOTIFY endChanged FINAL)
+    Q_PROPERTY(bool randomEnd READ getRandomEnd WRITE setRandomEnd NOTIFY randomEndChanged FINAL)
+public:
+    explicit SSSPonDAGVisualizer(QObject *parent = nullptr);
+
+    void run(QWidget* widget) override;
+    void clear() override;
+
+    bool supportsUndirectedGraph() const override;
+
+    int getEnd() const;
+    void setEnd(int newEnd);
+
+    bool getRandomEnd() const;
+    void setRandomEnd(bool newRandomEnd);
+
+signals:
+    void endChanged();
+
+    void randomEndChanged();
+
+protected:
+    void updateVisualization() override;
+
+    int end;
+    bool randomEnd;
+
+private:
+    void topologicalSort(QList<int>& outTopologicalOrder) const;
+
+    QList<int> resultPath;
 };
 
 

@@ -111,4 +111,14 @@ protected:
     void execute() override;
 };
 
+class SSSPonDAG : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit SSSPonDAG(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+};
+
 #endif // GRAPH_AlGORITHMS_H

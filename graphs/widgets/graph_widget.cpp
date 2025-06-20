@@ -310,6 +310,7 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new TreeCentersVisualizer(this)); 
     algorithmVisualizers.append(new TopologicalSortVisualizer(this));
     algorithmVisualizers.append(new KahnsAlgorithmVisualizer(this));
+    algorithmVisualizers.append(new SSSPonDAGVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {

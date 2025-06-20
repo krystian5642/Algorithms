@@ -223,12 +223,10 @@ void BFSShortestPathVisualizer::run(QWidget *widget)
             graph->forEachNeighbour(first, func);
         }
 
-        resultPath.push_back(end);
-
         int prevValue = end;
         while(prevValue != INT_MIN)
         {
-            resultPath.push_back(prev[prevValue]);
+            resultPath.push_back(prevValue);
             prevValue = prev[prevValue];
         }
 
@@ -298,7 +296,7 @@ void BFSShortestPathVisualizer::updateVisualization()
 
         if(!resultPath.empty() && edge.getEnd() == resultPath.last())
         {
-            for(int i = 1; i < resultPath.size(); ++i)
+            for(int i = 0; i < resultPath.size(); ++i)
             {
                 graphWidget->setNodeColor(resultPath[i], Qt::green, false);
 
@@ -308,6 +306,8 @@ void BFSShortestPathVisualizer::updateVisualization()
                 }
             }
             graphWidget->update();
+
+            resultEdgeList.clear();
         }
     }
 
@@ -678,5 +678,206 @@ void KahnsAlgorithmVisualizer::updateVisualization()
     {
         clear();
         emit finished();
+    }
+}
+
+SSSPonDAGVisualizer::SSSPonDAGVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+    , end(0)
+    , randomEnd(false)
+{
+    setObjectName("Single Source Shortest Path (SSSP on DAG)");
+}
+
+void SSSPonDAGVisualizer::run(QWidget *widget)
+{
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
+
+    if(randomEnd)
+    {
+        setEnd(graph->getRandomValue());
+    }
+
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    if(start < nodesNum || end < nodesNum)
+    {
+        QList<int> topologicalSortList;
+        topologicalSort(topologicalSortList);
+
+        QList<int> distances(nodesNum, INT_MAX);
+        distances[start] = 0;
+
+        QList<int> prev(nodesNum, -1);
+
+        auto forEachNeighbour = [&](int value, int neighbour, int weight)
+        {
+            resultEdgeList.add(value, neighbour, true);
+
+            if(distances[neighbour] > distances[value] + weight)
+            {
+                distances[neighbour] = distances[value] + weight;
+                prev[neighbour] = value;
+            }
+            return true;
+        };
+
+        for(int node : topologicalSortList)
+        {
+            if (distances[node] == INT_MAX)
+            {
+                continue;
+            }
+
+            graph->forEachNeighbour(node, forEachNeighbour);
+        }
+
+        int prevValue = end;
+        while(prevValue != -1)
+        {
+            resultPath.push_back(prevValue);
+            prevValue = prev[prevValue];
+        }
+
+        std::reverse(resultPath.begin(), resultPath.end());
+
+        if(resultPath[0] != start)
+        {
+            resultPath.clear();
+        }
+
+        graphWidget = qobject_cast<GraphWidget*>(widget);
+
+        graphWidget->setNodeColor(start, Qt::red);
+        visualizationTimer.start();
+    }
+    else
+    {
+        showStartIsInvalidInfo();
+        emit finished();
+    }
+}
+
+void SSSPonDAGVisualizer::clear()
+{
+    GraphAlgorithmVisualizer::clear();
+
+    resultPath.clear();
+}
+
+bool SSSPonDAGVisualizer::supportsUndirectedGraph() const
+{
+    return false;
+}
+
+void SSSPonDAGVisualizer::updateVisualization()
+{
+    if(!resultEdgeList.empty())
+    {
+        const Edge edge = resultEdgeList.takeFirst();
+
+        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
+        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
+
+        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
+
+        if(!resultPath.empty() && edge.getEnd() == resultPath.last())
+        {
+            for(int i = 0; i < resultPath.size(); ++i)
+            {
+                graphWidget->setNodeColor(resultPath[i], Qt::green, false);
+
+                if(i + 1 < resultPath.size())
+                {
+                    graphWidget->setEdgeColor(resultPath[i], resultPath[i + 1], Qt::green, false);
+                }
+            }
+            graphWidget->update();
+
+            resultEdgeList.clear();
+        }
+    }
+
+    if(resultEdgeList.empty())
+    {
+        clear();
+        emit finished();
+    }
+}
+
+bool SSSPonDAGVisualizer::getRandomEnd() const
+{
+    return randomEnd;
+}
+
+void SSSPonDAGVisualizer::setRandomEnd(bool newRandomEnd)
+{
+    if (randomEnd == newRandomEnd)
+    {
+        return;
+    }
+
+    randomEnd = newRandomEnd;
+    emit randomEndChanged();
+}
+
+int SSSPonDAGVisualizer::getEnd() const
+{
+    return end;
+}
+
+void SSSPonDAGVisualizer::setEnd(int newEnd)
+{
+    if (end == newEnd)
+    {
+        return;
+    }
+
+    end = newEnd;
+    emit endChanged();
+}
+
+void SSSPonDAGVisualizer::topologicalSort(QList<int> &outTopologicalOrder) const
+{
+    QList<int> nodeDegrees = graph->getNodeDegrees();
+
+    outTopologicalOrder.reserve(graph->getNodesNum());
+
+    QQueue<int> nodeQueue;
+
+    auto forEachNode = [&](int value)
+    {
+        if(nodeDegrees[value] == 0)
+        {
+            nodeQueue.enqueue(value);
+        }
+
+        return true;
+    };
+
+    graph->forEachNode(forEachNode);
+
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        if(--nodeDegrees[neighbour] == 0)
+        {
+            nodeQueue.enqueue(neighbour);
+        }
+        return true;
+    };
+
+    while(!nodeQueue.empty())
+    {
+        const int first = nodeQueue.dequeue();
+        outTopologicalOrder.push_back(first);
+        graph->forEachNeighbour(first, forEachNeighbour);
+    }
+
+    if(outTopologicalOrder.size() < graph->getNodesNum())
+    {
+        outTopologicalOrder.clear(); // cycle
     }
 }

@@ -467,3 +467,14 @@ void KahnsAlgorithm::execute()
     }
 
 }
+
+SSSPonDAG::SSSPonDAG(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Single Source Shortest Path (SSSP on DAG)");
+}
+
+void SSSPonDAG::execute()
+{
+
+}
