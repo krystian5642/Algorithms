@@ -60,6 +60,10 @@ CMakeLists.txt.user*
 *.opensdf
 *.vcxproj
 *vcxproj.*
+*.vs
+
+CMakePresets.json
+CMakeUserPresets.json
 
 # MinGW generated files
 *.Debug
