@@ -2,6 +2,8 @@
 #include "graph_algorithm_visualizers.h"
 #include "widgets/graph_widget.h"
 
+#include "../core/utils.h"
+
 #include <QMessageBox>
 #include <QQueue>
 
@@ -98,9 +100,146 @@ void GraphAlgorithmVisualizer::updateVisualization()
     }
 }
 
-void GraphAlgorithmVisualizer::showStartIsInvalidInfo()
+void GraphAlgorithmVisualizer::showInfo(const QString& info) const
 {
-    QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", "Choosen start is too large or negative");
+    QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", info);
+}
+
+PathFindingAlgorithmVisualizer::PathFindingAlgorithmVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+    , end(1)
+    , randomEnd(false)
+{
+
+}
+
+PathFindingAlgorithmVisualizer::~PathFindingAlgorithmVisualizer()
+{
+
+}
+
+void PathFindingAlgorithmVisualizer::clear()
+{
+    GraphAlgorithmVisualizer::clear();
+
+    resultPath.clear();
+}
+
+int PathFindingAlgorithmVisualizer::getEnd() const
+{
+    return end;
+}
+
+void PathFindingAlgorithmVisualizer::setEnd(int newEnd)
+{
+    if (end == newEnd)
+    {
+        return;
+    }
+
+    end = newEnd;
+    emit endChanged();
+}
+
+bool PathFindingAlgorithmVisualizer::getRandomEnd() const
+{
+    return randomEnd;
+}
+
+void PathFindingAlgorithmVisualizer::setRandomEnd(bool newRandomEnd)
+{
+    if (randomEnd == newRandomEnd)
+    {
+        return;
+    }
+
+    randomEnd = newRandomEnd;
+    emit randomEndChanged();
+}
+
+bool PathFindingAlgorithmVisualizer::setStartAndEnd()
+{
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
+
+    if(randomEnd)
+    {
+        setEnd(graph->getRandomValue());
+    }
+
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    if(start >= nodesNum || end >= nodesNum)
+    {
+        showInfo("Choosen start or end is not valid");
+        emit finished();
+
+        return false;
+    }
+
+    return true;
+}
+
+void PathFindingAlgorithmVisualizer::updateVisualization()
+{
+    if(!resultEdgeList.empty())
+    {
+        const Edge edge = resultEdgeList.takeFirst();
+
+        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
+        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
+
+        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
+
+        if(!resultPath.empty() && edge.getEnd() == resultPath.last())
+        {
+            for(int i = 0; i < resultPath.size(); ++i)
+            {
+                graphWidget->setNodeColor(resultPath[i], Qt::green, false);
+
+                if(i + 1 < resultPath.size())
+                {
+                    graphWidget->setEdgeColor(resultPath[i], resultPath[i + 1], Qt::green, false);
+                }
+            }
+            graphWidget->update();
+
+            resultEdgeList.clear();
+        }
+    }
+
+    if(resultEdgeList.empty())
+    {
+        clear();
+        emit finished();
+    }
+}
+
+void PathFindingAlgorithmVisualizer::startVisualization(QWidget *widget)
+{
+    graphWidget = qobject_cast<GraphWidget*>(widget);
+    graphWidget->setNodeColor(start, Qt::red);
+
+    visualizationTimer.start();
+}
+
+void PathFindingAlgorithmVisualizer::buildResultPath(const QList<int> &prev)
+{
+    int prevValue = end;
+    while(prevValue != -1)
+    {
+        resultPath.push_back(prevValue);
+        prevValue = prev[prevValue];
+    }
+
+    std::reverse(resultPath.begin(), resultPath.end());
+
+    if(resultPath[0] != start)
+    {
+        resultPath.clear();
+    }
 }
 
 BFSVisualizer::BFSVisualizer(QObject *parent)
@@ -154,48 +293,34 @@ void BFSVisualizer::run(QWidget *widget)
     }
     else
     {
-        showStartIsInvalidInfo();
+        showInfo("Choosen start is not valid");
         emit finished();
     }
 }
 
 BFSShortestPathVisualizer::BFSShortestPathVisualizer(QObject *parent)
-    : GraphAlgorithmVisualizer(parent)
-    , end(1)
-    , randomEnd(false)
+    : PathFindingAlgorithmVisualizer(parent)
 {
     setObjectName("Breadth First Search Shortest Path");
 }
 
 void BFSShortestPathVisualizer::run(QWidget *widget)
 {
-    if(randomStart)
-    {
-        setStart(graph->getRandomValue());
-    }
-
-    if(randomEnd)
-    {
-        setEnd(graph->getRandomValue());
-    }
-
     const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start < nodesNum && end < nodesNum)
+    if(setStartAndEnd())
     {
         QQueue<int> nodeQueue;
         nodeQueue.reserve(nodesNum);
 
-        QList<bool> visited;
-        visited.fill(false, nodesNum);
+        QList<bool> visited(nodesNum, false);
 
         resultEdgeList.reserve(graph->getEdgesNum());
 
         nodeQueue.enqueue(start);
         visited[start] = true;
 
-        QList<int> prev;
-        prev.fill(INT_MIN, nodesNum);
+        QList<int> prev(nodesNum, -1);
 
         auto func = [&](int value, int neighbour, int weight)
         {
@@ -223,98 +348,8 @@ void BFSShortestPathVisualizer::run(QWidget *widget)
             graph->forEachNeighbour(first, func);
         }
 
-        int prevValue = end;
-        while(prevValue != INT_MIN)
-        {
-            resultPath.push_back(prevValue);
-            prevValue = prev[prevValue];
-        }
-
-        std::reverse(resultPath.begin(), resultPath.end());
-
-        graphWidget = qobject_cast<GraphWidget*>(widget);
-        graphWidget->setNodeColor(start, Qt::red);
-
-        visualizationTimer.start();
-    }
-    else
-    {
-        showStartIsInvalidInfo();
-        emit finished();
-    }
-}
-
-void BFSShortestPathVisualizer::clear()
-{
-    GraphAlgorithmVisualizer::clear();
-
-    resultPath.clear();
-}
-
-int BFSShortestPathVisualizer::getEnd() const
-{
-    return end;
-}
-
-void BFSShortestPathVisualizer::setEnd(int newEnd)
-{
-    if (end == newEnd)
-    {
-        return;
-    }
-
-    end = newEnd;
-    emit endChanged();
-}
-
-bool BFSShortestPathVisualizer::getRandomEnd() const
-{
-    return randomEnd;
-}
-
-void BFSShortestPathVisualizer::setRandomEnd(bool newRandomEnd)
-{
-    if (randomEnd == newRandomEnd)
-    {
-        return;
-    }
-
-    randomEnd = newRandomEnd;
-    emit randomEndChanged();
-}
-
-void BFSShortestPathVisualizer::updateVisualization()
-{
-    if(!resultEdgeList.empty())
-    {
-        const Edge edge = resultEdgeList.takeFirst();
-
-        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
-        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
-
-        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
-
-        if(!resultPath.empty() && edge.getEnd() == resultPath.last())
-        {
-            for(int i = 0; i < resultPath.size(); ++i)
-            {
-                graphWidget->setNodeColor(resultPath[i], Qt::green, false);
-
-                if(i + 1 < resultPath.size())
-                {
-                    graphWidget->setEdgeColor(resultPath[i], resultPath[i + 1], Qt::green, false);
-                }
-            }
-            graphWidget->update();
-
-            resultEdgeList.clear();
-        }
-    }
-
-    if(resultEdgeList.empty())
-    {
-        clear();
-        emit finished();
+        buildResultPath(prev);
+        startVisualization(widget);
     }
 }
 
@@ -333,8 +368,7 @@ void DFSVisualizer::run(QWidget *widget)
 
     if(start < graph->getNodesNum())
     {
-        QList<bool> visited;
-        visited.fill(false, graph->getNodesNum());
+        QList<bool> visited(graph->getNodesNum(), false);
 
         resultEdgeList.reserve(graph->getEdgesNum());
 
@@ -346,7 +380,7 @@ void DFSVisualizer::run(QWidget *widget)
     }
     else
     {
-        showStartIsInvalidInfo();
+        showInfo("Choosen start or end is not valid");
         emit finished();
     }
 }
@@ -487,8 +521,7 @@ void TopologicalSortVisualizer::run(QWidget *widget)
 
     if(start < nodesNum)
     {
-        QList<bool> visited;
-        visited.fill(false, nodesNum);
+        QList<bool> visited(nodesNum, false);
 
         topologicalOrder.reserve(nodesNum);
         resultEdgeList.reserve(graph->getEdgesNum());
@@ -509,7 +542,7 @@ void TopologicalSortVisualizer::run(QWidget *widget)
     }
     else
     {
-        showStartIsInvalidInfo();
+        showInfo("Choosen start is not valid");
         emit finished();
     }
 }
@@ -682,31 +715,21 @@ void KahnsAlgorithmVisualizer::updateVisualization()
 }
 
 SSSPonDAGVisualizer::SSSPonDAGVisualizer(QObject *parent)
-    : GraphAlgorithmVisualizer(parent)
-    , end(0)
-    , randomEnd(false)
+    : PathFindingAlgorithmVisualizer(parent)
 {
     setObjectName("Single Source Shortest Path (SSSP on DAG)");
 }
 
 void SSSPonDAGVisualizer::run(QWidget *widget)
 {
-    if(randomStart)
-    {
-        setStart(graph->getRandomValue());
-    }
-
-    if(randomEnd)
-    {
-        setEnd(graph->getRandomValue());
-    }
-
     const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start < nodesNum || end < nodesNum)
+    if(setStartAndEnd())
     {
         QList<int> topologicalSortList;
         topologicalSort(topologicalSortList);
+
+        resultEdgeList.reserve(nodesNum);
 
         QList<int> distances(nodesNum, INT_MAX);
         distances[start] = 0;
@@ -717,9 +740,10 @@ void SSSPonDAGVisualizer::run(QWidget *widget)
         {
             resultEdgeList.add(value, neighbour, true);
 
-            if(distances[neighbour] > distances[value] + weight)
+            const int newDist = distances[value] + weight;
+            if(distances[neighbour] > newDist)
             {
-                distances[neighbour] = distances[value] + weight;
+                distances[neighbour] = newDist;
                 prev[neighbour] = value;
             }
             return true;
@@ -735,109 +759,14 @@ void SSSPonDAGVisualizer::run(QWidget *widget)
             graph->forEachNeighbour(node, forEachNeighbour);
         }
 
-        int prevValue = end;
-        while(prevValue != -1)
-        {
-            resultPath.push_back(prevValue);
-            prevValue = prev[prevValue];
-        }
-
-        std::reverse(resultPath.begin(), resultPath.end());
-
-        if(resultPath[0] != start)
-        {
-            resultPath.clear();
-        }
-
-        graphWidget = qobject_cast<GraphWidget*>(widget);
-
-        graphWidget->setNodeColor(start, Qt::red);
-        visualizationTimer.start();
+        buildResultPath(prev);
+        startVisualization(widget);
     }
-    else
-    {
-        showStartIsInvalidInfo();
-        emit finished();
-    }
-}
-
-void SSSPonDAGVisualizer::clear()
-{
-    GraphAlgorithmVisualizer::clear();
-
-    resultPath.clear();
 }
 
 bool SSSPonDAGVisualizer::supportsUndirectedGraph() const
 {
     return false;
-}
-
-void SSSPonDAGVisualizer::updateVisualization()
-{
-    if(!resultEdgeList.empty())
-    {
-        const Edge edge = resultEdgeList.takeFirst();
-
-        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
-        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
-
-        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red);
-
-        if(!resultPath.empty() && edge.getEnd() == resultPath.last())
-        {
-            for(int i = 0; i < resultPath.size(); ++i)
-            {
-                graphWidget->setNodeColor(resultPath[i], Qt::green, false);
-
-                if(i + 1 < resultPath.size())
-                {
-                    graphWidget->setEdgeColor(resultPath[i], resultPath[i + 1], Qt::green, false);
-                }
-            }
-            graphWidget->update();
-
-            resultEdgeList.clear();
-        }
-    }
-
-    if(resultEdgeList.empty())
-    {
-        clear();
-        emit finished();
-    }
-}
-
-bool SSSPonDAGVisualizer::getRandomEnd() const
-{
-    return randomEnd;
-}
-
-void SSSPonDAGVisualizer::setRandomEnd(bool newRandomEnd)
-{
-    if (randomEnd == newRandomEnd)
-    {
-        return;
-    }
-
-    randomEnd = newRandomEnd;
-    emit randomEndChanged();
-}
-
-int SSSPonDAGVisualizer::getEnd() const
-{
-    return end;
-}
-
-void SSSPonDAGVisualizer::setEnd(int newEnd)
-{
-    if (end == newEnd)
-    {
-        return;
-    }
-
-    end = newEnd;
-    emit endChanged();
 }
 
 void SSSPonDAGVisualizer::topologicalSort(QList<int> &outTopologicalOrder) const
@@ -881,3 +810,78 @@ void SSSPonDAGVisualizer::topologicalSort(QList<int> &outTopologicalOrder) const
         outTopologicalOrder.clear(); // cycle
     }
 }
+
+LazyDijkstraVisualizer::LazyDijkstraVisualizer(QObject *parent)
+    : PathFindingAlgorithmVisualizer(parent)
+{
+    setObjectName("Lazy Dijkstra's");
+}
+
+void LazyDijkstraVisualizer::run(QWidget *widget)
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    if(setStartAndEnd())
+    {
+        resultEdgeList.reserve(nodesNum);
+
+        QList<int> distances(nodesNum, INT_MAX);
+        distances[start] = 0;
+
+        QList<int> prev(nodesNum, -1);
+
+        KeyValuePriorityQueue nodeDistancePairs;
+        nodeDistancePairs.emplace(start, 0);
+
+        auto forEachNeighbour = [&](int value, int neighbour, int weight)
+        {
+            const int newDist = distances[value] + weight;
+            if(distances[neighbour] > newDist)
+            {
+                distances[neighbour] = newDist;
+                prev[neighbour] = value;
+
+                nodeDistancePairs.emplace(neighbour, newDist);
+            }
+
+            return true;
+        };
+
+        while(!nodeDistancePairs.empty())
+        {
+            const KeyValuePair top = nodeDistancePairs.top();
+            nodeDistancePairs.pop();
+
+            if(prev[top.first] != -1)
+            {
+                resultEdgeList.add(prev[top.first], top.first, true);
+            }
+
+            if(top.first == end)
+            {
+                break;
+            }
+
+            graph->forEachNeighbour(top.first, forEachNeighbour);
+        }
+
+        buildResultPath(prev);
+        startVisualization(widget);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

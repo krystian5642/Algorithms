@@ -40,7 +40,7 @@ signals:
 protected:
     void updateVisualization() override;
 
-    void showStartIsInvalidInfo();
+    void showInfo(const QString& info) const;
 
     int start;
     bool randomStart;
@@ -52,6 +52,42 @@ protected:
     EdgeList resultEdgeList;
 };
 
+class PathFindingAlgorithmVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+
+    Q_PROPERTY(int end READ getEnd WRITE setEnd NOTIFY endChanged FINAL)
+    Q_PROPERTY(bool randomEnd READ getRandomEnd WRITE setRandomEnd NOTIFY randomEndChanged FINAL)
+public:
+    explicit PathFindingAlgorithmVisualizer(QObject *parent = nullptr);
+    virtual ~PathFindingAlgorithmVisualizer() = 0;
+
+    void clear() override;
+
+    int getEnd() const;
+    void setEnd(int newEnd);
+
+    bool getRandomEnd() const;
+    void setRandomEnd(bool newRandomEnd);
+
+    bool setStartAndEnd();
+
+signals:
+    void endChanged();
+    void randomEndChanged();
+
+protected:
+    void updateVisualization() override;
+
+    void startVisualization(QWidget* widget);
+    void buildResultPath(const QList<int>& prev);
+
+    int end;
+    bool randomEnd;
+
+    QList<int> resultPath;
+};
+
 class BFSVisualizer final : public GraphAlgorithmVisualizer
 {
     Q_OBJECT
@@ -61,36 +97,13 @@ public:
     void run(QWidget* widget) override;
 };
 
-class BFSShortestPathVisualizer final : public GraphAlgorithmVisualizer
+class BFSShortestPathVisualizer final : public PathFindingAlgorithmVisualizer
 {
     Q_OBJECT
-
-    Q_PROPERTY(int end READ getEnd WRITE setEnd NOTIFY endChanged FINAL)
-    Q_PROPERTY(bool randomEnd READ getRandomEnd WRITE setRandomEnd NOTIFY randomEndChanged FINAL)
 public:
     explicit BFSShortestPathVisualizer(QObject *parent = nullptr);
 
     void run(QWidget* widget) override;
-    void clear() override;
-
-    int getEnd() const;
-    void setEnd(int newEnd);
-
-    bool getRandomEnd() const;
-    void setRandomEnd(bool newRandomEnd);
-
-signals:
-    void endChanged();
-    void randomEndChanged();
-
-protected:
-    void updateVisualization() override;
-
-    int end;
-    bool randomEnd;
-
-private:
-    QList<int> resultPath;
 };
 
 class DFSVisualizer final : public GraphAlgorithmVisualizer
@@ -161,42 +174,26 @@ private:
     QList<int> topologicalOrder;
 };
 
-class SSSPonDAGVisualizer final : public GraphAlgorithmVisualizer
+class SSSPonDAGVisualizer final : public PathFindingAlgorithmVisualizer
 {
     Q_OBJECT
-
-    Q_PROPERTY(int end READ getEnd WRITE setEnd NOTIFY endChanged FINAL)
-    Q_PROPERTY(bool randomEnd READ getRandomEnd WRITE setRandomEnd NOTIFY randomEndChanged FINAL)
 public:
     explicit SSSPonDAGVisualizer(QObject *parent = nullptr);
 
     void run(QWidget* widget) override;
-    void clear() override;
-
     bool supportsUndirectedGraph() const override;
-
-    int getEnd() const;
-    void setEnd(int newEnd);
-
-    bool getRandomEnd() const;
-    void setRandomEnd(bool newRandomEnd);
-
-signals:
-    void endChanged();
-
-    void randomEndChanged();
-
-protected:
-    void updateVisualization() override;
-
-    int end;
-    bool randomEnd;
 
 private:
     void topologicalSort(QList<int>& outTopologicalOrder) const;
-
-    QList<int> resultPath;
 };
 
+class LazyDijkstraVisualizer final : public PathFindingAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit LazyDijkstraVisualizer(QObject *parent = nullptr);
+
+    void run(QWidget* widget) override;
+};
 
 #endif // GRAPHALGORITHMVISUALIZERS_H

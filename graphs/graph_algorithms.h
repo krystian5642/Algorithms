@@ -96,6 +96,8 @@ class TopologicalSort : public GraphAlgorithm
 public:
     explicit TopologicalSort(QObject* parent = nullptr);
 
+    static void getResult(const Graph* graph, QStack<int>& topologicalOrder);
+
 protected:
     void execute() override;
     void TopologicalSortHelper(int begin, QList<bool>& visited, QStack<int>& topologicalOrder);
@@ -106,16 +108,6 @@ class KahnsAlgorithm : public GraphAlgorithm
     Q_OBJECT
 public:
     explicit KahnsAlgorithm(QObject* parent = nullptr);
-
-protected:
-    void execute() override;
-};
-
-class SSSPonDAG : public GraphAlgorithm
-{
-    Q_OBJECT
-public:
-    explicit SSSPonDAG(QObject* parent = nullptr);
 
 protected:
     void execute() override;

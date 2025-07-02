@@ -311,6 +311,7 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new TopologicalSortVisualizer(this));
     algorithmVisualizers.append(new KahnsAlgorithmVisualizer(this));
     algorithmVisualizers.append(new SSSPonDAGVisualizer(this));
+    algorithmVisualizers.append(new LazyDijkstraVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {
