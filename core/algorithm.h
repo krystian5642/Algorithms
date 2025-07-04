@@ -12,7 +12,7 @@
 class DataStructureBuilder;
 class DataStructure;
 
-class Algorithm  : public QObject, public QRunnable
+class Algorithm : public QObject, public QRunnable
 {
     Q_OBJECT
 
