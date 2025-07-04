@@ -418,6 +418,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new TopologicalSort);
     algorithmsList.append(new KahnsAlgorithm);
 
+    algorithmsList.append(new LazyDijkstraAlgorithm);
+
     for(auto* algorithm : algorithmsList)
     {
         connect(algorithm, &Algorithm::started, this, &AlgorithmBenchmarkWindow::onAlgorithmStarted);

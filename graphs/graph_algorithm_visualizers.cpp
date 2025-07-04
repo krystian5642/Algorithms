@@ -255,15 +255,16 @@ void BFSVisualizer::run(QWidget *widget)
         setStart(graph->getRandomValue());
     }
 
-    if(start < graph->getNodesNum())
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    if(start < nodesNum)
     {
         QQueue<int> nodeQueue;
         nodeQueue.reserve(graph->getNodesNum());
 
-        QList<bool> visited;
-        visited.fill(false, graph->getNodesNum());
+        QList<bool> visited(nodesNum, false);
 
-        resultEdgeList.reserve(graph->getEdgesNum());
+        resultEdgeList.reserve(nodesNum);
 
         nodeQueue.enqueue(start);
         visited[start] = true;
@@ -847,10 +848,19 @@ void LazyDijkstraVisualizer::run(QWidget *widget)
             return true;
         };
 
+        QList<bool> visited(nodesNum, false);
+
         while(!nodeDistancePairs.empty())
         {
             const KeyValuePair top = nodeDistancePairs.top();
             nodeDistancePairs.pop();
+
+            if(visited[top.first])
+            {
+                continue;
+            };
+
+            visited[top.first] = true;
 
             if(prev[top.first] != -1)
             {

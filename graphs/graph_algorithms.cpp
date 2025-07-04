@@ -3,6 +3,7 @@
 #include "graph.h"
 
 #include "../core/property_editor_factory.h"
+#include "../core/utils.h"
 
 #include "graph_builders.h"
 
@@ -466,4 +467,75 @@ void KahnsAlgorithm::execute()
         topologicalOrder.clear(); // cycle
     }
 
+}
+
+LazyDijkstraAlgorithm::LazyDijkstraAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Lazy Dijkstra's");
+}
+
+void LazyDijkstraAlgorithm::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<int> distances(nodesNum, INT_MAX);
+    distances[0] = 0;
+
+    QList<int> prev(nodesNum, -1);
+
+    KeyValuePriorityQueue nodeDistancePairs;
+    nodeDistancePairs.emplace(0, 0);
+
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        const int newDist = distances[value] + weight;
+        if(distances[neighbour] > newDist)
+        {
+            distances[neighbour] = newDist;
+            prev[neighbour] = value;
+
+            nodeDistancePairs.emplace(neighbour, newDist);
+        }
+
+        return true;
+    };
+
+    QList<bool> visited(nodesNum, false);
+
+    while(!nodeDistancePairs.empty())
+    {
+        const KeyValuePair top = nodeDistancePairs.top();
+        nodeDistancePairs.pop();
+
+        if(visited[top.first])
+        {
+            continue;
+        };
+
+        visited[top.first] = true;
+
+        if(top.first == nodesNum - 1)
+        {
+            break;
+        }
+
+        graph->forEachNeighbour(top.first, forEachNeighbour);
+    }
+
+    QList<int> resultPath;
+
+    int prevValue = nodesNum - 1;
+    while(prevValue != -1)
+    {
+        resultPath.push_back(prevValue);
+        prevValue = prev[prevValue];
+    }
+
+    std::reverse(resultPath.begin(), resultPath.end());
+
+    if(resultPath[0] != 0)
+    {
+        resultPath.clear();
+    }
 }

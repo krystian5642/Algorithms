@@ -113,4 +113,14 @@ protected:
     void execute() override;
 };
 
+class LazyDijkstraAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit LazyDijkstraAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+};
+
 #endif // GRAPH_AlGORITHMS_H
