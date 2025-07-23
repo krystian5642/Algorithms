@@ -76,6 +76,8 @@ void GraphBuilder::setIsGraphDirected(bool newIsGraphDirected)
 GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
     : GraphBuilder(parent)
     , addEdgePropability(0.5)
+    , minWeight(1)
+    , maxWeight(100)
 {
     setObjectName("General Graph");
 }
@@ -89,7 +91,7 @@ DataStructure* GeneralGraphBuilder::createDataStructure()
         graph->addNode();
     }
 
-    graph->generateRandomEdges(addEdgePropability);
+    graph->generateRandomEdges(addEdgePropability, minWeight, maxWeight);
 
     return graph;
 }
@@ -108,6 +110,38 @@ void GeneralGraphBuilder::setAddEdgePropability(double newAddEdgePropability)
 
     addEdgePropability = newAddEdgePropability;
     emit addEdgePropabilityChanged();
+}
+
+int GeneralGraphBuilder::getMinWeight() const
+{
+    return minWeight;
+}
+
+void GeneralGraphBuilder::setMinWeight(int newMinWeight)
+{
+    if (minWeight == newMinWeight)
+    {
+        return;
+    }
+
+    minWeight = newMinWeight;
+    emit minWeightChanged();
+}
+
+int GeneralGraphBuilder::getMaxWeight() const
+{
+    return maxWeight;
+}
+
+void GeneralGraphBuilder::setMaxWeight(int newMaxWeight)
+{
+    if (maxWeight == newMaxWeight)
+    {
+        return;
+    }
+
+    maxWeight = newMaxWeight;
+    emit maxWeightChanged();
 }
 
 GridGraphBuilder::GridGraphBuilder(QObject *parent)

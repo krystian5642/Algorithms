@@ -196,4 +196,5 @@ public:
     void run(QWidget* widget) override;
 };
 
+
 #endif // GRAPHALGORITHMVISUALIZERS_H

@@ -123,4 +123,14 @@ protected:
     void execute() override;
 };
 
+class EagerDijkstraAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit EagerDijkstraAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+};
+
 #endif // GRAPH_AlGORITHMS_H

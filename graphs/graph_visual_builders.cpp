@@ -24,6 +24,8 @@ GeneralGraphVisualBuilder::GeneralGraphVisualBuilder(QObject *parent)
     , minYLocation(0)
     , maxYLocation(1000)
     , addEdgePropability(0.2)
+    , minWeight(1)
+    , maxWeight(100)
 {
     setObjectName("General Graph");
 }
@@ -50,7 +52,7 @@ void GeneralGraphVisualBuilder::buildDataStructureVisualization(DataStructureWid
 
             graphWidget->addNode(randomLocation);
         }
-        graphWidget->generateRandomEdges(addEdgePropability);
+        graphWidget->generateRandomEdges(addEdgePropability, minWeight, maxWeight);
     }
 }
 
@@ -142,6 +144,38 @@ void GeneralGraphVisualBuilder::setAddEdgePropability(double newAddEdgePropabili
     }
     addEdgePropability = newAddEdgePropability;
     emit addEdgePropabilityChanged();
+}
+
+int GeneralGraphVisualBuilder::getMinWeight() const
+{
+    return minWeight;
+}
+
+void GeneralGraphVisualBuilder::setMinWeight(int newMinWeight)
+{
+    if (minWeight == newMinWeight)
+    {
+        return;
+    }
+
+    minWeight = newMinWeight;
+    emit minWeightChanged();
+}
+
+int GeneralGraphVisualBuilder::getMaxWeight() const
+{
+    return maxWeight;
+}
+
+void GeneralGraphVisualBuilder::setMaxWeight(int newMaxWeight)
+{
+    if (maxWeight == newMaxWeight)
+    {
+        return;
+    }
+
+    maxWeight = newMaxWeight;
+    emit maxWeightChanged();
 }
 
 GridGraphVisualBuilder::GridGraphVisualBuilder(QObject *parent)

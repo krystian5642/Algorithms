@@ -42,7 +42,7 @@ public:
     void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
     void setNodesAndEdgesToBlack();
 
-    void generateRandomEdges(const double addEdgePropability);
+    void generateRandomEdges(const double addEdgePropability, const int minWeight, const int maxWeight);
 
     bool addNode(const QPointF& location);
     void addEdge(int start, int end, int weight = 1);

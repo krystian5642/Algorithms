@@ -189,9 +189,9 @@ void GraphWidget::setNodesAndEdgesToBlack()
     update();
 }
 
-void GraphWidget::generateRandomEdges(const double addEdgePropability)
+void GraphWidget::generateRandomEdges(const double addEdgePropability, const int minWeight, const int maxWeight)
 {
-    graph->generateRandomEdges(addEdgePropability);
+    graph->generateRandomEdges(addEdgePropability, minWeight, maxWeight);
     update();
 }
 
@@ -322,7 +322,7 @@ void GraphWidget::registerAlgorithmVisualizers()
 void GraphWidget::onActionGenerateRandomEdgesTriggered()
 {
     clearVisualization();
-    generateRandomEdges(0.2);
+    generateRandomEdges(0.2, 1, 100);
 }
 
 void GraphWidget::onActionAddEdgeTriggered()

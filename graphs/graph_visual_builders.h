@@ -21,6 +21,8 @@ class GeneralGraphVisualBuilder : public GraphVisualBuilder
     Q_PROPERTY(int minYLocation READ getMinYLocation WRITE setMinYLocation NOTIFY minYLocationChanged FINAL)
     Q_PROPERTY(int maxYLocation READ getMaxYLocation WRITE setMaxYLocation NOTIFY maxYLocationChanged FINAL)
     Q_PROPERTY(double addEdgePropability READ getAddEdgePropability WRITE setAddEdgePropability NOTIFY addEdgePropabilityChanged FINAL)
+    Q_PROPERTY(int minWeight READ getMinWeight WRITE setMinWeight NOTIFY minWeightChanged FINAL)
+    Q_PROPERTY(int maxWeight READ getMaxWeight WRITE setMaxWeight NOTIFY maxWeightChanged FINAL)
 public:
     explicit GeneralGraphVisualBuilder(QObject *parent = nullptr);
 
@@ -44,13 +46,25 @@ public:
     double getAddEdgePropability() const;
     void setAddEdgePropability(double newAddEdgePropability);
 
+    int getMinWeight() const;
+    void setMinWeight(int newMinWeight);
+
+    int getMaxWeight() const;
+    void setMaxWeight(int newMaxWeight);
+
 signals:
     void nodesNumberChanged();
+
     void minXLocationChanged();
     void maxXLocationChanged();
+
     void minYLocationChanged();
     void maxYLocationChanged();
+
     void addEdgePropabilityChanged();
+
+    void minWeightChanged();
+    void maxWeightChanged();
 
 protected:
     int nodesNumber;
@@ -62,6 +76,9 @@ protected:
     int maxYLocation;
 
     double addEdgePropability;
+
+    int minWeight;
+    int maxWeight;
 };
 
 class GridGraphVisualBuilder : public GraphVisualBuilder

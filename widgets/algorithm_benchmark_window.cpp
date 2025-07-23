@@ -419,6 +419,7 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new KahnsAlgorithm);
 
     algorithmsList.append(new LazyDijkstraAlgorithm);
+    algorithmsList.append(new EagerDijkstraAlgorithm);
 
     for(auto* algorithm : algorithmsList)
     {

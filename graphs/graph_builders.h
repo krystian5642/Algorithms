@@ -38,6 +38,8 @@ class GeneralGraphBuilder : public GraphBuilder
     Q_OBJECT
 
     Q_PROPERTY(double addEdgePropability READ getAddEdgePropability WRITE setAddEdgePropability NOTIFY addEdgePropabilityChanged FINAL)
+    Q_PROPERTY(int minWeight READ getMinWeight WRITE setMinWeight NOTIFY minWeightChanged FINAL)
+    Q_PROPERTY(int maxWeight READ getMaxWeight WRITE setMaxWeight NOTIFY maxWeightChanged FINAL)
 public:
     explicit GeneralGraphBuilder(QObject *parent = nullptr);
 
@@ -46,11 +48,23 @@ public:
     double getAddEdgePropability() const;
     void setAddEdgePropability(double newAddEdgePropability);
 
+    int getMinWeight() const;
+    void setMinWeight(int newMinWeight);
+
+    int getMaxWeight() const;
+    void setMaxWeight(int newMaxWeight);
+
 signals:
     void addEdgePropabilityChanged();
+    void minWeightChanged();
+
+    void maxWeightChanged();
 
 protected:
     double addEdgePropability;
+    int minWeight;
+    int maxWeight;
+
 };
 
 class GridGraphBuilder : public GraphBuilder

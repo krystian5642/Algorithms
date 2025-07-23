@@ -831,8 +831,8 @@ void LazyDijkstraVisualizer::run(QWidget *widget)
 
         QList<int> prev(nodesNum, -1);
 
-        KeyValuePriorityQueue nodeDistancePairs;
-        nodeDistancePairs.emplace(start, 0);
+        PriorityQueue nodeDistancePairs;
+        nodeDistancePairs.insert(start, 0);
 
         auto forEachNeighbour = [&](int value, int neighbour, int weight)
         {
@@ -842,7 +842,7 @@ void LazyDijkstraVisualizer::run(QWidget *widget)
                 distances[neighbour] = newDist;
                 prev[neighbour] = value;
 
-                nodeDistancePairs.emplace(neighbour, newDist);
+                nodeDistancePairs.insert(neighbour, newDist);
             }
 
             return true;
@@ -852,8 +852,7 @@ void LazyDijkstraVisualizer::run(QWidget *widget)
 
         while(!nodeDistancePairs.empty())
         {
-            const KeyValuePair top = nodeDistancePairs.top();
-            nodeDistancePairs.pop();
+            const IntPair top = nodeDistancePairs.extract();
 
             if(visited[top.first])
             {

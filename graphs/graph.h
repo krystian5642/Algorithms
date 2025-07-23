@@ -14,7 +14,7 @@ public:
     explicit Graph(QObject *parent = nullptr, bool inIsDirected = false);
     virtual ~Graph();
 
-    void generateRandomEdges(const double addEdgePropability);
+    void generateRandomEdges(const double addEdgePropability, const int minWeight, const int maxWeight);
     QJsonObject toJsonObject();
     void fromJsonObject(const QJsonObject& jsonObject);
 

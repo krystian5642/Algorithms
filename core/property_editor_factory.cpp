@@ -123,7 +123,10 @@ PropertyEditorFactory::PropertyEditorFactory()
     {
         QLineEdit* lineEdit = new QLineEdit(parent);
         lineEdit->setText(property.read(propertyObject).toString());
-        lineEdit->setValidator(new QDoubleValidator(lineEdit));
+
+        QDoubleValidator* validator = new QDoubleValidator(0.0, 1.0, 3, lineEdit);
+        validator->setLocale(QLocale::C);
+        lineEdit->setValidator(validator);
 
         QObject::connect(lineEdit, &QLineEdit::textChanged, propertyObject, [property, propertyObject](const QString& newText)
         {

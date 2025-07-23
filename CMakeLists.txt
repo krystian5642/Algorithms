@@ -38,10 +38,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         core/widgets/properties_dialog.h core/widgets/properties_dialog.cpp
         graphs/widgets/add_edge_dialog.h graphs/widgets/add_edge_dialog.cpp
         graphs/graph_visualization_settings.h graphs/graph_visualization_settings.cpp
-        core/utils.h
+
         graphs/widgets/remove_edge_dialog.h graphs/widgets/remove_edge_dialog.cpp
 
         icons.qrc
+        core/utils.h
+
 
     )
 # Define target properties for Android with Qt 6 as:

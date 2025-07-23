@@ -16,7 +16,7 @@ Graph::~Graph()
 
 }
 
-void Graph::generateRandomEdges(const double addEdgePropability)
+void Graph::generateRandomEdges(const double addEdgePropability, const int minWeight, const int maxWeight)
 {
     auto func1 = [&](int value1)
     {
@@ -27,7 +27,7 @@ void Graph::generateRandomEdges(const double addEdgePropability)
                 const double randomDouble = QRandomGenerator::global()->generateDouble();
                 if(randomDouble < addEdgePropability)
                 {
-                    addEdge(value1, value2);
+                    addEdge(value1, value2, QRandomGenerator::global()->bounded(minWeight, maxWeight + 1));
                 }
             }
             return true;
