@@ -312,6 +312,7 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new KahnsAlgorithmVisualizer(this));
     algorithmVisualizers.append(new SSSPonDAGVisualizer(this));
     algorithmVisualizers.append(new LazyDijkstraVisualizer(this));
+    algorithmVisualizers.append(new BellmanFordVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {

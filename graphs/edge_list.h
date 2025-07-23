@@ -36,6 +36,7 @@ public:
     const Edge& first() const;
     Edge takeFirst();
     bool empty() const;
+    qsizetype size() const;
 
     const Edge& getLastEdge() const;
     bool isValidIndex(qsizetype index) const;

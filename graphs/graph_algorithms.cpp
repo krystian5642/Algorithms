@@ -23,12 +23,14 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     , graph(nullptr)
     , builderPropertiesWidget(nullptr)
 {
-    complexityList.push_back(qMakePair("O(1)",     [](int I, int V, int E) { return I; }));
-    complexityList.push_back(qMakePair("O(V)",     [](int I, int V, int E) { return V; }));
-    complexityList.push_back(qMakePair("O(E)",     [](int I, int V, int E) { return E; }));
-    complexityList.push_back(qMakePair("O(V+E)",   [](int I, int V, int E) { return V + E; }));
-    complexityList.push_back(qMakePair("O(2*V+E)", [](int I, int V, int E) { return 2*V + E; }));
-    complexityList.push_back(qMakePair("O(V^2)",   [](int I, int V, int E) { return V * V; }));
+    complexityList.push_back(qMakePair("O(1)",         [](int I, int V, int E) { return I; }));
+    complexityList.push_back(qMakePair("O(V)",         [](int I, int V, int E) { return V; }));
+    complexityList.push_back(qMakePair("O(E)",         [](int I, int V, int E) { return E; }));
+    complexityList.push_back(qMakePair("O(V+E)",       [](int I, int V, int E) { return V + E; }));
+    complexityList.push_back(qMakePair("O(2V+E)",      [](int I, int V, int E) { return 2*V + E; }));
+    complexityList.push_back(qMakePair("O(V^2)",       [](int I, int V, int E) { return V * V; }));
+    complexityList.push_back(qMakePair("O(V+E)logV",   [](int I, int V, int E) { return (V + E)*std::log(V); }));
+    complexityList.push_back(qMakePair("O(VE)",        [](int I, int V, int E) { return (V * E); }));
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -608,3 +610,63 @@ void EagerDijkstraAlgorithm::execute()
         resultPath.clear();
     }
 }
+
+BellmanFordAlgorithm::BellmanFordAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Bellman–Ford");
+}
+
+void BellmanFordAlgorithm::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+    QList<int> distances(nodesNum, INT_MAX);
+    distances[0] = 0;
+
+    bool anyChange = false;
+    auto forEachEdge = [&](int start, int end, int weight)
+    {
+        if(distances[start] + weight < distances[end])
+        {
+            distances[end] = distances[start] + weight;
+            anyChange = true;
+        }
+        return true;
+    };
+
+    for(int i = 0; i < nodesNum - 1; ++i)
+    {
+        anyChange = false;
+        graph->forEachEdge(forEachEdge);
+
+        if(!anyChange)
+        {
+            return;
+        }
+    }
+
+    auto dedectNegativeCycle = [&](int start, int end, int weight)
+    {
+        if(distances[start] + weight < distances[end])
+        {
+            distances[end] = INT_MIN;
+            anyChange = true;
+        }
+        return true;
+    };
+
+    for(int i = 0; i < nodesNum - 1; ++i)
+    {
+        anyChange = false;
+        graph->forEachEdge(dedectNegativeCycle);
+
+        if(!anyChange)
+        {
+            return;
+        }
+    }
+}
+
+
+
+

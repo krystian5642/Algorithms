@@ -133,4 +133,14 @@ protected:
     void execute() override;
 };
 
+class BellmanFordAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit BellmanFordAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+};
+
 #endif // GRAPH_AlGORITHMS_H

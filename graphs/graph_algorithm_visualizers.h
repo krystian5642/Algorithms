@@ -196,5 +196,20 @@ public:
     void run(QWidget* widget) override;
 };
 
+class BellmanFordVisualizer : public PathFindingAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit BellmanFordVisualizer(QObject* parent = nullptr);
+
+    void clear() override;
+
+protected:
+    void run(QWidget* widget) override;
+    void updateVisualization() override;
+
+    EdgeList negativeCycle;
+};
+
 
 #endif // GRAPHALGORITHMVISUALIZERS_H

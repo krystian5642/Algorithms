@@ -52,6 +52,11 @@ bool EdgeList::empty() const
     return edges.empty();
 }
 
+qsizetype EdgeList::size() const
+{
+    return edges.size();
+}
+
 const Edge& EdgeList::getLastEdge() const
 {
     return edges.last();
