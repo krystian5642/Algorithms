@@ -199,15 +199,32 @@ public:
 class BellmanFordVisualizer : public PathFindingAlgorithmVisualizer
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool breakIfNoChange READ getBreakIfNoChange WRITE setBreakIfNoChange NOTIFY breakIfNoChangeChanged FINAL)
+    Q_PROPERTY(bool paintNegativeCycleToBlue READ getPaintNegativeCycleToBlue WRITE setPaintNegativeCycleToBlue NOTIFY paintNegativeCycleToBlueChanged FINAL)
 public:
     explicit BellmanFordVisualizer(QObject* parent = nullptr);
 
     void clear() override;
 
+    bool getBreakIfNoChange() const;
+    void setBreakIfNoChange(bool newBreakIfNoChange);
+
+    bool getPaintNegativeCycleToBlue() const;
+    void setPaintNegativeCycleToBlue(bool newPaintNegativeCycleToBlue);
+
+signals:
+    void breakIfNoChangeChanged();
+    void paintNegativeCycleToBlueChanged();
+
 protected:
     void run(QWidget* widget) override;
     void updateVisualization() override;
 
+    bool breakIfNoChange;
+    bool paintNegativeCycleToBlue;
+
+    int updateStep;
     EdgeList negativeCycle;
 };
 

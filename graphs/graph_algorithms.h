@@ -139,8 +139,18 @@ class BellmanFordAlgorithm : public GraphAlgorithm
 public:
     explicit BellmanFordAlgorithm(QObject* parent = nullptr);
 
+    bool getBreakIfNoChange() const;
+    void setBreakIfNoChange(bool newBreakIfNoChange);
+
+signals:
+    void breakIfNoChangeChanged();
+
 protected:
     void execute() override;
+
+    bool breakIfNoChange;
+private:
+    Q_PROPERTY(bool breakIfNoChange READ getBreakIfNoChange WRITE setBreakIfNoChange NOTIFY breakIfNoChangeChanged FINAL)
 };
 
 #endif // GRAPH_AlGORITHMS_H

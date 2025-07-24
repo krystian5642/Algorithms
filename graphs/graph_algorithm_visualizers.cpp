@@ -227,8 +227,13 @@ void PathFindingAlgorithmVisualizer::startVisualization(QWidget *widget)
 
 void PathFindingAlgorithmVisualizer::buildResultPath(const QList<int> &prev)
 {
+    if(!prev.empty() && prev[start] == end)
+    {
+        return;
+    }
+
     int prevValue = end;
-    while(prevValue != -1 && prevValue != start)
+    while(prevValue != -1)
     {
         resultPath.push_back(prevValue);
         prevValue = prev[prevValue];
@@ -881,8 +886,13 @@ void LazyDijkstraVisualizer::run(QWidget *widget)
 
 BellmanFordVisualizer::BellmanFordVisualizer(QObject *parent)
     : PathFindingAlgorithmVisualizer(parent)
+    , updateStep(0)
+    , breakIfNoChange(true)
+    , paintNegativeCycleToBlue(true)
 {
     setObjectName("Bellman–Ford");
+
+    resultEdgeList.setAllowDuplicates(true);
 }
 
 void BellmanFordVisualizer::clear()
@@ -890,6 +900,7 @@ void BellmanFordVisualizer::clear()
     PathFindingAlgorithmVisualizer::clear();
 
     negativeCycle.clear();
+    updateStep = 0;
 }
 
 void BellmanFordVisualizer::run(QWidget *widget)
@@ -924,37 +935,26 @@ void BellmanFordVisualizer::run(QWidget *widget)
             anyChange = false;
             graph->forEachEdge(forEachEdge);
 
-            if(!anyChange)
+            if(breakIfNoChange && !anyChange)
             {
                 break;
             }
         }
 
-        if(anyChange)
+        if(!breakIfNoChange || breakIfNoChange && anyChange)
         {
             auto dedectNegativeCycle = [&](int value, int neighbour, int weight)
             {
-                if(distances[neighbour] != INT_MIN && distances[value] + weight < distances[neighbour])
+                if(distances[value] + weight < distances[neighbour])
                 {
-                    distances[neighbour] = INT_MIN;
+                    distances[neighbour] = INT_MIN / 2;
 
                     negativeCycle.add(value, neighbour, graph->getIsDirected());
-
-                    anyChange = true;
                 }
                 return true;
             };
 
-            for(int i = 0; i < nodesNum - 1; ++i)
-            {
-                anyChange = false;
-                graph->forEachEdge(dedectNegativeCycle);
-
-                if(!anyChange)
-                {
-                    break;
-                }
-            }
+            graph->forEachEdge(dedectNegativeCycle);
         }
 
         buildResultPath(prev);
@@ -964,17 +964,89 @@ void BellmanFordVisualizer::run(QWidget *widget)
 
 void BellmanFordVisualizer::updateVisualization()
 {
-    EdgeList negativeCycleCopy = resultEdgeList.size() <= 1 ? negativeCycle : EdgeList{};
-
-    PathFindingAlgorithmVisualizer::updateVisualization();
-
-    while(!negativeCycleCopy.empty())
+    if(updateStep == graph->getEdgesNum())
     {
-        const Edge edge = negativeCycleCopy.takeFirst();
-
-        graphWidget->setNodeColor(edge.getStart(), Qt::blue, false);
-        graphWidget->setNodeColor(edge.getEnd(), Qt::blue, false);
-
-        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::blue);
+        graphWidget->setNodesAndEdgesToBlack();
+        updateStep = 0;
     }
+    updateStep++;
+
+    if(!resultEdgeList.empty())
+    {
+        const Edge edge = resultEdgeList.takeFirst();
+
+        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
+        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
+
+        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red, false);
+
+        if(resultEdgeList.empty())
+        {
+            if(!resultPath.empty())
+            {
+                for(int i = 0; i < resultPath.size(); ++i)
+                {
+                    graphWidget->setNodeColor(resultPath[i], Qt::green, false);
+
+                    if(i + 1 < resultPath.size())
+                    {
+                        graphWidget->setEdgeColor(resultPath[i], resultPath[i + 1], Qt::green, false);
+                    }
+                }
+            }
+
+            if(paintNegativeCycleToBlue)
+            {
+                while(!negativeCycle.empty())
+                {
+                    const Edge edge = negativeCycle.takeFirst();
+
+                    graphWidget->setNodeColor(edge.getStart(), Qt::blue, false);
+                    graphWidget->setNodeColor(edge.getEnd(), Qt::blue, false);
+
+                    graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::blue, false);
+                }
+            }
+        }
+
+        graphWidget->update();
+    }
+
+    if(resultEdgeList.empty())
+    {
+        clear();
+        emit finished();
+    }
+}
+
+bool BellmanFordVisualizer::getBreakIfNoChange() const
+{
+    return breakIfNoChange;
+}
+
+void BellmanFordVisualizer::setBreakIfNoChange(bool newBreakIfNoChange)
+{
+    if (breakIfNoChange == newBreakIfNoChange)
+    {
+        return;
+    }
+
+    breakIfNoChange = newBreakIfNoChange;
+    emit breakIfNoChangeChanged();
+}
+
+bool BellmanFordVisualizer::getPaintNegativeCycleToBlue() const
+{
+    return paintNegativeCycleToBlue;
+}
+
+void BellmanFordVisualizer::setPaintNegativeCycleToBlue(bool newPaintNegativeCycleToBlue)
+{
+    if (paintNegativeCycleToBlue == newPaintNegativeCycleToBlue)
+    {
+        return;
+    }
+
+    paintNegativeCycleToBlue = newPaintNegativeCycleToBlue;
+    emit paintNegativeCycleToBlueChanged();
 }

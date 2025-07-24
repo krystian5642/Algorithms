@@ -16,7 +16,8 @@ int Edge::getEnd() const
     return end;
 }
 
-EdgeList::EdgeList()
+EdgeList::EdgeList(bool inAllowDuplicates)
+    : allowDuplicates(inAllowDuplicates)
 {
 
 }
@@ -24,7 +25,11 @@ EdgeList::EdgeList()
 void EdgeList::add(int start, int end, bool directed)
 {
     const Edge edge(start, end, directed);
-    if(!helperSet.contains(edge))
+    if(allowDuplicates)
+    {
+        edges.append(edge);
+    }
+    else if(!helperSet.contains(edge))
     {
         edges.append(edge);
         helperSet.insert(edge);
@@ -71,6 +76,11 @@ void EdgeList::clear()
 {
     edges.clear();
     helperSet.clear();
+}
+
+void EdgeList::setAllowDuplicates(bool inAllowDuplicates)
+{
+    allowDuplicates = inAllowDuplicates;
 }
 
 const Edge &EdgeList::operator[](qsizetype index) const

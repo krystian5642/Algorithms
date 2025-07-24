@@ -29,7 +29,7 @@ inline uint qHash(const Edge& edge, uint seed = 0)
 class EdgeList
 {
 public:
-    EdgeList();
+    EdgeList(bool inAllowDuplicates = false);
 
     void add(int start, int end, bool directed);
     void reserve(qsizetype size);
@@ -43,9 +43,13 @@ public:
 
     void clear();
 
+    void setAllowDuplicates(bool inAllowDuplicates);
+
 private:
     QList<Edge> edges;
     QSet<Edge> helperSet;
+
+    bool allowDuplicates;
 
 public:
     const Edge& operator[](qsizetype index) const;

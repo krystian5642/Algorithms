@@ -172,18 +172,12 @@ void GraphWidget::setNodesAndEdgesToBlack()
 {
     for(auto it = graphNodeVisualData.begin(); it != graphNodeVisualData.end(); it++)
     {
-        if(it->color != Qt::black)
-        {
-            it->color = Qt::black;
-        }
+        it->color = Qt::black;
     }
 
     for(auto it = graphEdgeVisualData.begin(); it != graphEdgeVisualData.end(); it++)
     {
-        if(it->color != Qt::black)
-        {
-            it->color = Qt::black;
-        }
+        it->color = Qt::black;
     }
 
     update();

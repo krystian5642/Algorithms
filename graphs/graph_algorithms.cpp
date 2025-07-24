@@ -613,6 +613,7 @@ void EagerDijkstraAlgorithm::execute()
 
 BellmanFordAlgorithm::BellmanFordAlgorithm(QObject *parent)
     : GraphAlgorithm(parent)
+    , breakIfNoChange(true)
 {
     setObjectName("Bellman–Ford");
 }
@@ -639,32 +640,42 @@ void BellmanFordAlgorithm::execute()
         anyChange = false;
         graph->forEachEdge(forEachEdge);
 
-        if(!anyChange)
+        if(breakIfNoChange && !anyChange)
         {
-            return;
+            break;
         }
     }
 
-    auto dedectNegativeCycle = [&](int start, int end, int weight)
+    if(!breakIfNoChange || breakIfNoChange && anyChange)
     {
-        if(distances[start] + weight < distances[end])
+        auto dedectNegativeCycle = [&](int start, int end, int weight)
         {
-            distances[end] = INT_MIN;
-            anyChange = true;
-        }
-        return true;
-    };
+            if(distances[start] + weight < distances[end])
+            {
+                distances[end] = INT_MIN;
+                anyChange = true;
+            }
+            return true;
+        };
 
-    for(int i = 0; i < nodesNum - 1; ++i)
-    {
-        anyChange = false;
         graph->forEachEdge(dedectNegativeCycle);
-
-        if(!anyChange)
-        {
-            return;
-        }
     }
+}
+
+bool BellmanFordAlgorithm::getBreakIfNoChange() const
+{
+    return breakIfNoChange;
+}
+
+void BellmanFordAlgorithm::setBreakIfNoChange(bool newBreakIfNoChange)
+{
+    if (breakIfNoChange == newBreakIfNoChange)
+    {
+        return;
+    }
+
+    breakIfNoChange = newBreakIfNoChange;
+    emit breakIfNoChangeChanged();
 }
 
 
