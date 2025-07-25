@@ -421,6 +421,7 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new LazyDijkstraAlgorithm);
     algorithmsList.append(new EagerDijkstraAlgorithm);
     algorithmsList.append(new BellmanFordAlgorithm);
+    algorithmsList.append(new FloydWarshallAlgorithm);
 
     for(auto* algorithm : algorithmsList)
     {

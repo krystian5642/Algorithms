@@ -136,6 +136,8 @@ protected:
 class BellmanFordAlgorithm : public GraphAlgorithm
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool breakIfNoChange READ getBreakIfNoChange WRITE setBreakIfNoChange NOTIFY breakIfNoChangeChanged FINAL)
 public:
     explicit BellmanFordAlgorithm(QObject* parent = nullptr);
 
@@ -149,8 +151,17 @@ protected:
     void execute() override;
 
     bool breakIfNoChange;
-private:
-    Q_PROPERTY(bool breakIfNoChange READ getBreakIfNoChange WRITE setBreakIfNoChange NOTIFY breakIfNoChangeChanged FINAL)
+};
+
+class FloydWarshallAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+
+public:
+    explicit FloydWarshallAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
 };
 
 #endif // GRAPH_AlGORITHMS_H

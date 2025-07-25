@@ -307,6 +307,7 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new SSSPonDAGVisualizer(this));
     algorithmVisualizers.append(new LazyDijkstraVisualizer(this));
     algorithmVisualizers.append(new BellmanFordVisualizer(this));
+    algorithmVisualizers.append(new FloydWarshallVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {

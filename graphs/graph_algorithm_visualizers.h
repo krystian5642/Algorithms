@@ -228,5 +228,30 @@ protected:
     EdgeList negativeCycle;
 };
 
+class FloydWarshallVisualizer : public PathFindingAlgorithmVisualizer
+{
+    Q_OBJECT
+
+    Q_PROPERTY(bool paintNegativeCycleToBlue READ getPaintNegativeCycleToBlue WRITE setPaintNegativeCycleToBlue NOTIFY paintNegativeCycleToBlueChanged FINAL)
+public:
+    explicit FloydWarshallVisualizer(QObject* parent = nullptr);
+
+    void clear() override;
+
+    bool getPaintNegativeCycleToBlue() const;
+    void setPaintNegativeCycleToBlue(bool newPaintNegativeCycleToBlue);
+
+signals:
+    void paintNegativeCycleToBlueChanged();
+
+protected:
+    void run(QWidget* widget) override;
+    void updateVisualization() override;
+
+    bool paintNegativeCycleToBlue;
+
+    EdgeList negativeCycle;
+};
+
 
 #endif // GRAPHALGORITHMVISUALIZERS_H

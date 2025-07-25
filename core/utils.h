@@ -4,6 +4,8 @@
 #include <QHash>
 #include <QList>
 
+#define INF 1e9
+
 namespace Utils
 {
     template <typename Container, typename Predicate>

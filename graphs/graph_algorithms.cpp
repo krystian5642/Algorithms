@@ -31,6 +31,7 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     complexityList.push_back(qMakePair("O(V^2)",       [](int I, int V, int E) { return V * V; }));
     complexityList.push_back(qMakePair("O(V+E)logV",   [](int I, int V, int E) { return (V + E)*std::log(V); }));
     complexityList.push_back(qMakePair("O(VE)",        [](int I, int V, int E) { return (V * E); }));
+    complexityList.push_back(qMakePair("O(V^3)",       [](int I, int V, int E) { return (V * V * V); }));
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -678,6 +679,92 @@ void BellmanFordAlgorithm::setBreakIfNoChange(bool newBreakIfNoChange)
     emit breakIfNoChangeChanged();
 }
 
+FloydWarshallAlgorithm::FloydWarshallAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Floyd-Warshall");
+}
 
+void FloydWarshallAlgorithm::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
 
+    QList<QList<int>> dist(nodesNum, QList<int>(nodesNum, INF));
+    QList<QList<int>> next(nodesNum, QList<int>(nodesNum, -1));
 
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        dist[value][neighbour] = weight;
+        next[value][neighbour] = neighbour;
+        return true;
+    };
+
+    for(int i = 0; i < nodesNum; i++)
+    {
+        dist[i][i] = 0;
+        graph->forEachNeighbour(i, forEachNeighbour);
+    }
+
+    for(int k = 0; k < nodesNum; k++)
+    {
+        for(int i = 0; i < nodesNum; i++)
+        {
+            for(int j = 0; j < nodesNum; j++)
+            {
+                if(dist[i][k] == INF || dist[k][j] == INF)
+                {
+                    continue;
+                }
+
+                const int newDist = dist[i][k] + dist[k][j];
+                if(dist[i][j] > newDist)
+                {
+                    dist[i][j] = newDist;
+                    next[i][j] = next[i][k];
+                }
+            }
+        }
+    }
+
+    for(int k = 0; k < nodesNum; k++)
+    {
+        for(int i = 0; i < nodesNum; i++)
+        {
+            for(int j = 0; j < nodesNum; j++)
+            {
+                if(dist[i][j] == -INF || dist[i][k] == INF || dist[k][j] == INF)
+                {
+                    continue;
+                };
+
+                const int newDist = dist[i][k] + dist[k][j];
+                if(dist[i][j] > newDist)
+                {
+                    dist[i][j] = -INF;
+                    next[i][j] = -1;
+                }
+            }
+        }
+    }
+
+    QList<int> resultPath;
+
+    const int start = 0;
+    const int end = nodesNum - 1;
+
+    int at = start;
+    while(at != nodesNum - 1 && at != -1)
+    {
+        resultPath.append(at);
+        at = next[at][end];
+    }
+
+    if(at == end)
+    {
+        resultPath.append(end);
+    }
+    else
+    {
+        resultPath.clear();
+    }
+}

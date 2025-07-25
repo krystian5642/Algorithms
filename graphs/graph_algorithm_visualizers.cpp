@@ -947,7 +947,8 @@ void BellmanFordVisualizer::run(QWidget *widget)
             {
                 if(distances[value] + weight < distances[neighbour])
                 {
-                    distances[neighbour] = INT_MIN / 2;
+                    distances[neighbour] = -INF;
+                    prev[neighbour] = -1;
 
                     negativeCycle.add(value, neighbour, graph->getIsDirected());
                 }
@@ -1050,3 +1051,186 @@ void BellmanFordVisualizer::setPaintNegativeCycleToBlue(bool newPaintNegativeCyc
     paintNegativeCycleToBlue = newPaintNegativeCycleToBlue;
     emit paintNegativeCycleToBlueChanged();
 }
+
+FloydWarshallVisualizer::FloydWarshallVisualizer(QObject *parent)
+    : PathFindingAlgorithmVisualizer(parent)
+    , paintNegativeCycleToBlue(true)
+{
+    setObjectName("Floyd-Warshall");
+}
+
+void FloydWarshallVisualizer::clear()
+{
+    PathFindingAlgorithmVisualizer::clear();
+
+    negativeCycle.clear();
+}
+
+bool FloydWarshallVisualizer::getPaintNegativeCycleToBlue() const
+{
+    return paintNegativeCycleToBlue;
+}
+
+void FloydWarshallVisualizer::setPaintNegativeCycleToBlue(bool newPaintNegativeCycleToBlue)
+{
+    if(paintNegativeCycleToBlue == newPaintNegativeCycleToBlue)
+    {
+        return;
+    }
+
+    paintNegativeCycleToBlue = newPaintNegativeCycleToBlue;
+    emit paintNegativeCycleToBlueChanged();
+}
+
+void FloydWarshallVisualizer::run(QWidget *widget)
+{
+    if(setStartAndEnd())
+    {
+        const qsizetype nodesNum = graph->getNodesNum();
+
+        QList<QList<int>> dist(nodesNum, QList<int>(nodesNum, INF));
+        QList<QList<int>> next(nodesNum, QList<int>(nodesNum, -1));
+
+        resultEdgeList.reserve(nodesNum * nodesNum);
+
+        auto forEachNeighbour = [&](int value, int neighbour, int weight)
+        {
+            dist[value][neighbour] = weight;
+            next[value][neighbour] = neighbour;
+            return true;
+        };
+
+        for(int i = 0; i < nodesNum; i++)
+        {
+            dist[i][i] = 0;
+            graph->forEachNeighbour(i, forEachNeighbour);
+        }
+
+        for(int k = 0; k < nodesNum; k++)
+        {
+            for(int i = 0; i < nodesNum; i++)
+            {
+                for(int j = 0; j < nodesNum; j++)
+                {
+                    if(dist[i][k] == INF || dist[k][j] == INF)
+                    {
+                        continue;
+                    }
+
+                    const int newDist = dist[i][k] + dist[k][j];
+                    if(dist[i][j] > newDist)
+                    {
+                        dist[i][j] = newDist;
+                        next[i][j] = next[i][k];
+
+                        resultEdgeList.add(i, k, graph->getIsDirected());
+                    }
+                    else
+                    {
+                        resultEdgeList.add(i, j, graph->getIsDirected());
+                    }
+                }
+            }
+        }
+
+        for(int k = 0; k < nodesNum; k++)
+        {
+            for(int i = 0; i < nodesNum; i++)
+            {
+                for(int j = 0; j < nodesNum; j++)
+                {
+                    if(dist[i][j] == -INF || dist[i][k] == INF || dist[k][j] == INF)
+                    {
+                        continue;
+                    };
+
+                    const int newDist = dist[i][k] + dist[k][j];
+                    if(dist[i][j] > newDist)
+                    {
+                        dist[i][j] = -INF;
+                        next[i][j] = -1;
+                        negativeCycle.add(i, j, graph->getIsDirected());
+                    }
+                }
+            }
+        }
+
+        int at = start;
+        while(at != end && at != -1)
+        {
+            resultPath.append(at);
+            at = next[at][end];
+        }
+
+        if(at == end)
+        {
+            resultPath.append(end);
+        }
+        else
+        {
+            resultPath.clear();
+        }
+
+        startVisualization(widget);
+    }
+}
+
+void FloydWarshallVisualizer::updateVisualization()
+{
+    if(!resultEdgeList.empty())
+    {
+        const Edge edge = resultEdgeList.takeFirst();
+
+        graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
+        graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
+
+        graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red, false);
+
+        if(resultEdgeList.empty())
+        {
+            if(!resultPath.empty())
+            {
+                for(int i = 0; i < resultPath.size(); ++i)
+                {
+                    graphWidget->setNodeColor(resultPath[i], Qt::green, false);
+
+                    if(i + 1 < resultPath.size())
+                    {
+                        graphWidget->setEdgeColor(resultPath[i], resultPath[i + 1], Qt::green, false);
+                    }
+                }
+            }
+
+            if(paintNegativeCycleToBlue)
+            {
+                while(!negativeCycle.empty())
+                {
+                    const Edge edge = negativeCycle.takeFirst();
+
+                    graphWidget->setNodeColor(edge.getStart(), Qt::blue, false);
+                    graphWidget->setNodeColor(edge.getEnd(), Qt::blue, false);
+
+                    graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::blue, false);
+                }
+            }
+        }
+
+        graphWidget->update();
+    }
+
+    if(resultEdgeList.empty())
+    {
+        clear();
+        emit finished();
+    }
+}
+
+
+
+
+
+
+
+
+
+
