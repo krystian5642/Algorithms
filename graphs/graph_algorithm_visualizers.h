@@ -38,6 +38,7 @@ signals:
     void randomStartChanged();
 
 protected:
+    void startVisualization(QWidget* widget);
     void updateVisualization() override;
 
     void showInfo(const QString& info) const;
@@ -79,7 +80,6 @@ signals:
 protected:
     void updateVisualization() override;
 
-    void startVisualization(QWidget* widget);
     void buildResultPath(const QList<int>& prev);
 
     int end;
@@ -253,5 +253,37 @@ protected:
     EdgeList negativeCycle;
 };
 
+// Tarjan's Strongly Connected Component
+class SCCsVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit SCCsVisualizer(QObject* parent = nullptr);
+
+    void clear() override;
+
+protected:
+    void run(QWidget* widget) override;
+    void SCCsHelper(int begin, QList<int> &visitTime, QStack<int> &stack, QList<int> &low);
+
+    void updateVisualization() override;
+
+    int sccCount;
+    int time;
+
+    QList<EdgeList> SCCs;
+
+    QStack<int> sccStart;
+
+private:
+    static inline QList<QColor> sccColors =
+    {
+        Qt::green,
+        Qt::blue,
+        Qt::cyan,
+        Qt::magenta,
+        Qt::gray
+    };
+};
 
 #endif // GRAPHALGORITHMVISUALIZERS_H

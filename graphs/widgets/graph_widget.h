@@ -38,8 +38,10 @@ public:
     void fromJsonObject(const QJsonObject& jsonObj);
 
     void setNodeColor(int value, const QColor& color, bool callUpdate = true);
-    QColor getNodeColor(int value);
+    QColor getNodeColor(int value) const;
     void setEdgeColor(int start, int end, const QColor& color, bool callUpdate = true);
+    QColor getEdgeColor(int start, int end) const;
+
     void setNodesAndEdgesToBlack();
 
     void generateRandomEdges(const double addEdgePropability, const int minWeight, const int maxWeight);

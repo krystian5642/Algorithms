@@ -81,6 +81,14 @@ void GraphAlgorithmVisualizer::setGraph(Graph *newGraph)
     graph = newGraph;
 }
 
+void GraphAlgorithmVisualizer::startVisualization(QWidget *widget)
+{
+    graphWidget = qobject_cast<GraphWidget*>(widget);
+    graphWidget->setNodeColor(start, Qt::red);
+
+    visualizationTimer.start();
+}
+
 void GraphAlgorithmVisualizer::updateVisualization()
 {
     if(!resultEdgeList.empty())
@@ -215,14 +223,6 @@ void PathFindingAlgorithmVisualizer::updateVisualization()
         clear();
         emit finished();
     }
-}
-
-void PathFindingAlgorithmVisualizer::startVisualization(QWidget *widget)
-{
-    graphWidget = qobject_cast<GraphWidget*>(widget);
-    graphWidget->setNodeColor(start, Qt::red);
-
-    visualizationTimer.start();
 }
 
 void PathFindingAlgorithmVisualizer::buildResultPath(const QList<int> &prev)
@@ -1225,9 +1225,174 @@ void FloydWarshallVisualizer::updateVisualization()
     }
 }
 
+SCCsVisualizer::SCCsVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+    , sccCount(0)
+    , time(0)
+{
+    setObjectName("Tarjan's Strongly Connected Component");
+}
 
+void SCCsVisualizer::clear()
+{
+    GraphAlgorithmVisualizer::clear();
 
+    sccCount = 0;
+    time = 0;
+    SCCs.clear();
+    sccStart.clear();
+}
 
+static const int UNVISITED = -1;
+
+void SCCsVisualizer::run(QWidget *widget)
+{
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
+
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    if(start < nodesNum)
+    {
+        const qsizetype nodesNum = graph->getNodesNum();
+
+        QList<int> low(nodesNum, 0);
+        QList<int> visitTime(nodesNum, UNVISITED);
+        QStack<int> stack;
+
+        SCCsHelper(start, visitTime, stack, low);
+
+        for(int i = 0; i < nodesNum; i++)
+        {
+            if(visitTime[i] == UNVISITED)
+            {
+                SCCsHelper(i, visitTime, stack, low);
+            }
+        }
+
+        startVisualization(widget);
+    }
+    else
+    {
+        showInfo("Choosen start is not valid");
+        emit finished();
+    }
+}
+
+void SCCsVisualizer::SCCsHelper(int begin, QList<int> &visitTime, QStack<int> &stack, QList<int> &low)
+{
+    visitTime[begin] = low[begin] = time++;
+    stack.push(begin);
+
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        resultEdgeList.add(value, neighbour, graph->getIsDirected());
+
+        if(visitTime[neighbour] == UNVISITED)
+        {
+            SCCsHelper(neighbour, visitTime, stack, low);
+        }
+
+        if(stack.contains(neighbour))
+        {
+            low[value] = std::min(low[value], low[neighbour]);
+        }
+
+        return true;
+    };
+
+    graph->forEachNeighbour(begin, forEachNeighbour);
+
+    if(low[begin] == visitTime[begin])
+    {
+        if(stack.size() > 1)
+        {
+            SCCs.append(EdgeList{});
+
+            int prev = begin;
+            while(!stack.empty())
+            {
+                const int popValue = stack.pop();
+                low[popValue] = visitTime[begin];
+
+                SCCs[sccCount].add(popValue, prev, graph->getIsDirected());
+                prev = popValue;
+
+                if(popValue == begin)
+                {
+                    break;
+                }
+            }
+
+            std::reverse(SCCs[sccCount].begin(), SCCs[sccCount].end());
+
+            sccCount++;
+        }
+    }
+}
+
+void SCCsVisualizer::updateVisualization()
+{
+    if(!resultEdgeList.empty())
+    {
+        const Edge edge = resultEdgeList.takeFirst();
+
+        if(graphWidget->getNodeColor(edge.getStart()) == Qt::black)
+        {
+            graphWidget->setNodeColor(edge.getStart(), Qt::red, false);
+        }
+
+        if(graphWidget->getNodeColor(edge.getEnd()) == Qt::black)
+        {
+            graphWidget->setNodeColor(edge.getEnd(), Qt::red, false);
+        }
+
+        if(graphWidget->getEdgeColor(edge.getStart(), edge.getEnd()) == Qt::black)
+        {
+            graphWidget->setEdgeColor(edge.getStart(), edge.getEnd(), Qt::red, false);
+        }
+
+        for(int i = 0; i < SCCs.size(); i++)
+        {
+            EdgeList& scc = SCCs[i];
+            if(!scc.empty() && (scc[0].getStart() == edge.getEnd() || scc[0].getStart() == edge.getStart()))
+            {
+                if(!sccStart.empty() && sccStart.top() == scc[0].getStart())
+                {
+                    const QColor color = sccColors[SCCs.size() % sccColors.size()];
+                    while(!scc.empty())
+                    {
+                        const Edge sccEdge = scc.takeFirst();
+
+                        graphWidget->setNodeColor(sccEdge.getStart(), color, false);
+                        graphWidget->setNodeColor(sccEdge.getEnd(), color, false);
+
+                        graphWidget->setEdgeColor(sccEdge.getStart(), sccEdge.getEnd(), color, false);
+                    }
+
+                    SCCs.removeAt(i);
+                    sccStart.pop();
+
+                    break;
+                }
+                else
+                {
+                    sccStart.push(scc[0].getStart());
+                }
+            }
+        }
+
+        graphWidget->update();
+    }
+
+    if(resultEdgeList.empty())
+    {
+        clear();
+        emit finished();
+    }
+}
 
 
 

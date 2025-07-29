@@ -148,7 +148,7 @@ void GraphWidget::setNodeColor(int value, const QColor& color, bool callUpdate)
     }
 }
 
-QColor GraphWidget::getNodeColor(int value)
+QColor GraphWidget::getNodeColor(int value) const
 {
     return graphNodeVisualData.size() > value ? graphNodeVisualData[value].color : QColor{};
 }
@@ -166,6 +166,13 @@ void GraphWidget::setEdgeColor(int start, int end, const QColor &color, bool cal
             update();
         }
     }
+}
+
+QColor GraphWidget::getEdgeColor(int start, int end) const
+{
+    const Edge edge(start, end, graph->getIsDirected());
+    auto it = graphEdgeVisualData.find(edge);
+    return it != graphEdgeVisualData.end() ? it->color : QColor{};
 }
 
 void GraphWidget::setNodesAndEdgesToBlack()
@@ -308,6 +315,7 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new LazyDijkstraVisualizer(this));
     algorithmVisualizers.append(new BellmanFordVisualizer(this));
     algorithmVisualizers.append(new FloydWarshallVisualizer(this));
+    algorithmVisualizers.append(new SCCsVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {
