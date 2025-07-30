@@ -273,17 +273,9 @@ bool GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
         else
         {
             GraphAlgorithmVisualizer* graphAlgorithmVisualizer = qobject_cast<GraphAlgorithmVisualizer*>(algorithmVisualizer);
-            if(graph->getIsDirected() && !graphAlgorithmVisualizer->supportsDirectedGraph())
-            {
-                QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", "Cannot run this algorithm on directed graph");
-                return false;
-            }
-            else if(!graph->getIsDirected() && !graphAlgorithmVisualizer->supportsUndirectedGraph())
-            {
-                QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", "Cannot run this algorithm on undirected graph");
-                return false;
-            }
-            else
+
+            QString outInfo;
+            if(graphAlgorithmVisualizer->isDataStructureSupported(graph, outInfo))
             {
                 setNodesAndEdgesToBlack();
 
@@ -293,6 +285,11 @@ bool GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
                 currentAlgorithmVisualizer = graphAlgorithmVisualizer;
 
                 currentAlgorithmVisualizer->run(this);
+            }
+            else
+            {
+                QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", outInfo);
+                return false;
             }
         }
     }
@@ -462,18 +459,17 @@ void GraphWidget::paintEdges(QPainter &painter)
 
 void GraphWidget::paintNodes(QPainter &painter)
 {
-    auto func = [&](int value)
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    for(int i = 0; i < nodesNum; ++i)
     {
         QPen nodePen;
-        nodePen.setBrush(graphNodeVisualData[value].color);
+        nodePen.setBrush(graphNodeVisualData[i].color);
         painter.setPen(nodePen);
-        painter.setBrush(graphNodeVisualData[value].color);
+        painter.setBrush(graphNodeVisualData[i].color);
 
-        painter.drawEllipse(graphNodeVisualData[value].location, nodeRadius, nodeRadius);
-
-        return true;
+        painter.drawEllipse(graphNodeVisualData[i].location, nodeRadius, nodeRadius);
     };
-    graph->forEachNode(func);
 }
 
 void GraphWidget::paintNodeValues(QPainter &painter)
@@ -484,25 +480,24 @@ void GraphWidget::paintNodeValues(QPainter &painter)
     QFont font("Arial", 12);
     painter.setFont(font);
 
-    auto func = [&](int value)
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    for(int i = 0; i < nodesNum; ++i)
     {
-        const QString valueText(QString::number(value));
+        const QString valueText(QString::number(i));
 
         QFontMetrics fontMetrics(font);
         const int textWidth = fontMetrics.horizontalAdvance(valueText);
         const int textHeight = fontMetrics.height();
 
-        const QPointF& center = graphNodeVisualData[value].location;
+        const QPointF& center = graphNodeVisualData[i].location;
         const QRectF backgroundRect(center.x() - (textWidth / 2)
                                     , center.y() - (textHeight / 2)
                                     , textWidth
                                     , textHeight);
 
         painter.drawText(backgroundRect, Qt::AlignCenter, valueText);
-
-        return true;
     };
-    graph->forEachNode(func);
 }
 
 void GraphWidget::paintWeights(QPainter &painter)

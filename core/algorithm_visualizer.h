@@ -4,6 +4,8 @@
 #include <QTimer>
 #include <QWidget>
 
+class DataStructure;
+
 class AlgorithmVisualizer : public QObject
 {
     Q_OBJECT
@@ -15,6 +17,8 @@ public:
 
     virtual void run(QWidget* widget) = 0;
     virtual void clear();
+
+    virtual bool isDataStructureSupported(const DataStructure* dataStructure, QString& outInfo) const;
 
     void setPause(bool pause);
     virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);

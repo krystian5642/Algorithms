@@ -2,6 +2,8 @@
 #include "graph_algorithm_visualizers.h"
 #include "widgets/graph_widget.h"
 
+#include "graph_texts.h"
+
 #include "../core/utils.h"
 
 #include <QMessageBox>
@@ -14,16 +16,6 @@ GraphAlgorithmVisualizer::GraphAlgorithmVisualizer(QObject *parent)
     , graph(nullptr)
 {
 
-}
-
-bool GraphAlgorithmVisualizer::supportsDirectedGraph() const
-{
-    return true;
-}
-
-bool GraphAlgorithmVisualizer::supportsUndirectedGraph() const
-{
-    return true;
 }
 
 GraphAlgorithmVisualizer::~GraphAlgorithmVisualizer()
@@ -103,14 +95,19 @@ void GraphAlgorithmVisualizer::updateVisualization()
 
     if(resultEdgeList.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 
 void GraphAlgorithmVisualizer::showInfo(const QString& info) const
 {
     QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", info);
+}
+
+void GraphAlgorithmVisualizer::finish()
+{
+    clear();
+    emit finished();
 }
 
 PathFindingAlgorithmVisualizer::PathFindingAlgorithmVisualizer(QObject *parent)
@@ -179,10 +176,10 @@ bool PathFindingAlgorithmVisualizer::setStartAndEnd()
 
     const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start >= nodesNum || end >= nodesNum)
+    if(start >= nodesNum || end >= nodesNum || start < 0 || end < 0)
     {
-        showInfo("Choosen start or end is not valid");
-        emit finished();
+        showInfo(GraphTexts::StartOrEndNodesAreInvalid);
+        finish();
 
         return false;
     }
@@ -220,8 +217,7 @@ void PathFindingAlgorithmVisualizer::updateVisualization()
 
     if(resultEdgeList.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 
@@ -262,7 +258,7 @@ void BFSVisualizer::run(QWidget *widget)
 
     const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start < nodesNum)
+    if(start < nodesNum && start >= 0)
     {
         QQueue<int> nodeQueue;
         nodeQueue.reserve(graph->getNodesNum());
@@ -299,8 +295,8 @@ void BFSVisualizer::run(QWidget *widget)
     }
     else
     {
-        showInfo("Choosen start is not valid");
-        emit finished();
+        showInfo(GraphTexts::StartNodeIsInvalid);
+        finish();
     }
 }
 
@@ -372,7 +368,7 @@ void DFSVisualizer::run(QWidget *widget)
         setStart(graph->getRandomValue());
     }
 
-    if(start < graph->getNodesNum())
+    if(start < graph->getNodesNum() && start >= 0)
     {
         QList<bool> visited(graph->getNodesNum(), false);
 
@@ -386,8 +382,8 @@ void DFSVisualizer::run(QWidget *widget)
     }
     else
     {
-        showInfo("Choosen start or end is not valid");
-        emit finished();
+        showInfo(GraphTexts::StartOrEndNodesAreInvalid);
+        finish();
     }
 }
 
@@ -423,18 +419,14 @@ void TreeCentersVisualizer::run(QWidget *widget)
 
     QList<int> leafNodes;
 
-    auto forEachNode = [&](int value)
+    for(int i = 0; i < nodesNum; ++i)
     {
-        if(nodeDegrees[value] == 0 || nodeDegrees[value] == 1)
+        if(nodeDegrees[i] == 0 || nodeDegrees[i] == 1)
         {
-            leafNodes.push_back(value);
-            nodeDegrees[value] = 0;
+            leafNodes.push_back(i);
+            nodeDegrees[i] = 0;
         }
-
-        return true;
     };
-
-    graph->forEachNode(forEachNode);
 
     qsizetype count = leafNodes.size();
     while(count < nodesNum)
@@ -505,8 +497,7 @@ void TreeCentersVisualizer::updateVisualization()
 
     if(visitedLeafLayers.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 
@@ -525,7 +516,7 @@ void TopologicalSortVisualizer::run(QWidget *widget)
 
     const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start < nodesNum)
+    if(start < nodesNum && start >= 0)
     {
         QList<bool> visited(nodesNum, false);
 
@@ -534,22 +525,20 @@ void TopologicalSortVisualizer::run(QWidget *widget)
 
         TopologicalSortHelper(start, visited);
 
-        auto forEachNode = [&](int value)
+        for(int i = 0; i < nodesNum; ++i)
         {
-            TopologicalSortHelper(value, visited);
-            return true;
+            if(!visited[i])
+            {
+                TopologicalSortHelper(i, visited);
+            }
         };
-        graph->forEachNode(forEachNode);
 
-        graphWidget = qobject_cast<GraphWidget*>(widget);
-
-        graphWidget->setNodeColor(start, Qt::red);
-        visualizationTimer.start();
+        startVisualization(widget);
     }
     else
     {
-        showInfo("Choosen start is not valid");
-        emit finished();
+        showInfo(GraphTexts::StartNodeIsInvalid);
+        finish();
     }
 }
 
@@ -560,8 +549,15 @@ void TopologicalSortVisualizer::clear()
     topologicalOrder.clear();
 }
 
-bool TopologicalSortVisualizer::supportsUndirectedGraph() const
+bool TopologicalSortVisualizer::isDataStructureSupported(const DataStructure *dataStructure, QString &outInfo) const
 {
+    const Graph* graphPtr = qobject_cast<const Graph*>(dataStructure);
+    if(graphPtr->getIsDirected())
+    {
+        return true;
+    };
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
     return false;
 }
 
@@ -590,8 +586,7 @@ void TopologicalSortVisualizer::updateVisualization()
 
     if(resultEdgeList.empty() && topologicalOrder.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 
@@ -637,17 +632,13 @@ void KahnsAlgorithmVisualizer::run(QWidget *widget)
 
     QQueue<int> nodeQueue;
 
-    auto forEachNode = [&](int value)
+    for(int i = 0; i < graph->getNodesNum(); ++i)
     {
-        if(nodeDegrees[value] == 0)
+        if(nodeDegrees[i] == 0)
         {
-            nodeQueue.enqueue(value);
+            nodeQueue.enqueue(i);
         }
-
-        return true;
     };
-
-    graph->forEachNode(forEachNode);
 
     auto forEachNeighbour = [&](int value, int neighbour, int weight)
     {
@@ -685,8 +676,15 @@ void KahnsAlgorithmVisualizer::clear()
     topologicalOrder.clear();
 }
 
-bool KahnsAlgorithmVisualizer::supportsUndirectedGraph() const
+bool KahnsAlgorithmVisualizer::isDataStructureSupported(const DataStructure *dataStructure, QString &outInfo) const
 {
+    const Graph* graphPtr = qobject_cast<const Graph*>(dataStructure);
+    if(graphPtr->getIsDirected())
+    {
+        return true;
+    };
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
     return false;
 }
 
@@ -715,8 +713,7 @@ void KahnsAlgorithmVisualizer::updateVisualization()
 
     if(resultEdgeList.empty() && topologicalOrder.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 
@@ -770,8 +767,15 @@ void SSSPonDAGVisualizer::run(QWidget *widget)
     }
 }
 
-bool SSSPonDAGVisualizer::supportsUndirectedGraph() const
+bool SSSPonDAGVisualizer::isDataStructureSupported(const DataStructure *dataStructure, QString &outInfo) const
 {
+    const Graph* graphPtr = qobject_cast<const Graph*>(dataStructure);
+    if(graphPtr->getIsDirected())
+    {
+        return true;
+    };
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
     return false;
 }
 
@@ -783,17 +787,15 @@ void SSSPonDAGVisualizer::topologicalSort(QList<int> &outTopologicalOrder) const
 
     QQueue<int> nodeQueue;
 
-    auto forEachNode = [&](int value)
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    for(int i = 0; i < nodesNum; ++i)
     {
-        if(nodeDegrees[value] == 0)
+        if(nodeDegrees[i] == 0)
         {
-            nodeQueue.enqueue(value);
+            nodeQueue.enqueue(i);
         }
-
-        return true;
     };
-
-    graph->forEachNode(forEachNode);
 
     auto forEachNeighbour = [&](int value, int neighbour, int weight)
     {
@@ -821,6 +823,18 @@ LazyDijkstraVisualizer::LazyDijkstraVisualizer(QObject *parent)
     : PathFindingAlgorithmVisualizer(parent)
 {
     setObjectName("Lazy Dijkstra's");
+}
+
+bool LazyDijkstraVisualizer::isDataStructureSupported(const DataStructure *dataStructure, QString &outInfo) const
+{
+    const Graph* graphPtr = qobject_cast<const Graph*>(dataStructure);
+    if(graphPtr->getIsDirected())
+    {
+        return true;
+    };
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
+    return false;
 }
 
 void LazyDijkstraVisualizer::run(QWidget *widget)
@@ -1015,8 +1029,7 @@ void BellmanFordVisualizer::updateVisualization()
 
     if(resultEdgeList.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 
@@ -1220,8 +1233,7 @@ void FloydWarshallVisualizer::updateVisualization()
 
     if(resultEdgeList.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 
@@ -1254,7 +1266,7 @@ void SCCsVisualizer::run(QWidget *widget)
 
     const qsizetype nodesNum = graph->getNodesNum();
 
-    if(start < nodesNum)
+    if(start < nodesNum && start >= 0)
     {
         const qsizetype nodesNum = graph->getNodesNum();
 
@@ -1276,8 +1288,8 @@ void SCCsVisualizer::run(QWidget *widget)
     }
     else
     {
-        showInfo("Choosen start is not valid");
-        emit finished();
+        showInfo(GraphTexts::StartNodeIsInvalid);
+        finish();
     }
 }
 
@@ -1307,29 +1319,29 @@ void SCCsVisualizer::SCCsHelper(int begin, QList<int> &visitTime, QStack<int> &s
 
     if(low[begin] == visitTime[begin])
     {
-        if(stack.size() > 1)
+        SCCs.append(EdgeList{});
+
+        int prev = begin;
+        while(!stack.empty())
         {
-            SCCs.append(EdgeList{});
+            const int popValue = stack.pop();
+            low[popValue] = visitTime[begin];
 
-            int prev = begin;
-            while(!stack.empty())
+            if(graph->hasEdgeTo(popValue, prev))
             {
-                const int popValue = stack.pop();
-                low[popValue] = visitTime[begin];
-
                 SCCs[sccCount].add(popValue, prev, graph->getIsDirected());
-                prev = popValue;
-
-                if(popValue == begin)
-                {
-                    break;
-                }
             }
+            prev = popValue;
 
-            std::reverse(SCCs[sccCount].begin(), SCCs[sccCount].end());
-
-            sccCount++;
+            if(popValue == begin)
+            {
+                break;
+            }
         }
+
+        std::reverse(SCCs[sccCount].begin(), SCCs[sccCount].end());
+
+        sccCount++;
     }
 }
 
@@ -1357,11 +1369,15 @@ void SCCsVisualizer::updateVisualization()
         for(int i = 0; i < SCCs.size(); i++)
         {
             EdgeList& scc = SCCs[i];
-            if(!scc.empty() && (scc[0].getStart() == edge.getEnd() || scc[0].getStart() == edge.getStart()))
+            if(!scc.empty())
             {
-                if(!sccStart.empty() && sccStart.top() == scc[0].getStart())
+                if(scc[0].getStart() == edge.getStart())
                 {
-                    const QColor color = sccColors[SCCs.size() % sccColors.size()];
+                    sccStart.push(scc[0].getStart());
+                }
+                else if(!sccStart.empty() && scc.getLastEdge().getEnd() == edge.getEnd() && sccStart.top() == scc.getLastEdge().getEnd())
+                {
+                    const QColor& color = sccColors[SCCs.size() % sccColors.size()];
                     while(!scc.empty())
                     {
                         const Edge sccEdge = scc.takeFirst();
@@ -1377,10 +1393,6 @@ void SCCsVisualizer::updateVisualization()
 
                     break;
                 }
-                else
-                {
-                    sccStart.push(scc[0].getStart());
-                }
             }
         }
 
@@ -1389,8 +1401,7 @@ void SCCsVisualizer::updateVisualization()
 
     if(resultEdgeList.empty())
     {
-        clear();
-        emit finished();
+        finish();
     }
 }
 

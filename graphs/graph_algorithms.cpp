@@ -6,6 +6,7 @@
 #include "../core/utils.h"
 
 #include "graph_builders.h"
+#include "graph_texts.h"
 
 #include <windows.h>
 
@@ -32,6 +33,7 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     complexityList.push_back(qMakePair("O(V+E)logV",   [](int I, int V, int E) { return (V + E)*std::log(V); }));
     complexityList.push_back(qMakePair("O(VE)",        [](int I, int V, int E) { return (V * E); }));
     complexityList.push_back(qMakePair("O(V^3)",       [](int I, int V, int E) { return (V * V * V); }));
+    complexityList.push_back(qMakePair("O(V(E+1))",    [](int I, int V, int E) { return V * (E + 1); }));
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -340,18 +342,14 @@ void TreeCenters::execute()
 
     QList<int> leafNodes;
 
-    auto forEachNode = [&](int value)
+    for(int i = 0; i < nodesNum; ++i)
     {
-        if(nodeDegrees[value] == 0 || nodeDegrees[value] == 1)
+        if(nodeDegrees[i] == 0 || nodeDegrees[i] == 1)
         {
-            leafNodes.push_back(value);
-            nodeDegrees[value] = 0;
+            leafNodes.push_back(i);
+            nodeDegrees[i] = 0;
         }
-
-        return true;
     };
-
-    graph->forEachNode(forEachNode);
 
     qsizetype count = leafNodes.size();
     while(count < nodesNum)
@@ -389,20 +387,34 @@ TopologicalSort::TopologicalSort(QObject *parent)
     dataStructureBuilders.push_back(new TreeGraphBuilder(this));
 }
 
+bool TopologicalSort::canRunAlgorithm(QString &outInfo) const
+{
+    const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    if(graphBuilder->getIsGraphDirected())
+    {
+        return true;
+    }
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
+    return false;
+}
+
 void TopologicalSort::execute()
 {
-    QList<bool> visited;
-    visited.fill(false, graph->getNodesNum());
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<bool> visited(nodesNum, false);
 
     QStack<int> topologicalOrder;
     topologicalOrder.reserve(graph->getNodesNum());
 
-    auto forEachNode = [&](int value)
+    for(int i = 0; i < nodesNum; ++i)
     {
-        TopologicalSortHelper(value, visited, topologicalOrder);
-        return true;
+        if(!visited[i])
+        {
+            TopologicalSortHelper(i, visited, topologicalOrder);
+        }
     };
-    graph->forEachNode(forEachNode);
 }
 
 void TopologicalSort::TopologicalSortHelper(int begin, QList<bool> &visited, QStack<int>& topologicalOrder)
@@ -428,8 +440,22 @@ KahnsAlgorithm::KahnsAlgorithm(QObject *parent)
     setObjectName("Kahn's Algorithm (Topological Sort)");
 }
 
+bool KahnsAlgorithm::canRunAlgorithm(QString &outInfo) const
+{
+    const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    if(graphBuilder->getIsGraphDirected())
+    {
+        return true;
+    }
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
+    return false;
+}
+
 void KahnsAlgorithm::execute()
 {
+    const qsizetype nodesNum = graph->getNodesNum();
+
     QList<int> nodeDegrees = graph->getNodeDegrees();
 
     QList<int> topologicalOrder;
@@ -437,17 +463,13 @@ void KahnsAlgorithm::execute()
 
     QQueue<int> nodeQueue;
 
-    auto forEachNode = [&](int value)
+    for(int i = 0; i < nodesNum; ++i)
     {
-        if(nodeDegrees[value] == 0)
+        if(nodeDegrees[i] == 0)
         {
-            nodeQueue.enqueue(value);
+            nodeQueue.enqueue(i);
         }
-
-        return true;
     };
-
-    graph->forEachNode(forEachNode);
 
     auto forEachNeighbour = [&](int value, int neighbour, int weight)
     {
@@ -476,6 +498,18 @@ LazyDijkstraAlgorithm::LazyDijkstraAlgorithm(QObject *parent)
     : GraphAlgorithm(parent)
 {
     setObjectName("Lazy Dijkstra's");
+}
+
+bool LazyDijkstraAlgorithm::canRunAlgorithm(QString &outInfo) const
+{
+    const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    if(graphBuilder->getIsGraphDirected())
+    {
+        return true;
+    }
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
+    return false;
 }
 
 void LazyDijkstraAlgorithm::execute()
@@ -546,6 +580,18 @@ EagerDijkstraAlgorithm::EagerDijkstraAlgorithm(QObject *parent)
     : GraphAlgorithm(parent)
 {
     setObjectName("Eager Dijkstra's");
+}
+
+bool EagerDijkstraAlgorithm::canRunAlgorithm(QString &outInfo) const
+{
+    const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    if(graphBuilder->getIsGraphDirected())
+    {
+        return true;
+    }
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
+    return false;
 }
 
 void EagerDijkstraAlgorithm::execute()
@@ -766,5 +812,71 @@ void FloydWarshallAlgorithm::execute()
     else
     {
         resultPath.clear();
+    }
+}
+
+static const int UNVISITED = -1;
+
+SCCsAlgorithm::SCCsAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+    , time(0)
+    , sccCount(0)
+{
+    setObjectName("Tarjan's Strongly Connected Component");
+}
+
+void SCCsAlgorithm::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<int> low(nodesNum, 0);
+    QList<int> visitTime(nodesNum, UNVISITED);
+    QStack<int> stack;
+
+    for(int i = 0; i < nodesNum; i++)
+    {
+        if(visitTime[i] == UNVISITED)
+        {
+            SCCsHelper(i, visitTime, stack, low);
+        }
+    }
+}
+
+void SCCsAlgorithm::SCCsHelper(int begin, QList<int> &visitTime, QStack<int> &stack, QList<int> &low)
+{
+    visitTime[begin] = low[begin] = time++;
+    stack.push(begin);
+
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        if(visitTime[neighbour] == UNVISITED)
+        {
+            SCCsHelper(neighbour, visitTime, stack, low);
+        }
+
+        if(stack.contains(neighbour))
+        {
+            low[value] = std::min(low[value], low[neighbour]);
+        }
+
+        return true;
+    };
+
+    graph->forEachNeighbour(begin, forEachNeighbour);
+
+    if(low[begin] == visitTime[begin])
+    {
+        while(!stack.empty())
+        {
+            const int popValue = stack.pop();
+            low[popValue] = visitTime[begin];
+
+            if(popValue == begin)
+            {
+                break;
+            }
+        }
+
+        sccCount++;
     }
 }

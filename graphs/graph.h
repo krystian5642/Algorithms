@@ -35,16 +35,12 @@ public:
     virtual int getRandomValue(bool* found = nullptr) const = 0;
     virtual qsizetype getNeighboursNum(int node) const = 0;
 
-    /** if func returns false, next node will not be processed, forEachNode is supposed to end execution too */
-    virtual void forEachNode(std::function<bool(int)> func) = 0;
-
     /** if func returns false, next edge will not be processed, forEachEdge is supposed to end execution too */
     virtual void forEachEdge(std::function<bool(int, int, int)> func) = 0;
 
     /** if func returns false, next neighbour will not be processed, forEachNeighbour is supposed to end execution too */
     virtual void forEachNeighbour(int node, std::function<bool(int, int, int)> func) = 0;
 
-    void forEachNode(std::function<bool(int)> func) const;
     void forEachEdge(std::function<bool(int, int, int)> func) const;
     void forEachNeighbour(int node, std::function<bool(int, int, int)> func) const;
 
@@ -73,7 +69,6 @@ public:
     qsizetype getNodesNum() const override;
     void clear() override;
     int getRandomValue(bool* found = nullptr) const override;
-    void forEachNode(std::function<bool(int)> func) override;
     void forEachEdge(std::function<bool(int, int, int)> func) override;
     void forEachNeighbour(int node, std::function<bool(int, int, int)> func) override;
     qsizetype getNeighboursNum(int node) const override;
@@ -112,7 +107,6 @@ public:
     qsizetype getNodesNum() const override;
     void clear() override;
     int getRandomValue(bool* found = nullptr) const override;
-    void forEachNode(std::function<bool(int)> func) override;
     void forEachEdge(std::function<bool(int, int, int)> func) override;
     void forEachNeighbour(int node, std::function<bool(int, int, int)> func) override;
     qsizetype getNeighboursNum(int node) const override;

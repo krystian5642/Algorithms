@@ -96,6 +96,8 @@ class TopologicalSort : public GraphAlgorithm
 public:
     explicit TopologicalSort(QObject* parent = nullptr);
 
+    bool canRunAlgorithm(QString& outInfo) const override;
+
     static void getResult(const Graph* graph, QStack<int>& topologicalOrder);
 
 protected:
@@ -109,6 +111,8 @@ class KahnsAlgorithm : public GraphAlgorithm
 public:
     explicit KahnsAlgorithm(QObject* parent = nullptr);
 
+    bool canRunAlgorithm(QString& outInfo) const override;
+
 protected:
     void execute() override;
 };
@@ -119,6 +123,8 @@ class LazyDijkstraAlgorithm : public GraphAlgorithm
 public:
     explicit LazyDijkstraAlgorithm(QObject* parent = nullptr);
 
+    bool canRunAlgorithm(QString& outInfo) const override;
+
 protected:
     void execute() override;
 };
@@ -128,6 +134,8 @@ class EagerDijkstraAlgorithm : public GraphAlgorithm
     Q_OBJECT
 public:
     explicit EagerDijkstraAlgorithm(QObject* parent = nullptr);
+
+    bool canRunAlgorithm(QString& outInfo) const override;
 
 protected:
     void execute() override;
@@ -162,6 +170,20 @@ public:
 
 protected:
     void execute() override;
+};
+
+class SCCsAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit SCCsAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+    void SCCsHelper(int begin, QList<int> &visitTime, QStack<int> &stack, QList<int> &low);
+
+    int time;
+    int sccCount;
 };
 
 #endif // GRAPH_AlGORITHMS_H

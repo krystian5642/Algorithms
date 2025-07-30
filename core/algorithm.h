@@ -26,6 +26,8 @@ public:
 
     virtual void run() = 0;
 
+    virtual bool canRunAlgorithm(QString& outInfo) const;
+
     virtual QWidget* createPropertiesWidget(QWidget* parent = nullptr);
     virtual void appendPropertiesInfo(QString& infoText);
 

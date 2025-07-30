@@ -43,6 +43,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
         icons.qrc
         core/utils.h
+        graphs/graph_texts.h
+        core/algorithm_texts.h
+
 
 
     )

@@ -27,6 +27,11 @@ void AlgorithmVisualizer::clear()
     visualizationTimer.stop();
 }
 
+bool AlgorithmVisualizer::isDataStructureSupported(const DataStructure *dataStructure, QString& outInfo) const
+{
+    return !!dataStructure;
+}
+
 void AlgorithmVisualizer::setPause(bool pause)
 {
     if(pause)

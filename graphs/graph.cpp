@@ -18,26 +18,22 @@ Graph::~Graph()
 
 void Graph::generateRandomEdges(const double addEdgePropability, const int minWeight, const int maxWeight)
 {
-    auto func1 = [&](int value1)
+    const qsizetype nodesNum = getNodesNum();
+
+    for(int i = 0; i < nodesNum; ++i)
     {
-        auto func2 = [&](int value2)
+        for(int j = 0; j < nodesNum; ++j)
         {
-            if(value1 != value2 && !hasEdgeTo(value1, value2))
+            if(i != j && !hasEdgeTo(i, j))
             {
                 const double randomDouble = QRandomGenerator::global()->generateDouble();
                 if(randomDouble < addEdgePropability)
                 {
-                    addEdge(value1, value2, QRandomGenerator::global()->bounded(minWeight, maxWeight + 1));
+                    addEdge(i, j, QRandomGenerator::global()->bounded(minWeight, maxWeight + 1));
                 }
             }
-            return true;
         };
-        forEachNode(func2);
-
-        return true;
     };
-
-    forEachNode(func1);
 }
 
 QJsonObject Graph::toJsonObject()
@@ -45,10 +41,12 @@ QJsonObject Graph::toJsonObject()
     QJsonObject graphAsJsonObject;
     graphAsJsonObject["isDirected"] = isDirected;
 
-    forEachNode([&](int value)
+    const qsizetype nodesNum = getNodesNum();
+
+    for(int i = 0; i < nodesNum; ++i)
     {
         QJsonArray edgesAsJsonArray;
-        forEachNeighbour(value, [&](int start, int end, int weight)
+        forEachNeighbour(i, [&](int start, int end, int weight)
         {
             QJsonObject edgeAsJsonObject;
             edgeAsJsonObject["end"] = end;
@@ -58,10 +56,8 @@ QJsonObject Graph::toJsonObject()
 
             return true;
         });
-        graphAsJsonObject[QString::number(value)] = edgesAsJsonArray;
-
-        return true;
-    });
+        graphAsJsonObject[QString::number(i)] = edgesAsJsonArray;
+    }
     return graphAsJsonObject;
 }
 
@@ -104,16 +100,14 @@ void Graph::print() const
         return true;
     };
 
-    auto forEachNodeFunc = [&](int value)
+    const qsizetype nodesNum = getNodesNum();
+
+    for(int i = 0; i < nodesNum; ++i)
     {
-        graphAsText.append(QString::number(value) + " -> ");
-        forEachNeighbour(value, forEachNeighbourFunc);
+        graphAsText.append(QString::number(i) + " -> ");
+        forEachNeighbour(i, forEachNeighbourFunc);
         graphAsText.append('\n');
-
-        return true;
     };
-
-    forEachNode(forEachNodeFunc);
 
     qDebug().noquote() << graphAsText;
 }
@@ -129,11 +123,6 @@ void Graph::setIsDirected(bool newIsDirected)
     isDirected = newIsDirected;
 }
 
-void Graph::forEachNode(std::function<bool (int)> func) const
-{
-    const_cast<Graph*>(this)->forEachNode(func);
-}
-
 void Graph::forEachEdge(std::function<bool (int, int, int)> func) const
 {
     const_cast<Graph*>(this)->forEachEdge(func);
@@ -146,8 +135,9 @@ void Graph::forEachNeighbour(int node, std::function<bool (int, int, int)> func)
 
 QList<int> Graph::getNodeDegrees() const
 {
-    QList<int> nodeDegrees;
-    nodeDegrees.fill(0, getNodesNum());
+    const qsizetype nodesNum = getNodesNum();
+
+    QList<int> nodeDegrees(nodesNum, 0);
 
     auto forEachNeighbourFunc = [&](int start, int neighbour, int weight)
     {
@@ -155,13 +145,10 @@ QList<int> Graph::getNodeDegrees() const
         return true;
     };
 
-    auto forEachNodeFunc = [&](int value)
+    for(int i = 0; i < nodesNum; ++i)
     {
-        forEachNeighbour(value, forEachNeighbourFunc);
-        return true;
+        forEachNeighbour(i, forEachNeighbourFunc);
     };
-
-    forEachNode(forEachNodeFunc);
 
     return nodeDegrees;
 }
@@ -293,17 +280,6 @@ int AdjacencyListGraph::getRandomValue(bool *found) const
         *found = false;
     }
     return 0;
-}
-
-void AdjacencyListGraph::forEachNode(std::function<bool (int)> func)
-{
-    for(int i = 0; i < adjList.size(); ++i)
-    {
-        if(!func(i))
-        {
-            return;
-        }
-    }
 }
 
 void AdjacencyListGraph::forEachEdge(std::function<bool (int, int, int)> func)
@@ -461,17 +437,6 @@ int AdjacencyMatrixGraph::getRandomValue(bool *found) const
         *found = false;
     }
     return 0;
-}
-
-void AdjacencyMatrixGraph::forEachNode(std::function<bool (int)> func)
-{
-    for(int i = 0; i < adjMatrix.size(); ++i)
-    {
-        if(!func(i))
-        {
-            return;
-        }
-    }
 }
 
 void AdjacencyMatrixGraph::forEachEdge(std::function<bool (int, int, int)> func)

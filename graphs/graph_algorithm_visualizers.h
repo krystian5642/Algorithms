@@ -19,9 +19,6 @@ public:
     explicit GraphAlgorithmVisualizer(QObject *parent = nullptr);
     virtual ~GraphAlgorithmVisualizer() = 0;
 
-    virtual bool supportsDirectedGraph() const;
-    virtual bool supportsUndirectedGraph() const;
-
     void clear() override;
 
     int getStart() const;
@@ -42,6 +39,8 @@ protected:
     void updateVisualization() override;
 
     void showInfo(const QString& info) const;
+
+    void finish();
 
     int start;
     bool randomStart;
@@ -145,7 +144,7 @@ public:
     void run(QWidget* widget) override;
     void clear() override;
 
-    bool supportsUndirectedGraph() const override;
+    bool isDataStructureSupported(const DataStructure* dataStructure, QString& outInfo) const override;
 
 protected:
     void updateVisualization() override;
@@ -165,7 +164,7 @@ public:
     void run(QWidget* widget) override;
     void clear() override;
 
-    bool supportsUndirectedGraph() const override;
+    bool isDataStructureSupported(const DataStructure* dataStructure, QString& outInfo) const override;
 
 protected:
     void updateVisualization() override;
@@ -174,6 +173,7 @@ private:
     QList<int> topologicalOrder;
 };
 
+// Single Source Shortest Path (SSSP on DAG)
 class SSSPonDAGVisualizer final : public PathFindingAlgorithmVisualizer
 {
     Q_OBJECT
@@ -181,7 +181,7 @@ public:
     explicit SSSPonDAGVisualizer(QObject *parent = nullptr);
 
     void run(QWidget* widget) override;
-    bool supportsUndirectedGraph() const override;
+    bool isDataStructureSupported(const DataStructure* dataStructure, QString& outInfo) const override;
 
 private:
     void topologicalSort(QList<int>& outTopologicalOrder) const;
@@ -192,6 +192,8 @@ class LazyDijkstraVisualizer final : public PathFindingAlgorithmVisualizer
     Q_OBJECT
 public:
     explicit LazyDijkstraVisualizer(QObject *parent = nullptr);
+
+    bool isDataStructureSupported(const DataStructure* dataStructure, QString& outInfo) const override;
 
     void run(QWidget* widget) override;
 };

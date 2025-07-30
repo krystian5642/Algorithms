@@ -20,6 +20,11 @@ Algorithm::~Algorithm()
 
 }
 
+bool Algorithm::canRunAlgorithm(QString &outInfo) const
+{
+    return true;
+}
+
 QWidget *Algorithm::createPropertiesWidget(QWidget* parent)
 {
     QStringList complexityStringList;

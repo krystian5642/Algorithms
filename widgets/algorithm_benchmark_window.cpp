@@ -1,6 +1,7 @@
 #include "algorithm_benchmark_window.h"
 #include "../core/algorithm.h"
 #include "../graphs/graph_algorithms.h"
+#include "../core/algorithm_texts.h"
 
 #include <QStandardItemModel>
 #include <QToolBar>
@@ -74,13 +75,20 @@ void AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered(bool isOn)
         Algorithm* algorithm = getSelectedAlgorithm();
         if(algorithm)
         {
+            QString outInfo;
+            if(!algorithm->canRunAlgorithm(outInfo))
+            {
+                actionRunBenchmark->setChecked(false);
+                QMessageBox::information(this, "Info", outInfo);
+                return;
+            }
+
             QThreadPool::globalInstance()->start(algorithm);
         }
         else
         {
             actionRunBenchmark->setChecked(false);
-
-            QMessageBox::information(this, "Info", "No algorithm selected");
+            QMessageBox::information(this, "Info", AlgorithmTexts::NoAlgorithmSelected);
         }
     }
     else
@@ -422,6 +430,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new EagerDijkstraAlgorithm);
     algorithmsList.append(new BellmanFordAlgorithm);
     algorithmsList.append(new FloydWarshallAlgorithm);
+
+    algorithmsList.append(new SCCsAlgorithm);
 
     for(auto* algorithm : algorithmsList)
     {
