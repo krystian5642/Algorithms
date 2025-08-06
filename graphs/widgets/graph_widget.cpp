@@ -313,6 +313,7 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new BellmanFordVisualizer(this));
     algorithmVisualizers.append(new FloydWarshallVisualizer(this));
     algorithmVisualizers.append(new SCCsVisualizer(this));
+    algorithmVisualizers.append(new TravelingSalesmanProblemVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {

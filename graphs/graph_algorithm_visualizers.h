@@ -288,4 +288,21 @@ private:
     };
 };
 
+// Traveling Salesman Problem ( Held-Karp )
+class TravelingSalesmanProblemVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit TravelingSalesmanProblemVisualizer(QObject* parent = nullptr);
+
+protected:
+    void run(QWidget* widget) override;
+    bool isNotInCombination(int i, int combination) const;
+    void buildResultPath(const QList<QList<int>> &memo);
+
+    QList<int> generateCombinations(int subSetSize) const;
+    void generateCombinations(int subSet, int pos, int r, QList<int> &subSets) const;
+};
+
+
 #endif // GRAPHALGORITHMVISUALIZERS_H

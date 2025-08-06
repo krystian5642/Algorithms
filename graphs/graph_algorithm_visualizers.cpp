@@ -75,10 +75,17 @@ void GraphAlgorithmVisualizer::setGraph(Graph *newGraph)
 
 void GraphAlgorithmVisualizer::startVisualization(QWidget *widget)
 {
-    graphWidget = qobject_cast<GraphWidget*>(widget);
-    graphWidget->setNodeColor(start, Qt::red);
+    if(!resultEdgeList.empty())
+    {
+        graphWidget = qobject_cast<GraphWidget*>(widget);
+        graphWidget->setNodeColor(start, Qt::red);
 
-    visualizationTimer.start();
+        visualizationTimer.start();
+    }
+    else
+    {
+        finish();
+    }
 }
 
 void GraphAlgorithmVisualizer::updateVisualization()
@@ -1404,6 +1411,166 @@ void SCCsVisualizer::updateVisualization()
         finish();
     }
 }
+
+TravelingSalesmanProblemVisualizer::TravelingSalesmanProblemVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+{
+    setObjectName("Traveling Salesman Problem (Held-Karp)");
+}
+
+void TravelingSalesmanProblemVisualizer::run(QWidget *widget)
+{
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
+
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    if(start < nodesNum && start >= 0)
+    {
+        QList<QList<int>> memo(nodesNum, QList<int>( 1 << nodesNum, INF));
+        for(int i = 0; i < nodesNum; i++)
+        {
+            if(i == start)
+            {
+                continue;
+            }
+
+            memo[i][1 << start | 1 << i] = graph->getEdgeWeight(start, i);
+        }
+
+        for(int i = 3; i <= nodesNum; i++)
+        {
+            const QList<int> combinations = generateCombinations(i);
+
+            for(int combination : combinations)
+            {
+                if(isNotInCombination(start, combination))
+                {
+                    continue;
+                }
+
+                for(int next = 0; next < nodesNum; next++)
+                {
+                    if(next == start || isNotInCombination(next, combination))
+                    {
+                        continue;
+                    }
+
+                    const int prevState = combination ^ (1 << next);
+
+                    for(int end = 0; end < nodesNum; end++)
+                    {
+                        if(end == start || end == next || isNotInCombination(end, combination))
+                        {
+                            continue;
+                        }
+
+                        const int newDistance = memo[end][prevState] + graph->getEdgeWeight(end, next);
+                        if(newDistance < memo[next][combination])
+                        {
+                            memo[next][combination] = newDistance;
+                        }
+                    }
+                }
+            }
+        }
+
+        buildResultPath(memo);
+
+        startVisualization(widget);
+    }
+    else
+    {
+        showInfo(GraphTexts::StartNodeIsInvalid);
+        finish();
+    }
+}
+
+bool TravelingSalesmanProblemVisualizer::isNotInCombination(int i, int combination) const
+{
+    return ((1 << i) & combination) == 0;
+}
+
+void TravelingSalesmanProblemVisualizer::buildResultPath(const QList<QList<int>> &memo)
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    int state = ( 1 << nodesNum ) - 1;
+    int to = start;
+
+    for(int i = 0; i < nodesNum; i++)
+    {
+        int minDistance = INF;
+        int last = -1;
+
+        for(int end = 0; end < nodesNum; end++)
+        {
+            if(end == to || isNotInCombination(end, state))
+            {
+                continue;
+            }
+
+            if(last == -1)
+            {
+                last = end;
+            }
+
+            const int newDistance = memo[end][state] + graph->getEdgeWeight(end, to);
+            if(newDistance < minDistance)
+            {
+                minDistance = newDistance;
+                last = end;
+            }
+        }
+
+        if(last != start && minDistance == INF)
+        {
+            resultEdgeList.clear();
+            break;
+        }
+
+        resultEdgeList.add(last, to, graph->getIsDirected());
+        state ^= (1 << last);
+
+        to = last;
+    }
+
+    std::reverse(resultEdgeList.begin(), resultEdgeList.end());
+}
+
+QList<int> TravelingSalesmanProblemVisualizer::generateCombinations(int subSetSize) const
+{
+    QList<int> subSets;
+    generateCombinations(0, 0, subSetSize, subSets);
+    return subSets;
+}
+
+void TravelingSalesmanProblemVisualizer::generateCombinations(int subSet, int pos, int r, QList<int> &subSets) const
+{
+    if(r == 0)
+    {
+        subSets.append(subSet);
+        return;
+    }
+
+    const int nodesNum = graph->getNodesNum();
+    for(int i = pos; i < nodesNum; i++)
+    {
+        subSet ^= (1 << i);
+
+        generateCombinations(subSet, i + 1, r - 1, subSets);
+
+        subSet ^= (1 << i);
+    }
+}
+
+
+
+
+
+
 
 
 

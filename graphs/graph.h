@@ -28,6 +28,7 @@ public:
     virtual void addNode() = 0;
     virtual void addEdge(int start, int end, int weight = 1) = 0;
     virtual void removeEdge(int start, int end) = 0;
+    virtual int getEdgeWeight(int from, int to) const = 0;
     virtual bool hasEdgeTo(int from, int to) = 0;
     virtual qsizetype getEdgesNum() const = 0;
     virtual qsizetype getNodesNum() const = 0;
@@ -62,8 +63,9 @@ public:
     explicit AdjacencyListGraph(QObject *parent = nullptr, bool inIsDirected = false);
 
     void addNode() override;
-    void addEdge(int start, int end, int weight = 1) override;
-    void removeEdge(int start, int end) override;
+    void addEdge(int from, int to, int weight = 1) override;
+    void removeEdge(int from, int to) override;
+    int getEdgeWeight(int from, int to) const override;
     bool hasEdgeTo(int from, int to) override;
     qsizetype getEdgesNum() const override;
     qsizetype getNodesNum() const override;
@@ -100,8 +102,9 @@ public:
     explicit AdjacencyMatrixGraph(QObject *parent = nullptr, bool inIsDirected = false, int nodes = 0);
 
     void addNode() override;
-    void addEdge(int start, int end, int weight = 1) override;
-    void removeEdge(int start, int end) override;
+    void addEdge(int from, int to, int weight = 1) override;
+    void removeEdge(int from, int to) override;
+    int getEdgeWeight(int from, int to) const override;
     bool hasEdgeTo(int from, int to) override;
     qsizetype getEdgesNum() const override;
     qsizetype getNodesNum() const override;

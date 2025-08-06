@@ -226,6 +226,25 @@ void AdjacencyListGraph::removeEdge(int start, int end)
     }
 }
 
+int AdjacencyListGraph::getEdgeWeight(int from, int to) const
+{
+    if(from < 0 || to < 0 || from > adjList.size() || to > adjList.size())
+    {
+        return INF;
+    }
+
+    const Neighbours& neighbours = adjList[from];
+    for(const Edge& edge : neighbours)
+    {
+        if(edge.endValue == to)
+        {
+            return edge.weight;
+        }
+    }
+
+    return INF;
+}
+
 bool AdjacencyListGraph::hasEdgeTo(int from, int to)
 {
     if(adjList.size() > from)
@@ -323,7 +342,7 @@ AdjacencyMatrixGraph::AdjacencyMatrixGraph(QObject *parent, bool inIsDirected, i
     adjMatrix.fill(QList<int>{}, nodes);
     for(auto& neighbours : adjMatrix)
     {
-        neighbours.fill(INT_MIN, nodes);
+        neighbours.fill(INF, nodes);
     }
 }
 
@@ -331,62 +350,67 @@ void AdjacencyMatrixGraph::addNode()
 {
     const qsizetype nodesNum = getNodesNum();
 
-    adjMatrix.push_back(QList<int>(nodesNum + 1, INT_MIN));
+    adjMatrix.push_back(QList<int>(nodesNum + 1, INF));
     for(int i = 0; i < nodesNum; ++i)
     {
-        adjMatrix[i].push_back(INT_MIN);
+        adjMatrix[i].push_back(INF);
     }
 
     emit onNodeAdded();
 }
 
-void AdjacencyMatrixGraph::addEdge(int start, int end, int weight)
+void AdjacencyMatrixGraph::addEdge(int from, int to, int weight)
 {
-    if(start < 0 || end < 0)
+    if(from < 0 || to < 0)
     {
         return;
     }
 
-    if(start >= adjMatrix.size())
+    if(from >= adjMatrix.size())
     {
         addNode();
     }
 
-    if(end >= adjMatrix[start].size())
+    if(to >= adjMatrix[from].size())
     {
         addNode();
     }
 
-    adjMatrix[start][end] = weight;
+    adjMatrix[from][to] = weight;
     emit onEdgeAdded();
 
     if(!isDirected)
     {
-        adjMatrix[end][start] = weight;
+        adjMatrix[to][from] = weight;
         emit onEdgeAdded();
     }
 }
 
-void AdjacencyMatrixGraph::removeEdge(int start, int end)
+void AdjacencyMatrixGraph::removeEdge(int from, int to)
 {
-    if(start < 0 || end < 0 || adjMatrix.size() < start || adjMatrix.size() < end)
+    if(from < 0 || to < 0 || adjMatrix.size() < from || adjMatrix.size() < to)
     {
         return;
     }
 
-    adjMatrix[start][end] = INT_MIN;
+    adjMatrix[from][to] = INF;
     emit onEdgeRemoved();
 
     if(!isDirected)
     {
-        adjMatrix[end][start] = INT_MIN;
+        adjMatrix[to][from] = INF;
         emit onEdgeRemoved();
     }
 }
 
+int AdjacencyMatrixGraph::getEdgeWeight(int from, int to) const
+{
+    return adjMatrix.size() > from && adjMatrix[from].size() > to ? adjMatrix[from][to] : INF;
+}
+
 bool AdjacencyMatrixGraph::hasEdgeTo(int from, int to)
 {
-    return adjMatrix.size() > from && adjMatrix[from].size() > to && adjMatrix[from][to] != INT_MIN;
+    return adjMatrix.size() > from && adjMatrix[from].size() > to && adjMatrix[from][to] != INF;
 }
 
 qsizetype AdjacencyMatrixGraph::getEdgesNum() const
@@ -396,7 +420,7 @@ qsizetype AdjacencyMatrixGraph::getEdgesNum() const
     {
         for(int weight : weights)
         {
-            if(weight != INT_MIN)
+            if(weight != INF)
             {
                 edgesNum += 1;
             }
@@ -445,7 +469,7 @@ void AdjacencyMatrixGraph::forEachEdge(std::function<bool (int, int, int)> func)
     {
         for(int j = 0; i < adjMatrix[i].size(); ++i)
         {
-            if(adjMatrix[i][j] != INT_MIN)
+            if(adjMatrix[i][j] != INF)
             {
                 if(!func(i, j, adjMatrix[i][j]))
                 {
@@ -460,7 +484,7 @@ void AdjacencyMatrixGraph::forEachNeighbour(int node, std::function<bool (int, i
 {
     for(int i = 0; i < adjMatrix[node].size(); ++i)
     {
-        if(adjMatrix[node][i] != INT_MIN)
+        if(adjMatrix[node][i] != INF)
         {
             if(!func(node, i, adjMatrix[node][i]))
             {

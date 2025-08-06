@@ -294,11 +294,11 @@ void AlgorithmBenchmarkWindow::setupUi()
 
     algorithmsTreeView = new QTreeView(centralWidget);
     algorithmsTreeView->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
-    algorithmsTreeView->setFixedWidth(270);
+    algorithmsTreeView->setFixedWidth(380);
     connect(algorithmsTreeView, &QTreeView::clicked, this, &AlgorithmBenchmarkWindow::onAlgorithmTreeItemClicked);
 
     QWidget* layoutHolder = new QWidget(this);
-    layoutHolder->setFixedWidth(285);
+    layoutHolder->setFixedWidth(400);
 
     verticalLayout = new QVBoxLayout(layoutHolder);
     verticalLayout->addWidget(algorithmsTreeView, 1);
@@ -432,6 +432,10 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new FloydWarshallAlgorithm);
 
     algorithmsList.append(new SCCsAlgorithm);
+
+    algorithmsList.append(new TravelingSalesmanProblemAlgorithmHash);
+    algorithmsList.append(new TravelingSalesmanProblemAlgorithmBitmask);
+
 
     for(auto* algorithm : algorithmsList)
     {

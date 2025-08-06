@@ -172,6 +172,7 @@ protected:
     void execute() override;
 };
 
+// Tarjan's Strongly Connected Component
 class SCCsAlgorithm : public GraphAlgorithm
 {
     Q_OBJECT
@@ -184,6 +185,62 @@ protected:
 
     int time;
     int sccCount;
+};
+
+class TravelingSalesmanProblemAlgorithmHash : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit TravelingSalesmanProblemAlgorithmHash(QObject* parent = nullptr);
+
+    struct Index
+    {
+    public:
+        int vertex;
+        QSet<int> vertices;
+
+    public:
+        bool operator==(const Index &other) const
+        {
+            return vertex == other.vertex && vertices == other.vertices;
+        }
+    };
+
+protected:
+    void execute() override;
+    QList<int> buildResultPath(const Index& index, const QHash<Index, int> &parents);
+
+    int getDistanceTo(int end, const Index& index, const QHash<Index, int>& minDistances) const;
+    void generateCombinations(QList<QSet<int>>& combinations) const;
+};
+
+static uint qHash(const TravelingSalesmanProblemAlgorithmHash::Index &key, uint seed = 0)
+{
+    uint h = qHash(key.vertex, seed);
+
+    for (int v : key.vertices)
+    {
+        h ^= qHash(v, seed) + 0x9e3779b9 + (h << 6) + (h >> 2);
+    }
+
+    return h;
+}
+
+// This version using bitmasking is much faster and more memory-efficient than TravelingSalesmanProblemAlgorithmHash
+class TravelingSalesmanProblemAlgorithmBitmask : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit TravelingSalesmanProblemAlgorithmBitmask(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+    bool isNotInCombination(int i, int combination) const;
+    QList<int> buildResultPath(const QList<QList<int>> &memo);
+
+    void generateCombinations(int subSetSize, QList<int> &combinations) const;
+    void generateCombinations(int subSet, int pos, int r, QList<int> &subSets) const;
+
 };
 
 #endif // GRAPH_AlGORITHMS_H

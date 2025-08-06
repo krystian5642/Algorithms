@@ -24,16 +24,17 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     , graph(nullptr)
     , builderPropertiesWidget(nullptr)
 {
-    complexityList.push_back(qMakePair("O(1)",         [](int I, int V, int E) { return I; }));
-    complexityList.push_back(qMakePair("O(V)",         [](int I, int V, int E) { return V; }));
-    complexityList.push_back(qMakePair("O(E)",         [](int I, int V, int E) { return E; }));
-    complexityList.push_back(qMakePair("O(V+E)",       [](int I, int V, int E) { return V + E; }));
-    complexityList.push_back(qMakePair("O(2V+E)",      [](int I, int V, int E) { return 2*V + E; }));
-    complexityList.push_back(qMakePair("O(V^2)",       [](int I, int V, int E) { return V * V; }));
-    complexityList.push_back(qMakePair("O(V+E)logV",   [](int I, int V, int E) { return (V + E)*std::log(V); }));
-    complexityList.push_back(qMakePair("O(VE)",        [](int I, int V, int E) { return (V * E); }));
-    complexityList.push_back(qMakePair("O(V^3)",       [](int I, int V, int E) { return (V * V * V); }));
-    complexityList.push_back(qMakePair("O(V(E+1))",    [](int I, int V, int E) { return V * (E + 1); }));
+    complexityList.push_back(qMakePair("O(1)",        [](int I, int V, int E) { return I; }));
+    complexityList.push_back(qMakePair("O(V)",        [](int I, int V, int E) { return V; }));
+    complexityList.push_back(qMakePair("O(E)",        [](int I, int V, int E) { return E; }));
+    complexityList.push_back(qMakePair("O(V+E)",      [](int I, int V, int E) { return V+E; }));
+    complexityList.push_back(qMakePair("O(2*V+E)",    [](int I, int V, int E) { return 2*V+E; }));
+    complexityList.push_back(qMakePair("O(V^2)",      [](int I, int V, int E) { return V*V; }));
+    complexityList.push_back(qMakePair("O(V+E)*logV", [](int I, int V, int E) { return (V+E)*std::log(V); }));
+    complexityList.push_back(qMakePair("O(V*E)",      [](int I, int V, int E) { return (V*E); }));
+    complexityList.push_back(qMakePair("O(V^3)",      [](int I, int V, int E) { return (V*V*V); }));
+    complexityList.push_back(qMakePair("O(V*(E+1))",  [](int I, int V, int E) { return V*(E+1); }));
+    complexityList.push_back(qMakePair("O(V^2*2^V)",  [](int I, int V, int E) { return V*V*(1<<V); }));
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -163,19 +164,62 @@ void GraphAlgorithm::debugRun()
     QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(new AdjacencyListGraph()));
     graph = testGraph.get();
 
-    for(int i = 0; i < 5; ++i)
+    for(int i = 0; i < 15; ++i)
     {
-        const_cast<Graph*>(graph)->addNode();
+        testGraph->addNode();
     }
 
-    Graph* gg = const_cast<Graph*>(graph);
-    gg->setIsDirected(true);
-    gg->addEdge(0, 1);
-    gg->addEdge(1, 3);
-    gg->addEdge(2, 4);
-    gg->addEdge(4, 3);
+    testGraph->setIsDirected(true);
+    // testGraph->addEdge(0, 1, 1);
+    // testGraph->addEdge(0, 2, 15);
+    // testGraph->addEdge(0, 3, 6);
 
-    testGraph->print();
+    // testGraph->addEdge(1, 0, 2);
+    // testGraph->addEdge(1, 2, 7);
+    // testGraph->addEdge(1, 3, 3);
+
+    // testGraph->addEdge(2, 0, 9);
+    // testGraph->addEdge(2, 1, 6);
+    // testGraph->addEdge(2, 3, 12);
+
+    // testGraph->addEdge(3, 0, 10);
+    // testGraph->addEdge(3, 1, 4);
+    // testGraph->addEdge(3, 2, 8);
+
+    // testGraph->addEdge(0, 1, 1);
+    // testGraph->addEdge(0, 2, 15);
+
+    testGraph->addEdge(13, 1, 1);
+    testGraph->addEdge(1, 10, 13);
+    testGraph->addEdge(10, 14, 13);
+    testGraph->addEdge(14, 6, 20);
+    testGraph->addEdge(6, 5, 2);
+    testGraph->addEdge(5, 2, 19);
+    testGraph->addEdge(2, 8, 1);
+    testGraph->addEdge(8, 4, 13);
+    testGraph->addEdge(4, 9, 3);
+    testGraph->addEdge(9, 7, 11);
+    testGraph->addEdge(7, 0, 10);
+    testGraph->addEdge(0, 3, 17);
+    testGraph->addEdge(3, 11, 17);
+    testGraph->addEdge(11, 12, 20);
+    testGraph->addEdge(12, 13, 10);
+
+    testGraph->addEdge(12, 3, 10);
+    testGraph->addEdge(8, 2, 18);
+    testGraph->addEdge(7, 13, 15);
+    testGraph->addEdge(10, 5, 8);
+    testGraph->addEdge(5, 13, 7);
+    testGraph->addEdge(1, 4, 10);
+    testGraph->addEdge(14, 13, 12);
+    testGraph->addEdge(14, 11, 19);
+    testGraph->addEdge(7, 4, 5);
+    testGraph->addEdge(13, 14, 16);
+    testGraph->addEdge(6, 0, 18);
+    testGraph->addEdge(5, 7, 15);
+    testGraph->addEdge(11, 8, 3);
+    testGraph->addEdge(0, 9, 11);
+    testGraph->addEdge(14, 10, 18);
 
     execute();
 }
@@ -878,5 +922,285 @@ void SCCsAlgorithm::SCCsHelper(int begin, QList<int> &visitTime, QStack<int> &st
         }
 
         sccCount++;
+    }
+}
+
+TravelingSalesmanProblemAlgorithmHash::TravelingSalesmanProblemAlgorithmHash(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Traveling Salesman Problem (Held-Karp, Hash-Index method)");
+}
+
+void TravelingSalesmanProblemAlgorithmHash::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<QSet<int>> combinations;
+    generateCombinations(combinations);
+
+    QHash<Index, int> minDistances;
+    QHash<Index, int> parents;
+
+    for(const QSet<int>& combination : combinations)
+    {
+        int minDistance = INF;
+        for(int i = 1; i < nodesNum; i++)
+        {
+            if(combination.contains(i))
+            {
+                continue;
+            }
+
+            const Index index(i, combination);
+            if(combination.empty())
+            {
+                minDistances[index] = graph->getEdgeWeight(0, i);
+                parents[index] = 0;
+                continue;
+            }
+
+            minDistances[index] = INF;
+
+            for(int end : combination)
+            {
+                QSet<int> subCombination = combination;
+                subCombination.remove(end);
+
+                const int newDistance = graph->getEdgeWeight(end, i) + getDistanceTo(end, index, minDistances);
+                if(newDistance < minDistances[index])
+                {
+                    minDistances[index] = newDistance;
+                    parents[index] = end;
+                }
+            }
+        }
+    }
+
+    QSet<int> set;
+    set.reserve(nodesNum - 1);
+
+    for(int i = 1; i < nodesNum; i++)
+    {
+        set.insert(i);
+    }
+
+    const Index index(0, set);
+    minDistances[index] = INF;
+
+    for(int end : set)
+    {
+        const int newDistance = graph->getEdgeWeight(end, 0) + getDistanceTo(end, index, minDistances);
+        if(newDistance < minDistances[index])
+        {
+            minDistances[index] = newDistance;
+            parents[index] = end;
+        }
+    }
+}
+
+QList<int> TravelingSalesmanProblemAlgorithmHash::buildResultPath(const Index& index, const QHash<Index, int> &parents)
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<int> resultPath;
+    resultPath.reserve(nodesNum + 1);
+
+    Index pathIndex = index;
+    int to = 0;
+
+    auto fromIt = parents.find(pathIndex);
+    while(fromIt != parents.end())
+    {
+        resultPath.append(to);
+        to = *fromIt;
+
+        if (to == 0)
+        {
+            break;
+        }
+
+        pathIndex.vertices.remove(to);
+        pathIndex.vertex = to;
+        fromIt = parents.find(pathIndex);
+    }
+
+    if(fromIt == parents.end())
+    {
+        resultPath.clear();
+    }
+    else
+    {
+        resultPath.append(0);
+        std::reverse(resultPath.begin(), resultPath.end());
+    }
+
+    return resultPath;
+}
+
+int TravelingSalesmanProblemAlgorithmHash::getDistanceTo(int end, const Index &index, const QHash<Index, int> &minDistances) const
+{
+    const Index newIndex(end, index.vertices - QSet<int>{end});
+    return minDistances[newIndex];
+}
+
+void TravelingSalesmanProblemAlgorithmHash::generateCombinations(QList<QSet<int>>& combinations) const
+{
+    const int nodesNum = graph->getNodesNum();
+    const int combinationsNum = 1 << (nodesNum - 1);
+
+    combinations.append(QSet<int>{});
+
+    for(int i = 1; i < combinationsNum; i++)
+    {
+        QSet<int> combination;
+        for(int j = 0; j < nodesNum - 1; j++)
+        {
+            if((1 << j) & i)
+            {
+                combination.insert(j + 1);
+            }
+        }
+
+        combinations.append(combination);
+    }
+}
+
+TravelingSalesmanProblemAlgorithmBitmask::TravelingSalesmanProblemAlgorithmBitmask(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Traveling Salesman Problem (Held-Karp, Bitmask method)");
+}
+
+void TravelingSalesmanProblemAlgorithmBitmask::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<QList<int>> memo(nodesNum, QList<int>( 1 << nodesNum, INF));
+    for(int i = 1; i < nodesNum; i++)
+    {
+        memo[i][1 | 1 << i] = graph->getEdgeWeight(0, i);
+    }
+
+    for(int i = 3; i <= nodesNum; i++)
+    {
+        QList<int> combinations;
+        generateCombinations(i, combinations);
+
+        for(int combination : combinations)
+        {
+            if(isNotInCombination(0, combination))
+            {
+                continue;
+            }
+
+            for(int next = 1; next < nodesNum; next++)
+            {
+                if(isNotInCombination(next, combination))
+                {
+                    continue;
+                }
+
+                const int prevState = combination ^ (1 << next);
+
+                for(int end = 1; end < nodesNum; end++)
+                {
+                    if(end == next || isNotInCombination(end, combination))
+                    {
+                        continue;
+                    }
+
+                    const int newDistance = memo[end][prevState] + graph->getEdgeWeight(end, next);
+                    if(newDistance < memo[next][combination])
+                    {
+                        memo[next][combination] = newDistance;
+                    }
+                }
+            }
+        }
+    }
+
+    buildResultPath(memo);
+}
+
+bool TravelingSalesmanProblemAlgorithmBitmask::isNotInCombination(int i, int combination) const
+{
+    return ((1 << i) & combination) == 0;
+}
+
+QList<int> TravelingSalesmanProblemAlgorithmBitmask::buildResultPath(const QList<QList<int>> &memo)
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<int> resultPath;
+    resultPath.reserve(nodesNum + 1);
+
+    resultPath.append(0);
+
+    int state = ( 1 << nodesNum ) - 1;
+    int to = 0;
+
+    for(int i = 0; i < nodesNum; i++)
+    {
+        int minDistance = INF;
+        int last = -1;
+
+        for(int end = 0; end < nodesNum; end++)
+        {
+            if(end == to || isNotInCombination(end, state))
+            {
+                continue;
+            }
+
+            if(last == -1)
+            {
+                last = end;
+            }
+
+            const int newDistance = memo[end][state] + graph->getEdgeWeight(end, to);
+            if(newDistance < minDistance)
+            {
+                minDistance = newDistance;
+                last = end;
+            }
+        }
+
+        if(last != 0 && minDistance == INF)
+        {
+            resultPath.clear();
+            break;
+        }
+
+        resultPath.append(last);
+        state ^= (1 << last);
+
+        to = last;
+    }
+
+    std::reverse(resultPath.begin(), resultPath.end());
+
+    return resultPath;
+}
+
+void TravelingSalesmanProblemAlgorithmBitmask::generateCombinations(int subSetSize, QList<int> &combinations) const
+{
+    generateCombinations(0, 0, subSetSize, combinations);
+}
+
+void TravelingSalesmanProblemAlgorithmBitmask::generateCombinations(int subSet, int pos, int r, QList<int> &subSets) const
+{
+    if(r == 0)
+    {
+        subSets.append(subSet);
+        return;
+    }
+
+    const int nodesNum = graph->getNodesNum();
+    for(int i = pos; i < nodesNum; i++)
+    {
+        subSet ^= (1 << i);
+
+        generateCombinations(subSet, i + 1, r - 1, subSets);
+
+        subSet ^= (1 << i);
     }
 }
