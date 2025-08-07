@@ -31,58 +31,10 @@ GraphWidget::GraphWidget(QWidget *parent)
     , arrowAngle(M_PI / 6.0)
     , allowDirectedGraph(true)
 {
-    category = "Graph";
+    category = "Graph Algorithms";
 
-    graph = new AdjacencyListGraph(this, true);
-    connect(graph, &Graph::onEdgeAdded, this, &GraphWidget::onGraphEdgeAdded);
-    connect(graph, &Graph::onEdgeRemoved, this, &GraphWidget::onGraphEdgeRemoved);
-
-    graphVisualizationSettings = new GraphVisualizationSettings(this);
-    connect(graphVisualizationSettings, &GraphVisualizationSettings::showWeightsChanged, this, [this](bool showWeights)
-    {
-        update();
-    });
-    connect(graphVisualizationSettings, &GraphVisualizationSettings::graphDirectedChanged, this, [this](bool graphDirected)
-    {
-        graph->setIsDirected(graphDirected);
-        update();
-    });
-
-    QAction* actionGenerateRandomEdges = new QAction(this);
-    QIcon icon;
-    icon.addFile(QString::fromUtf8(":/icons/random_edges.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-    actionGenerateRandomEdges->setIcon(icon);
-    connect(actionGenerateRandomEdges, &QAction::triggered, this, &GraphWidget::onActionGenerateRandomEdgesTriggered);
-
-    QAction* actionAddEdge = new QAction(this);
-    QIcon icon1;
-    icon1.addFile(QString::fromUtf8(":/icons/add_edge.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-    actionAddEdge->setIcon(icon1);
-    connect(actionAddEdge, &QAction::triggered, this, &GraphWidget::onActionAddEdgeTriggered);
-
-    QAction* actionRemoveEdge = new QAction(this);
-    QIcon icon3;
-    icon3.addFile(QString::fromUtf8(":/icons/remove_edge.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-    actionRemoveEdge->setIcon(icon3);
-    connect(actionRemoveEdge, &QAction::triggered, this, &GraphWidget::onActionRemoveEdgeTriggered);
-
-    QAction* actionResetGraphColor = new QAction(this);
-    QIcon icon4;
-    icon4.addFile(QString::fromUtf8(":/icons/reset_color.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-    actionResetGraphColor->setIcon(icon4);
-    connect(actionResetGraphColor, &QAction::triggered, this, &GraphWidget::onActionResetGraphColorTriggered);
-
-#if QT_CONFIG(tooltip)
-    actionGenerateRandomEdges->setToolTip("Generate random edges");
-    actionAddEdge->setToolTip("Add edge");
-    actionRemoveEdge->setToolTip("Remove edge");
-    actionResetGraphColor->setToolTip("Reset graph color");
-#endif
-
-    additionalActions.push_back(actionGenerateRandomEdges);
-    additionalActions.push_back(actionAddEdge);
-    additionalActions.push_back(actionRemoveEdge);
-    additionalActions.push_back(actionResetGraphColor);
+    setupGraph();
+    setupActions();
 
     dataStructureVisualBuilders.push_back(new GeneralGraphVisualBuilder(this));
     dataStructureVisualBuilders.push_back(new GridGraphVisualBuilder(this));
@@ -413,6 +365,63 @@ void GraphWidget::paintDataStructure(QPainter &painter)
     }
 
     painter.restore();
+}
+
+void GraphWidget::setupGraph()
+{
+    graph = new AdjacencyListGraph(this, true);
+    connect(graph, &Graph::onEdgeAdded, this, &GraphWidget::onGraphEdgeAdded);
+    connect(graph, &Graph::onEdgeRemoved, this, &GraphWidget::onGraphEdgeRemoved);
+
+    graphVisualizationSettings = new GraphVisualizationSettings(this);
+    connect(graphVisualizationSettings, &GraphVisualizationSettings::showWeightsChanged, this, [this](bool showWeights)
+    {
+        update();
+    });
+    connect(graphVisualizationSettings, &GraphVisualizationSettings::graphDirectedChanged, this, [this](bool graphDirected)
+    {
+        graph->setIsDirected(graphDirected);
+        update();
+    });
+}
+
+void GraphWidget::setupActions()
+{
+    QAction* actionGenerateRandomEdges = new QAction(this);
+    QIcon icon;
+    icon.addFile(QString::fromUtf8(":/icons/random_edges.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    actionGenerateRandomEdges->setIcon(icon);
+    connect(actionGenerateRandomEdges, &QAction::triggered, this, &GraphWidget::onActionGenerateRandomEdgesTriggered);
+
+    QAction* actionAddEdge = new QAction(this);
+    QIcon icon1;
+    icon1.addFile(QString::fromUtf8(":/icons/add_edge.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    actionAddEdge->setIcon(icon1);
+    connect(actionAddEdge, &QAction::triggered, this, &GraphWidget::onActionAddEdgeTriggered);
+
+    QAction* actionRemoveEdge = new QAction(this);
+    QIcon icon3;
+    icon3.addFile(QString::fromUtf8(":/icons/remove_edge.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    actionRemoveEdge->setIcon(icon3);
+    connect(actionRemoveEdge, &QAction::triggered, this, &GraphWidget::onActionRemoveEdgeTriggered);
+
+    QAction* actionResetGraphColor = new QAction(this);
+    QIcon icon4;
+    icon4.addFile(QString::fromUtf8(":/icons/reset_color.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+    actionResetGraphColor->setIcon(icon4);
+    connect(actionResetGraphColor, &QAction::triggered, this, &GraphWidget::onActionResetGraphColorTriggered);
+
+#if QT_CONFIG(tooltip)
+    actionGenerateRandomEdges->setToolTip("Generate random edges");
+    actionAddEdge->setToolTip("Add edge");
+    actionRemoveEdge->setToolTip("Remove edge");
+    actionResetGraphColor->setToolTip("Reset graph color");
+#endif
+
+    additionalActions.push_back(actionGenerateRandomEdges);
+    additionalActions.push_back(actionAddEdge);
+    additionalActions.push_back(actionRemoveEdge);
+    additionalActions.push_back(actionResetGraphColor);
 }
 
 void GraphWidget::paintEdges(QPainter &painter)

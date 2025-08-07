@@ -238,8 +238,8 @@ protected:
     bool isNotInCombination(int i, int combination) const;
     QList<int> buildResultPath(const QList<QList<int>> &memo);
 
-    void generateCombinations(int subSetSize, QList<int> &combinations) const;
-    void generateCombinations(int subSet, int pos, int r, QList<int> &subSets) const;
+    void generateCombinations(int r, QList<int> &combinations) const;
+    void generateCombinations(int subSet, int pos, int r, QList<int> &combinations) const;
 
 };
 

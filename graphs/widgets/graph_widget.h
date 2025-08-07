@@ -4,9 +4,6 @@
 #include "../../core/widgets/data_structure_widget.h"
 #include "../graph.h"
 
-#include <QComboBox>
-#include <QDialog>
-
 class GraphVisualizationSettings;
 class GraphNodePropertiesWidget;
 class GraphAlgorithmVisualizer;
@@ -78,6 +75,8 @@ protected:
 
 private:
     void paintDataStructure(QPainter& painter) override;
+    void setupGraph();
+    void setupActions();
 
     void paintEdges(QPainter& painter);
     void paintNodes(QPainter& painter);

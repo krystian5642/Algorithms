@@ -412,7 +412,7 @@ void AlgorithmBenchmarkWindow::setupActionsAndToolBar()
 
 void AlgorithmBenchmarkWindow::registerAlgorithms()
 {
-    auto it = algorithms.insert("Graph", QList<Algorithm*>{});
+    auto it = algorithms.insert("Graph Algorithms", QList<Algorithm*>{});
     QList<Algorithm*>& algorithmsList = it.value();
 
     algorithmsList.append(new BFSIterative);

@@ -1415,7 +1415,7 @@ void SCCsVisualizer::updateVisualization()
 TravelingSalesmanProblemVisualizer::TravelingSalesmanProblemVisualizer(QObject *parent)
     : GraphAlgorithmVisualizer(parent)
 {
-    setObjectName("Traveling Salesman Problem (Held-Karp)");
+    setObjectName("Traveling Salesman Problem (Held-Karp, Bitmask method)");
 }
 
 void TravelingSalesmanProblemVisualizer::run(QWidget *widget)
@@ -1440,9 +1440,10 @@ void TravelingSalesmanProblemVisualizer::run(QWidget *widget)
             memo[i][1 << start | 1 << i] = graph->getEdgeWeight(start, i);
         }
 
-        for(int i = 3; i <= nodesNum; i++)
+        for(int r = 3; r <= nodesNum; r++)
         {
-            const QList<int> combinations = generateCombinations(i);
+            QList<int> combinations;
+            generateCombinations(r, combinations);
 
             for(int combination : combinations)
             {
@@ -1540,18 +1541,16 @@ void TravelingSalesmanProblemVisualizer::buildResultPath(const QList<QList<int>>
     std::reverse(resultEdgeList.begin(), resultEdgeList.end());
 }
 
-QList<int> TravelingSalesmanProblemVisualizer::generateCombinations(int subSetSize) const
+void TravelingSalesmanProblemVisualizer::generateCombinations(int r, QList<int> &combinations) const
 {
-    QList<int> subSets;
-    generateCombinations(0, 0, subSetSize, subSets);
-    return subSets;
+    generateCombinations(0, 0, r, combinations);
 }
 
-void TravelingSalesmanProblemVisualizer::generateCombinations(int subSet, int pos, int r, QList<int> &subSets) const
+void TravelingSalesmanProblemVisualizer::generateCombinations(int subSet, int pos, int r, QList<int> &combinations) const
 {
     if(r == 0)
     {
-        subSets.append(subSet);
+        combinations.append(subSet);
         return;
     }
 
@@ -1560,7 +1559,7 @@ void TravelingSalesmanProblemVisualizer::generateCombinations(int subSet, int po
     {
         subSet ^= (1 << i);
 
-        generateCombinations(subSet, i + 1, r - 1, subSets);
+        generateCombinations(subSet, i + 1, r - 1, combinations);
 
         subSet ^= (1 << i);
     }

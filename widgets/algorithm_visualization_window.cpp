@@ -211,7 +211,7 @@ void AlgorithmVisualizationWindow::setupUi()
     connect(algorithmsTreeView, &QTreeView::clicked, this, &AlgorithmVisualizationWindow::onAlgorithmVisualizerTreeItemClicked);
 
     QWidget* layoutHolder = new QWidget(this);
-    layoutHolder->setFixedWidth(300);
+    layoutHolder->setFixedWidth(380);
 
     verticalLayout = new QVBoxLayout(layoutHolder);
     verticalLayout->addWidget(algorithmsTreeView, 1);

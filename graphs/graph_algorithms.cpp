@@ -1081,10 +1081,10 @@ void TravelingSalesmanProblemAlgorithmBitmask::execute()
         memo[i][1 | 1 << i] = graph->getEdgeWeight(0, i);
     }
 
-    for(int i = 3; i <= nodesNum; i++)
+    for(int r = 3; r <= nodesNum; r++)
     {
         QList<int> combinations;
-        generateCombinations(i, combinations);
+        generateCombinations(r, combinations);
 
         for(int combination : combinations)
         {
@@ -1181,16 +1181,16 @@ QList<int> TravelingSalesmanProblemAlgorithmBitmask::buildResultPath(const QList
     return resultPath;
 }
 
-void TravelingSalesmanProblemAlgorithmBitmask::generateCombinations(int subSetSize, QList<int> &combinations) const
+void TravelingSalesmanProblemAlgorithmBitmask::generateCombinations(int r, QList<int> &combinations) const
 {
-    generateCombinations(0, 0, subSetSize, combinations);
+    generateCombinations(0, 0, r, combinations);
 }
 
-void TravelingSalesmanProblemAlgorithmBitmask::generateCombinations(int subSet, int pos, int r, QList<int> &subSets) const
+void TravelingSalesmanProblemAlgorithmBitmask::generateCombinations(int subSet, int pos, int r, QList<int> &combinations) const
 {
     if(r == 0)
     {
-        subSets.append(subSet);
+        combinations.append(subSet);
         return;
     }
 
@@ -1199,7 +1199,7 @@ void TravelingSalesmanProblemAlgorithmBitmask::generateCombinations(int subSet, 
     {
         subSet ^= (1 << i);
 
-        generateCombinations(subSet, i + 1, r - 1, subSets);
+        generateCombinations(subSet, i + 1, r - 1, combinations);
 
         subSet ^= (1 << i);
     }
