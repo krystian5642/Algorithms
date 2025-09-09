@@ -8,6 +8,7 @@
 
 #include <QMessageBox>
 #include <QQueue>
+#include <queue>
 
 GraphAlgorithmVisualizer::GraphAlgorithmVisualizer(QObject *parent)
     : AlgorithmVisualizer(parent)
@@ -422,16 +423,17 @@ void TreeCentersVisualizer::run(QWidget *widget)
 {
     const qsizetype nodesNum = graph->getNodesNum();
 
-    QList<int> nodeDegrees = graph->getNodeDegrees();
+    QList<int> inDegrees;
+    graph->getNodeInDegrees(inDegrees);
 
     QList<int> leafNodes;
 
     for(int i = 0; i < nodesNum; ++i)
     {
-        if(nodeDegrees[i] == 0 || nodeDegrees[i] == 1)
+        if(inDegrees[i] == 0 || inDegrees[i] == 1)
         {
             leafNodes.push_back(i);
-            nodeDegrees[i] = 0;
+            inDegrees[i] = 0;
         }
     };
 
@@ -444,7 +446,7 @@ void TreeCentersVisualizer::run(QWidget *widget)
 
         auto forEachNeighbour = [&](int value, int neighbour, int weight)
         {
-            if(--nodeDegrees[neighbour] == 1)
+            if(--inDegrees[neighbour] == 1)
             {
                 newLeafNodes.push_back(neighbour);
             }
@@ -632,7 +634,8 @@ KahnsAlgorithmVisualizer::KahnsAlgorithmVisualizer(QObject *parent)
 
 void KahnsAlgorithmVisualizer::run(QWidget *widget)
 {
-    QList<int> nodeDegrees = graph->getNodeDegrees();
+    QList<int> inDegrees;
+    graph->getNodeInDegrees(inDegrees);
 
     topologicalOrder.reserve(graph->getNodesNum());
     resultEdgeList.reserve(graph->getEdgesNum());
@@ -641,7 +644,7 @@ void KahnsAlgorithmVisualizer::run(QWidget *widget)
 
     for(int i = 0; i < graph->getNodesNum(); ++i)
     {
-        if(nodeDegrees[i] == 0)
+        if(inDegrees[i] == 0)
         {
             nodeQueue.enqueue(i);
         }
@@ -651,7 +654,7 @@ void KahnsAlgorithmVisualizer::run(QWidget *widget)
     {
         resultEdgeList.add(value, neighbour, true);
 
-        if(--nodeDegrees[neighbour] == 0)
+        if(--inDegrees[neighbour] == 0)
         {
             nodeQueue.enqueue(neighbour);
         }
@@ -788,7 +791,8 @@ bool SSSPonDAGVisualizer::isDataStructureSupported(const DataStructure *dataStru
 
 void SSSPonDAGVisualizer::topologicalSort(QList<int> &outTopologicalOrder) const
 {
-    QList<int> nodeDegrees = graph->getNodeDegrees();
+    QList<int> inDegrees;
+    graph->getNodeInDegrees(inDegrees);
 
     outTopologicalOrder.reserve(graph->getNodesNum());
 
@@ -798,7 +802,7 @@ void SSSPonDAGVisualizer::topologicalSort(QList<int> &outTopologicalOrder) const
 
     for(int i = 0; i < nodesNum; ++i)
     {
-        if(nodeDegrees[i] == 0)
+        if(inDegrees[i] == 0)
         {
             nodeQueue.enqueue(i);
         }
@@ -806,7 +810,7 @@ void SSSPonDAGVisualizer::topologicalSort(QList<int> &outTopologicalOrder) const
 
     auto forEachNeighbour = [&](int value, int neighbour, int weight)
     {
-        if(--nodeDegrees[neighbour] == 0)
+        if(--inDegrees[neighbour] == 0)
         {
             nodeQueue.enqueue(neighbour);
         }
@@ -1564,6 +1568,246 @@ void TravelingSalesmanProblemVisualizer::generateCombinations(int subSet, int po
         subSet ^= (1 << i);
     }
 }
+
+EulerianPathAlgorithmVisualizer::EulerianPathAlgorithmVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+{
+    setObjectName("Eulerian Path / (Hierholzer's algorithm)");
+
+    hiddenProperties.push_back("start");
+    hiddenProperties.push_back("randomStart");
+}
+
+void EulerianPathAlgorithmVisualizer::run(QWidget *widget)
+{
+    QList<int> inDegrees;
+    QList<int> outDegrees;
+
+    graph->getNodeDegrees(inDegrees, outDegrees);
+
+    if(doesEulerianPathExist(inDegrees, outDegrees))
+    {
+        const qsizetype nodesNum = graph->getNodesNum();
+
+        QList<int> eulerianPath;
+        eulerianPath.reserve(nodesNum + 1);
+
+        EdgeList visitedUndirectedEdges; // It is only used with an undirected graph
+        start = findStart(inDegrees, outDegrees);
+        DFSHelper(start, outDegrees, eulerianPath, visitedUndirectedEdges);
+
+        const int edgesNum = graph->getEdgesNum();
+
+        if(eulerianPath.size() != edgesNum + 1)
+        {
+            finish();
+            return;
+        }
+
+        for(int p = 1; p < edgesNum + 1; p++)
+        {
+            resultEdgeList.add(eulerianPath[p-1], eulerianPath[p], graph->getIsDirected());
+        }
+
+        startVisualization(widget);
+    }
+    else
+    {
+        finish();
+    }
+}
+
+void EulerianPathAlgorithmVisualizer::DFSHelper(int begin, QList<int> &outDegrees, QList<int> &eulerianPath, EdgeList &visitedUndirectedEdges) const
+{
+    while(outDegrees[begin] != 0)
+    {
+        const int neighbour = graph->getNeighbourAt(begin, --outDegrees[begin]);
+
+        if(!graph->getIsDirected())
+        {
+            const Edge edge(begin, neighbour, false);
+            if(!visitedUndirectedEdges.contains(edge))
+            {
+                visitedUndirectedEdges.add(begin, neighbour, false);
+                DFSHelper(neighbour, outDegrees, eulerianPath, visitedUndirectedEdges);
+            }
+        }
+        else
+        {
+            DFSHelper(neighbour, outDegrees, eulerianPath, visitedUndirectedEdges);
+        }
+    }
+
+    eulerianPath.push_front(begin);
+}
+
+bool EulerianPathAlgorithmVisualizer::doesEulerianPathExist(const QList<int> &inDegrees, const QList<int> &outDegrees) const
+{
+    if(outDegrees.empty())
+    {
+        return false;
+    }
+
+    if(graph->getIsDirected())
+    {
+        int startNodes = 0, endNodes = 0;
+
+        for(int i = 0; i < graph->getNodesNum(); i++)
+        {
+            const int outMinusIn = outDegrees[i] - inDegrees[i];
+            const int inMinusOut = inDegrees[i] - outDegrees[i];
+
+            if(outMinusIn > 1 || inMinusOut > 1)
+            {
+                return false;
+            }
+            else if(outMinusIn == 1)
+            {
+                startNodes++;
+            }
+            else if(inMinusOut == 1)
+            {
+                endNodes++;
+            }
+        }
+
+        return (startNodes == 0 && endNodes == 0) || (startNodes == 1 && endNodes == 1);
+    }
+    else
+    {
+        bool allEven = true;
+        int oddDegreesNum = 0;
+
+        // inDegrees are equal to outDegrees
+        for(int nodeDegree : inDegrees)
+        {
+            if(nodeDegree % 2 != 0)
+            {
+                allEven = false;
+                oddDegreesNum++;
+            }
+        }
+
+        return allEven || oddDegreesNum == 2;
+    }
+}
+
+int EulerianPathAlgorithmVisualizer::findStart(const QList<int> &inDegrees, const QList<int> &outDegrees) const
+{
+    int start = 0;
+
+    if(graph->getIsDirected())
+    {
+        for(int i = 0; i < graph->getNodesNum(); i++)
+        {
+            const int outMinusIn = outDegrees[i] - inDegrees[i];
+
+            if(outMinusIn == 1)
+            {
+                return i;
+            }
+
+            if(outDegrees[i] > 0)
+            {
+                start = i;
+            }
+        }
+    }
+    else
+    {
+        for(int i = 0; i < graph->getNodesNum(); i++)
+        {
+            if(inDegrees[i] % 2 == 1)
+            {
+                return i;
+            }
+        }
+    }
+
+    return start;
+}
+
+
+PrimMinimumSpanningTreeAlgorithmVisualizer::PrimMinimumSpanningTreeAlgorithmVisualizer(QObject *parent)
+    : GraphAlgorithmVisualizer(parent)
+{
+    setObjectName("Prim's Minimum Spanning Tree Algorithm (Lazy version)");
+}
+
+bool PrimMinimumSpanningTreeAlgorithmVisualizer::isDataStructureSupported(const DataStructure *dataStructure, QString &outInfo) const
+{
+    const Graph* graphPtr = qobject_cast<const Graph*>(dataStructure);
+    if(!graphPtr->getIsDirected())
+    {
+        return true;
+    };
+
+    outInfo = GraphTexts::DirectedGraphIsNotSupported;
+    return false;
+}
+
+void PrimMinimumSpanningTreeAlgorithmVisualizer::run(QWidget *widget)
+{
+    using namespace std;
+
+    if(randomStart)
+    {
+        setStart(graph->getRandomValue());
+    }
+
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    if(start < nodesNum && start >= 0)
+    {
+        QList<bool> visited(nodesNum, false);
+        visited[start] = true;
+
+        resultEdgeList.reserve(nodesNum);
+
+        priority_queue<pair<int, Edge>, vector<pair<int, Edge>>, CompareByMinWeight> edgePq;
+
+        auto forEachNeighbour = [&](int value, int neighbour, int weight)
+        {
+            const Edge e{value, neighbour, false};
+            edgePq.emplace(weight, e);
+            return true;
+        };
+
+        graph->forEachNeighbour(start, forEachNeighbour);
+
+        while(!edgePq.empty())
+        {
+            Edge edge = edgePq.top().second;
+            int node = visited[edge.getStart()] ? edge.getEnd() : edge.getStart();
+            while(visited[node] && !edgePq.empty())
+            {
+                edge = edgePq.top().second;
+                edgePq.pop();
+
+                node = visited[edge.getStart()] ? edge.getEnd() : edge.getStart();
+            }
+
+            if(visited[node])
+            {
+                break;
+            }
+
+            visited[node] = true;
+
+            resultEdgeList.add(edge);
+
+            graph->forEachNeighbour(node, forEachNeighbour);
+        }
+
+        startVisualization(widget);
+    }
+    else
+    {
+        showInfo(GraphTexts::StartNodeIsInvalid);
+        finish();
+    }
+}
+
 
 
 

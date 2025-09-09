@@ -5,6 +5,7 @@
 #include "../graph_algorithm_visualizers.h"
 #include "../graph_visual_builders.h"
 #include "../graph_visualization_settings.h"
+#include "../graph_texts.h"
 
 #include "add_edge_dialog.h"
 #include "remove_edge_dialog.h"
@@ -224,6 +225,12 @@ bool GraphWidget::visualizeAlgorithmAction(AlgorithmVisualizer* algorithmVisuali
         }
         else
         {
+            if(graph->isEmpty())
+            {
+                QMessageBox::information(qobject_cast<QWidget*>(parent()), "Info", GraphTexts::EmptyGraph);
+                return false;
+            }
+
             GraphAlgorithmVisualizer* graphAlgorithmVisualizer = qobject_cast<GraphAlgorithmVisualizer*>(algorithmVisualizer);
 
             QString outInfo;
@@ -266,6 +273,8 @@ void GraphWidget::registerAlgorithmVisualizers()
     algorithmVisualizers.append(new FloydWarshallVisualizer(this));
     algorithmVisualizers.append(new SCCsVisualizer(this));
     algorithmVisualizers.append(new TravelingSalesmanProblemVisualizer(this));
+    algorithmVisualizers.append(new EulerianPathAlgorithmVisualizer(this));
+    algorithmVisualizers.append(new PrimMinimumSpanningTreeAlgorithmVisualizer(this));
 
     for(auto* algorithmVisualizer : algorithmVisualizers)
     {

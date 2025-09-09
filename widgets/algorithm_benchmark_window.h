@@ -14,6 +14,7 @@ class QChartView;
 class QVBoxLayout;
 class QTreeView;
 class Algorithm;
+struct AlgorithmBenchmarkResult;
 
 class AlgorithmBenchmarkWindow : public QMainWindow
 {
@@ -40,7 +41,7 @@ private slots:
     void onAlgorithmTreeItemClicked(const QModelIndex& index);
 
     void onAlgorithmStarted();
-    void onAlgorithmFinished(const QList<QPointF>& result, const QString& toolTipText);
+    void onAlgorithmFinished(const AlgorithmBenchmarkResult &resultData);
 
     void onLineSeriesPressed(const QPointF& point);
 
@@ -72,7 +73,7 @@ private:
 
     QVBoxLayout* verticalLayout;
 
-    QHash<QLineSeries*, QString> seriesToToolTipText;
+    QHash<QLineSeries*, AlgorithmBenchmarkResult> seriesToResultData;
     QHash<QLineSeries*, QLabel*> seriesToLabel;
 
     // Actions

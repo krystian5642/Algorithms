@@ -133,24 +133,56 @@ void Graph::forEachNeighbour(int node, std::function<bool (int, int, int)> func)
     const_cast<Graph*>(this)->forEachNeighbour(node, func);
 }
 
-QList<int> Graph::getNodeDegrees() const
+void Graph::getNodeDegrees(QList<int> &inDegrees, QList<int> &outDegrees) const
 {
     const qsizetype nodesNum = getNodesNum();
 
-    QList<int> nodeDegrees(nodesNum, 0);
+    inDegrees.fill(0, nodesNum);
+    outDegrees.fill(0, nodesNum);
 
-    auto forEachNeighbourFunc = [&](int start, int neighbour, int weight)
+    auto forEachEdge = [&](int from, int to, int weight)
     {
-        ++nodeDegrees[neighbour];
+        outDegrees[from]++;
+        inDegrees[to]++;
         return true;
     };
 
-    for(int i = 0; i < nodesNum; ++i)
+    Graph::forEachEdge(forEachEdge);
+}
+
+void Graph::getNodeInDegrees(QList<int> &inDegrees) const
+{
+    const qsizetype nodesNum = getNodesNum();
+
+    inDegrees.fill(0, nodesNum);
+
+    auto forEachEdge = [&](int from, int to, int weight)
     {
-        forEachNeighbour(i, forEachNeighbourFunc);
+        inDegrees[to]++;
+        return true;
     };
 
-    return nodeDegrees;
+    Graph::forEachEdge(forEachEdge);
+}
+
+void Graph::getNodeOutDegrees(QList<int> &outDegrees) const
+{
+    const qsizetype nodesNum = getNodesNum();
+
+    outDegrees.fill(0, nodesNum);
+
+    auto forEachEdge = [&](int from, int to, int weight)
+    {
+        outDegrees[from]++;
+        return true;
+    };
+
+    Graph::forEachEdge(forEachEdge);
+}
+
+bool Graph::isEmpty() const
+{
+    return getNodesNum() == 0;
 }
 
 qsizetype Graph::getNeighboursNum(int node) const
@@ -336,6 +368,16 @@ qsizetype AdjacencyListGraph::getNeighboursNum(int node) const
     return adjList[node].size();
 }
 
+int AdjacencyListGraph::getNeighbourAt(int node, int at) const
+{
+    if(adjList.size() <= node && adjList[node].size() <= at)
+    {
+        return -1;
+    }
+
+    return adjList[node][at].endValue;
+}
+
 AdjacencyMatrixGraph::AdjacencyMatrixGraph(QObject *parent, bool inIsDirected, int nodes)
     : Graph(parent, inIsDirected)
 {
@@ -506,4 +548,13 @@ qsizetype AdjacencyMatrixGraph::getNeighboursNum(int node) const
     Graph::forEachNeighbour(node, countNeighbours);
 
     return neighboursNum;
+}
+
+int AdjacencyMatrixGraph::getNeighbourAt(int node, int at) const
+{
+    if(adjMatrix.size() <= node && adjMatrix[node].size() <= at)
+    {
+        return -1;
+    }
+    return adjMatrix[node][at];
 }

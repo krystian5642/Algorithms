@@ -146,6 +146,11 @@ public:
         return pairs.size();
     }
 
+    void reserve(const qsizetype size)
+    {
+        pairs.reserve(size);
+    }
+
 private:
     void heapifyDown(int index)
     {

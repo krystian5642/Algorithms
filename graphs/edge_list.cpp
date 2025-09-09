@@ -25,6 +25,11 @@ EdgeList::EdgeList(bool inAllowDuplicates)
 void EdgeList::add(int start, int end, bool directed)
 {
     const Edge edge(start, end, directed);
+    add(edge);
+}
+
+void EdgeList::add(const Edge &edge)
+{
     if(allowDuplicates)
     {
         edges.append(edge);
@@ -60,6 +65,11 @@ bool EdgeList::empty() const
 qsizetype EdgeList::size() const
 {
     return edges.size();
+}
+
+bool EdgeList::contains(const Edge &edge) const
+{
+    return helperSet.contains(edge);
 }
 
 const Edge& EdgeList::getLastEdge() const

@@ -32,11 +32,13 @@ public:
     EdgeList(bool inAllowDuplicates = false);
 
     void add(int start, int end, bool directed);
+    void add(const Edge& edge);
     void reserve(qsizetype size);
     const Edge& first() const;
     Edge takeFirst();
     bool empty() const;
     qsizetype size() const;
+    bool contains(const Edge& edge) const;
 
     const Edge& getLastEdge() const;
     bool isValidIndex(qsizetype index) const;

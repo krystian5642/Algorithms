@@ -2,6 +2,7 @@
 #include "../core/algorithm.h"
 #include "../graphs/graph_algorithms.h"
 #include "../core/algorithm_texts.h"
+#include "../core/benchmark_timers.h"
 
 #include <QStandardItemModel>
 #include <QToolBar>
@@ -65,7 +66,7 @@ void AlgorithmBenchmarkWindow::onActionClearTriggered()
 {
     chart->removeAllSeries();
     seriesToLabel.clear();
-    seriesToToolTipText.clear();
+    seriesToResultData.clear();
 }
 
 void AlgorithmBenchmarkWindow::onActionRunBenchmarkTriggered(bool isOn)
@@ -179,17 +180,17 @@ void AlgorithmBenchmarkWindow::onAlgorithmStarted()
     actionRunBenchmark->setChecked(true);
 }
 
-void AlgorithmBenchmarkWindow::onAlgorithmFinished(const QList<QPointF>& result, const QString& toolTipText)
+void AlgorithmBenchmarkWindow::onAlgorithmFinished(const AlgorithmBenchmarkResult &resultData)
 {
     actionRunBenchmark->setChecked(false);
     actionRunBenchmark->setEnabled(true);
 
     QLineSeries* newSeries = new QLineSeries(this);
-    newSeries->append(result);
+    newSeries->append(resultData.mainSeries);
     newSeries->setName(sender()->objectName() + "_" + QString::number(chart->series().size()));
     connect(newSeries, &QLineSeries::pressed, this, &AlgorithmBenchmarkWindow::onLineSeriesPressed);
 
-    seriesToToolTipText[newSeries] = toolTipText;
+    seriesToResultData[newSeries] = resultData;
 
     addSeries(newSeries);
 
@@ -212,9 +213,26 @@ void AlgorithmBenchmarkWindow::onLineSeriesPressed(const QPointF &point)
     }
     else
     {
-        QPointer<QLabel> label = new QLabel(seriesToToolTipText[lineSeries], chartView);
+        QPointer<QLabel> label = new QLabel(seriesToResultData[lineSeries].toolTipInfo, chartView);
         label->setStyleSheet("border: 1px solid black; background-color: white;");
         label->adjustSize();
+
+        // add new sub series
+        const auto& subSeriesNameToSubSeriesData = seriesToResultData[lineSeries].subSeriesNameToSubSeriesData;
+        for (auto it = subSeriesNameToSubSeriesData.constBegin(); it != subSeriesNameToSubSeriesData.constEnd(); ++it)
+        {
+            const QString& name = it.key();
+            const SubSeriesData& subSeries = it.value();
+
+            QLineSeries* newSeries = new QLineSeries(this);
+            newSeries->setName(name);
+
+            newSeries->append(subSeries.points);
+            newSeries->setColor(subSeries.color);
+
+            addSeries(newSeries);
+            chart->createDefaultAxes();
+        }
 
         auto onLineSeriesDestroyed = [this, label]()
         {
@@ -227,7 +245,7 @@ void AlgorithmBenchmarkWindow::onLineSeriesPressed(const QPointF &point)
             if(lineSeries)
             {
                 seriesToLabel.remove(lineSeries);
-                seriesToToolTipText.remove(lineSeries);
+                seriesToResultData.remove(lineSeries);
             }
         };
 
@@ -436,6 +454,9 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new TravelingSalesmanProblemAlgorithmHash);
     algorithmsList.append(new TravelingSalesmanProblemAlgorithmBitmask);
 
+    algorithmsList.append(new EulerianPathAlgorithm);
+
+    algorithmsList.append(new PrimMinimumSpanningTreeAlgorithm);
 
     for(auto* algorithm : algorithmsList)
     {
@@ -491,7 +512,7 @@ void AlgorithmBenchmarkWindow::saveSeriesToFile()
     QLineSeries* lastSeries = qobject_cast<QLineSeries*>(series[series.size() - 1]);
 
     QJsonObject infoAsJsonObject;
-    infoAsJsonObject["info"] = seriesToToolTipText[lastSeries];
+    infoAsJsonObject["info"] = seriesToResultData[lastSeries].toolTipInfo;
 
     QJsonArray resultArray;
     resultArray.append(infoAsJsonObject);
@@ -529,7 +550,7 @@ void AlgorithmBenchmarkWindow::loadSeriesFromFile()
     const QJsonArray resultJsonArray = jsonDoc.array();
 
     const QString info = resultJsonArray[0].toObject()["info"].toString();
-    seriesToToolTipText[newSeries] = info;
+    seriesToResultData[newSeries].toolTipInfo = info;
 
     newSeries->setName(info.left(info.indexOf('\n')) + "_" + QString::number(chart->series().size() + 1));
 

@@ -1,6 +1,8 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
+#include "../core/benchmark_timers.h"
+
 #include <functional>
 
 #include <QObject>
@@ -18,13 +20,15 @@ class Algorithm : public QObject, public QRunnable
 
     Q_PROPERTY(int iterationsNumber READ getIterationsNumber WRITE setIterationsNumber NOTIFY iterationsNumberChanged FINAL)
 public:
-    using ComplexityNameToFunction = QPair<QString, std::function<int(int, int, int)>>;
+    using ComplexityFunction = std::function<qreal(int, int, int)>;
+    using ComplexityNameToFunction = QPair<QString, ComplexityFunction>;
     using ComplexityPairsList = QList<ComplexityNameToFunction>;
 
     explicit Algorithm(QObject* parent = nullptr);
     virtual ~Algorithm() = 0;
 
     virtual void run() = 0;
+    virtual qreal calculateXForCurrentIteration() const = 0;
 
     virtual bool canRunAlgorithm(QString& outInfo) const;
 
@@ -42,7 +46,7 @@ public:
 
 signals:
     void started();
-    void finished(const QList<QPointF>& result, const QString& toolTip);
+    void finished(const AlgorithmBenchmarkResult &resultData);
 
     void iterationsNumberChanged();
 
@@ -59,6 +63,9 @@ protected:
     ComplexityPairsList complexityList;
 
     QList<DataStructureBuilder*> dataStructureBuilders;
+
+    ComplexityFunction currentComplexityFunction;
+    int currentIteration;
 };
 
 #endif // ALGORITHM_H

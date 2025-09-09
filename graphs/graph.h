@@ -35,6 +35,7 @@ public:
     virtual void clear() = 0;
     virtual int getRandomValue(bool* found = nullptr) const = 0;
     virtual qsizetype getNeighboursNum(int node) const = 0;
+    virtual int getNeighbourAt(int node, int at) const = 0;
 
     /** if func returns false, next edge will not be processed, forEachEdge is supposed to end execution too */
     virtual void forEachEdge(std::function<bool(int, int, int)> func) = 0;
@@ -45,7 +46,11 @@ public:
     void forEachEdge(std::function<bool(int, int, int)> func) const;
     void forEachNeighbour(int node, std::function<bool(int, int, int)> func) const;
 
-    QList<int> getNodeDegrees() const;
+    void getNodeDegrees(QList<int> &inDegrees, QList<int> &outDegrees) const;
+    void getNodeInDegrees(QList<int> &inDegrees) const;
+    void getNodeOutDegrees(QList<int> &outDegrees) const;
+
+    bool isEmpty() const;
 
 signals:
     void onNodeAdded();
@@ -74,6 +79,7 @@ public:
     void forEachEdge(std::function<bool(int, int, int)> func) override;
     void forEachNeighbour(int node, std::function<bool(int, int, int)> func) override;
     qsizetype getNeighboursNum(int node) const override;
+    int getNeighbourAt(int node, int at) const override;
 
 private:
     struct Edge
@@ -113,6 +119,7 @@ public:
     void forEachEdge(std::function<bool(int, int, int)> func) override;
     void forEachNeighbour(int node, std::function<bool(int, int, int)> func) override;
     qsizetype getNeighboursNum(int node) const override;
+    int getNeighbourAt(int node, int at) const override;
 
 private:
     using Neighbours = QList<int>;

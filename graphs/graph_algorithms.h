@@ -2,6 +2,7 @@
 #define GRAPH_AlGORITHMS_H
 
 #include "../core/algorithm.h"
+#include "edge_list.h"
 
 #include <QQueue>
 #include <QSet>
@@ -23,6 +24,7 @@ public:
     void appendPropertiesInfo(QString& infoText) override;
 
     void run() override;
+    qreal calculateXForCurrentIteration() const override;
 
 #ifdef QT_DEBUG
     void debugRun() override;
@@ -240,6 +242,32 @@ protected:
 
     void generateCombinations(int r, QList<int> &combinations) const;
     void generateCombinations(int subSet, int pos, int r, QList<int> &combinations) const;
+};
+
+class EulerianPathAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit EulerianPathAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+
+    void DFSHelper(int begin, QList<int>& outDegrees, QList<int>& eulerianPath, EdgeList &visitedUndirectedEdges) const;
+    bool doesEulerianPathExist(const QList<int> &inDegrees, const QList<int> &outDegrees) const;
+    int findStart(const QList<int> &inDegrees, const QList<int> &outDegrees) const;
+};
+
+class PrimMinimumSpanningTreeAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit PrimMinimumSpanningTreeAlgorithm(QObject* parent = nullptr);
+
+    bool canRunAlgorithm(QString& outInfo) const override;
+
+protected:
+    void execute() override;
 
 };
 

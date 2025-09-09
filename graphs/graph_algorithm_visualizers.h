@@ -304,5 +304,39 @@ protected:
     void generateCombinations(int subSet, int pos, int r, QList<int> &combinations) const;
 };
 
+class EulerianPathAlgorithmVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit EulerianPathAlgorithmVisualizer(QObject* parent = nullptr);
+
+protected:
+    void run(QWidget* widget) override;
+
+    void DFSHelper(int begin, QList<int>& outDegrees, QList<int>& eulerianPath, EdgeList &visitedUndirectedEdges) const;
+    bool doesEulerianPathExist(const QList<int> &inDegrees, const QList<int> &outDegrees) const;
+    int findStart(const QList<int> &inDegrees, const QList<int> &outDegrees) const;
+};
+
+class PrimMinimumSpanningTreeAlgorithmVisualizer : public GraphAlgorithmVisualizer
+{
+    Q_OBJECT
+public:
+    explicit PrimMinimumSpanningTreeAlgorithmVisualizer(QObject* parent = nullptr);
+
+    bool isDataStructureSupported(const DataStructure* dataStructure, QString& outInfo) const override;
+
+protected:
+    void run(QWidget* widget) override;
+
+    struct CompareByMinWeight
+    {
+        bool operator()(const std::pair<int, Edge>& a, const std::pair<int, Edge>& b)
+        {
+            return a.first > b.first;
+        }
+    };
+};
+
 
 #endif // GRAPHALGORITHMVISUALIZERS_H

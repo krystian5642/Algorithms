@@ -11,6 +11,7 @@ Algorithm::Algorithm(QObject* parent)
     : QObject(parent)
     , iterationsNumber(1000)
     , requestedEnd(false)
+    , currentIteration(0)
 {
     setAutoDelete(false);
 }
