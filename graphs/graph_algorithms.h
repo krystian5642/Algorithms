@@ -258,11 +258,11 @@ protected:
     int findStart(const QList<int> &inDegrees, const QList<int> &outDegrees) const;
 };
 
-class PrimMinimumSpanningTreeAlgorithm : public GraphAlgorithm
+class LazyPrimMinimumSpanningTreeAlgorithm : public GraphAlgorithm
 {
     Q_OBJECT
 public:
-    explicit PrimMinimumSpanningTreeAlgorithm(QObject* parent = nullptr);
+    explicit LazyPrimMinimumSpanningTreeAlgorithm(QObject* parent = nullptr);
 
     bool canRunAlgorithm(QString& outInfo) const override;
 
@@ -270,5 +270,19 @@ protected:
     void execute() override;
 
 };
+
+class EagerPrimMinimumSpanningTreeAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit EagerPrimMinimumSpanningTreeAlgorithm(QObject* parent = nullptr);
+
+    bool canRunAlgorithm(QString& outInfo) const override;
+
+protected:
+    void execute() override;
+
+};
+
 
 #endif // GRAPH_AlGORITHMS_H

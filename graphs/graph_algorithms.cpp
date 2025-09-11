@@ -42,6 +42,7 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     complexityList.push_back(qMakePair("O(log(E))",           [](int I, int V, int E) { return std::log(E); }));
     complexityList.push_back(qMakePair("O(log(V))",           [](int I, int V, int E) { return std::log(V); }));
     complexityList.push_back(qMakePair("O((V+E)*log(V+E))",    [](int I, int V, int E) { return (V+E)*std::log(V+E); }));
+    complexityList.push_back(qMakePair("O(V*log(V))",    [](int I, int V, int E) { return V*std::log(V); }));
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -644,7 +645,7 @@ void EagerDijkstraAlgorithm::execute()
             distances[neighbour] = newDist;
             prev[neighbour] = value;
 
-            nodeDistancePairs.setValue(neighbour, newDist);
+            nodeDistancePairs.updateKey(neighbour, newDist);
         }
 
         return true;
@@ -1351,12 +1352,13 @@ int EulerianPathAlgorithm::findStart(const QList<int> &inDegrees, const QList<in
     return start;
 }
 
-PrimMinimumSpanningTreeAlgorithm::PrimMinimumSpanningTreeAlgorithm(QObject *parent)
+LazyPrimMinimumSpanningTreeAlgorithm::LazyPrimMinimumSpanningTreeAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
 {
     setObjectName("Prim's Minimum Spanning Tree Algorithm (Lazy version)");
 }
 
-bool PrimMinimumSpanningTreeAlgorithm::canRunAlgorithm(QString &outInfo) const
+bool LazyPrimMinimumSpanningTreeAlgorithm::canRunAlgorithm(QString &outInfo) const
 {
     const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
     if(!graphBuilder->getIsGraphDirected())
@@ -1368,7 +1370,7 @@ bool PrimMinimumSpanningTreeAlgorithm::canRunAlgorithm(QString &outInfo) const
     return false;
 }
 
-void PrimMinimumSpanningTreeAlgorithm::execute()
+void LazyPrimMinimumSpanningTreeAlgorithm::execute()
 {
     const qsizetype nodesNum = graph->getNodesNum();
 
@@ -1393,7 +1395,7 @@ void PrimMinimumSpanningTreeAlgorithm::execute()
     {
         int first;
         {
-            BENCHMARK_SCOPED_TIMER("edgesPq.extract().first", Qt::red, AggregationMode::Max)
+            //BENCHMARK_SCOPED_TIMER("edgesPq.extract().first", Qt::red, AggregationMode::Max)
 
             first = edgesPq.extract().first;
         }
@@ -1408,7 +1410,7 @@ void PrimMinimumSpanningTreeAlgorithm::execute()
         spanningTree.append(first);
 
         {
-            BENCHMARK_SCOPED_TIMER("forEachNeighbour", Qt::blue, AggregationMode::Max)
+            //BENCHMARK_SCOPED_TIMER("forEachNeighbour", Qt::blue, AggregationMode::Max)
 
             graph->forEachNeighbour(first, forEachNeighbour);
         }
@@ -1419,3 +1421,81 @@ void PrimMinimumSpanningTreeAlgorithm::execute()
         spanningTree.clear();
     }
 }
+
+EagerPrimMinimumSpanningTreeAlgorithm::EagerPrimMinimumSpanningTreeAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Prim's Minimum Spanning Tree Algorithm (Eager version)");
+}
+
+bool EagerPrimMinimumSpanningTreeAlgorithm::canRunAlgorithm(QString &outInfo) const
+{
+    const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    if(!graphBuilder->getIsGraphDirected())
+    {
+        return true;
+    }
+
+    outInfo = GraphTexts::DirectedGraphIsNotSupported;
+    return false;
+}
+
+void EagerPrimMinimumSpanningTreeAlgorithm::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QList<int> spanningTree;
+    spanningTree.reserve(nodesNum);
+
+    QList<bool> visited(nodesNum, false);
+
+    IndexedPriorityQueue edgesPq;
+    edgesPq.insert(0, 0);
+
+    auto forEachNeighbour = [&](int value, int neighbour, int weight)
+    {
+        if(!visited[neighbour] && weight < edgesPq.getValue(neighbour))
+        {
+            edgesPq.updateKey(neighbour, weight);
+        }
+        return true;
+    };
+
+    while(!edgesPq.empty() && spanningTree.size() < nodesNum)
+    {
+        int first;
+        {
+            //BENCHMARK_SCOPED_TIMER("edgesPq.extract().first", Qt::red, AggregationMode::Max)
+
+            first = edgesPq.extract().first;
+        }
+
+        if(visited[first])
+        {
+            continue;
+        }
+
+        visited[first] = true;
+
+        spanningTree.append(first);
+
+        {
+            //BENCHMARK_SCOPED_TIMER("forEachNeighbour", Qt::blue, AggregationMode::Max)
+
+            graph->forEachNeighbour(first, forEachNeighbour);
+        }
+    }
+
+    if(spanningTree.size() != nodesNum)
+    {
+        spanningTree.clear();
+    }
+}
+
+
+
+
+
+
+
+

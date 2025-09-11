@@ -254,7 +254,7 @@ public:
         }
     }
 
-    void setValue(int key, int value)
+    void updateKey(int key, int value)
     {
         const auto it = keyIndices.find(key);
         if(it != keyIndices.end())
@@ -296,6 +296,12 @@ public:
     qsizetype size() const
     {
         return pairs.size();
+    }
+
+    int getValue(int key)
+    {
+        const auto it = keyIndices.find(key);
+        return it != keyIndices.end() ? pairs[it.value()].second : INF;
     }
 
 private:

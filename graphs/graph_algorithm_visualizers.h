@@ -338,5 +338,4 @@ protected:
     };
 };
 
-
 #endif // GRAPHALGORITHMVISUALIZERS_H

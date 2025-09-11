@@ -1812,16 +1812,3 @@ void PrimMinimumSpanningTreeAlgorithmVisualizer::run(QWidget *widget)
         finish();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -466,7 +466,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
 
     algorithmsList.append(new EulerianPathAlgorithm);
 
-    algorithmsList.append(new PrimMinimumSpanningTreeAlgorithm);
+    algorithmsList.append(new LazyPrimMinimumSpanningTreeAlgorithm);
+    algorithmsList.append(new EagerPrimMinimumSpanningTreeAlgorithm);
 
     for(auto* algorithm : algorithmsList)
     {
