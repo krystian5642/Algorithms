@@ -10,6 +10,9 @@
 Algorithm::Algorithm(QObject* parent)
     : QObject(parent)
     , iterationsNumber(1000)
+#ifdef QT_DEBUG
+    , isDebugRun(false)
+#endif
     , requestedEnd(false)
     , currentIteration(0)
 {
@@ -88,3 +91,15 @@ void Algorithm::setIterationsNumber(int newIterationsNumber)
     iterationsNumber = newIterationsNumber;
     emit iterationsNumberChanged();
 }
+
+#ifdef QT_DEBUG
+bool Algorithm::getIsDebugRun() const
+{
+    return isDebugRun;
+}
+
+void Algorithm::setIsDebugRun(bool newIsDebugRun)
+{
+    isDebugRun = newIsDebugRun;
+}
+#endif

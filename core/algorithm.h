@@ -44,6 +44,11 @@ public:
     int getIterationsNumber() const;
     void setIterationsNumber(int newIterationsNumber);
 
+#ifdef QT_DEBUG
+    bool getIsDebugRun() const;
+    void setIsDebugRun(bool newIsDebugRun);
+#endif
+
 signals:
     void started();
     void finished(const AlgorithmBenchmarkResult &resultData);
@@ -56,10 +61,12 @@ protected:
     int iterationsNumber;
     QString selectedComplexity;
 
-protected:
+#ifdef QT_DEBUG
+    bool isDebugRun;
+#endif
+
     bool requestedEnd;
 
-protected:
     ComplexityPairsList complexityList;
 
     QList<DataStructureBuilder*> dataStructureBuilders;

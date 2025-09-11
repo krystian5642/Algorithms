@@ -20,52 +20,72 @@ void AlgorithmBenchmarkTimerManager::clear(const Algorithm* algorithm)
     timersWorkCycles = 0;
 }
 
-BenchmarkScopedTimer::BenchmarkScopedTimer(const Algorithm* inAlgorithm, const QString &inName, const QColor &inColor, bool inAdditive)
+BenchmarkScopedTimer::BenchmarkScopedTimer(const Algorithm* inAlgorithm, const QString &inName, const QColor &inColor, AggregationMode inAggregationMode)
     : algorithm(inAlgorithm)
     , name(inName)
     , color(inColor)
-    , additive(inAdditive)
+    , aggregationMode(inAggregationMode)
 {
-    AlgorithmBenchmarkTimerManager::getTimerManager().algorithmToResultData[algorithm][name].color = color;
+#ifdef QT_DEBUG
+    if(!algorithm->getIsDebugRun())
+#endif
+    {
+        AlgorithmBenchmarkTimerManager::getTimerManager().algorithmToResultData[algorithm][name].color = color;
 
-    QueryThreadCycleTime(GetCurrentThread(), &start);
+        QueryThreadCycleTime(GetCurrentThread(), &start);
+    }
 }
 
 BenchmarkScopedTimer::~BenchmarkScopedTimer()
 {
-    QueryThreadCycleTime(GetCurrentThread(), &end);
-
-    ULONG64 workStart;
-    QueryThreadCycleTime(GetCurrentThread(), &workStart);
-
-    auto& timerManager = AlgorithmBenchmarkTimerManager::getTimerManager();
-    auto& resultData = timerManager.algorithmToResultData[algorithm][name];
-
-    const qreal elapsedCycles = (qreal)(end - start);
-    const qreal x = algorithm->calculateXForCurrentIteration();
-
-    bool append = true;
-    if(additive)
+#ifdef QT_DEBUG
+    if(!algorithm->getIsDebugRun())
+#endif
     {
+        QueryThreadCycleTime(GetCurrentThread(), &end);
+
+        ULONG64 workStart;
+        QueryThreadCycleTime(GetCurrentThread(), &workStart);
+
+        auto& timerManager = AlgorithmBenchmarkTimerManager::getTimerManager();
+        auto& resultData = timerManager.algorithmToResultData[algorithm][name];
+
+        const qreal elapsedCycles = (qreal)(end - start);
+        const qreal x = algorithm->calculateXForCurrentIteration();
+
         auto it = std::find_if(resultData.points.begin(), resultData.points.end(), [x] (const QPointF& point)
         {
-           return point.x() == x;
+            return point.x() == x;
         });
 
         if(it != resultData.points.end())
         {
-            it->ry() += elapsedCycles;
-            append = false;
+            switch (aggregationMode)
+            {
+            case AggregationMode::Sum:
+                it->ry() += elapsedCycles;
+                break;
+
+            case AggregationMode::Min:
+                it->ry() = std::min(it->y(), elapsedCycles);
+                break;
+
+            case AggregationMode::Max:
+                it->ry() = std::max(it->y(), elapsedCycles);
+                break;
+
+            default:
+                break;
+            }
         }
+        else
+        {
+            resultData.points.append((QPointF{x, elapsedCycles}));
+        }
+
+        ULONG64 workEnd;
+        QueryThreadCycleTime(GetCurrentThread(), &workEnd);
+
+        timerManager.timersWorkCycles += workEnd - workStart;
     }
-
-    if(append)
-    {
-        resultData.points.append((QPointF{x, elapsedCycles}));
-    }
-
-    ULONG64 workEnd;
-    QueryThreadCycleTime(GetCurrentThread(), &workEnd);
-
-    timerManager.timersWorkCycles += workEnd - workStart;
 }

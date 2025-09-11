@@ -11,6 +11,7 @@ namespace GraphTexts
     inline const QString StartNodeIsInvalid = "Start node is invalid.";
     inline const QString EndNodeIsInvalid = "End node is invalid.";
     inline const QString StartOrEndNodesAreInvalid = "Start or end nodes are invalid.";
+    inline const QString NoMSTExists = "No MST exists";
 }
 
 #endif // GRAPH_TEXTS_H

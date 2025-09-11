@@ -141,11 +141,13 @@ void AlgorithmBenchmarkWindow::onActionDebugRunTriggered()
     Algorithm* algorithm = getSelectedAlgorithm();
     if(algorithm)
     {
+        algorithm->setIsDebugRun(true);
         algorithm->debugRun();
+        algorithm->setIsDebugRun(false);
     }
     else
     {
-        QMessageBox::information(this, "Info", "No algorithm selected");
+        QMessageBox::information(this, "Info", AlgorithmTexts::NoAlgorithmSelected);
     }
 }
 #endif
@@ -275,6 +277,14 @@ void AlgorithmBenchmarkWindow::onLegendMarkerClicked()
 {
     QLegendMarker* marker = qobject_cast<QLegendMarker*>(sender());
     chart->removeSeries(marker->series());
+
+    auto seriesArray = chart->series();
+    for(auto* series : seriesArray)
+    {
+        chart->removeSeries(series);
+        addSeries(series);
+    }
+
     chart->createDefaultAxes();
 }
 
@@ -580,7 +590,7 @@ void AlgorithmBenchmarkWindow::clearSeriesSelection()
     seriesToLabel.clear();
 }
 
-void AlgorithmBenchmarkWindow::addSeries(QLineSeries* series)
+void AlgorithmBenchmarkWindow::addSeries(QAbstractSeries* series)
 {
     chart->addSeries(series);
     const auto markers = chart->legend()->markers(series);

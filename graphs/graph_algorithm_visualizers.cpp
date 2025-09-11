@@ -1764,32 +1764,30 @@ void PrimMinimumSpanningTreeAlgorithmVisualizer::run(QWidget *widget)
 
         resultEdgeList.reserve(nodesNum);
 
-        priority_queue<pair<int, Edge>, vector<pair<int, Edge>>, CompareByMinWeight> edgePq;
+        priority_queue<pair<int, Edge>, vector<pair<int, Edge>>, CompareByMinWeight> edgesPq;
 
         auto forEachNeighbour = [&](int value, int neighbour, int weight)
         {
-            const Edge e{value, neighbour, false};
-            edgePq.emplace(weight, e);
+            if(!visited[neighbour])
+            {
+                const Edge e{value, neighbour, false};
+                edgesPq.emplace(weight, e);
+            }
+
             return true;
         };
 
         graph->forEachNeighbour(start, forEachNeighbour);
 
-        while(!edgePq.empty())
+        while(!edgesPq.empty() && resultEdgeList.size() < nodesNum - 1)
         {
-            Edge edge = edgePq.top().second;
-            int node = visited[edge.getStart()] ? edge.getEnd() : edge.getStart();
-            while(visited[node] && !edgePq.empty())
-            {
-                edge = edgePq.top().second;
-                edgePq.pop();
+            const Edge edge = edgesPq.top().second;
+            edgesPq.pop();
 
-                node = visited[edge.getStart()] ? edge.getEnd() : edge.getStart();
-            }
-
+            const int node = visited[edge.getStart()] ? edge.getEnd() : edge.getStart();
             if(visited[node])
             {
-                break;
+                continue;
             }
 
             visited[node] = true;
@@ -1797,6 +1795,13 @@ void PrimMinimumSpanningTreeAlgorithmVisualizer::run(QWidget *widget)
             resultEdgeList.add(edge);
 
             graph->forEachNeighbour(node, forEachNeighbour);
+        }
+
+        if(resultEdgeList.size() != nodesNum - 1)
+        {
+            showInfo(GraphTexts::NoMSTExists);
+            finish();
+            return;
         }
 
         startVisualization(widget);

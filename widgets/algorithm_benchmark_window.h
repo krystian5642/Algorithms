@@ -7,6 +7,7 @@
 #include <QQueue>
 #include <QTimer>
 
+class QAbstractSeries;
 class QLabel;
 class QLineSeries;
 class QChart;
@@ -64,7 +65,7 @@ private:
     void loadSeriesFromFile();
 
     void clearSeriesSelection();
-    void addSeries(QLineSeries* series);
+    void addSeries(QAbstractSeries* series);
 
     QTreeView* algorithmsTreeView;
 

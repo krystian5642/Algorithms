@@ -111,6 +111,7 @@ PropertyEditorFactory::PropertyEditorFactory()
         lineEdit->setText(property.read(propertyObject).toString());
         lineEdit->setValidator(new QIntValidator(lineEdit));
 
+        propertyObject->setProperty(property.name(), lineEdit->text().toInt());
         QObject::connect(lineEdit, &QLineEdit::textChanged, propertyObject, [property, propertyObject](const QString& newText)
         {
             propertyObject->setProperty(property.name(), newText.toInt());
@@ -128,6 +129,7 @@ PropertyEditorFactory::PropertyEditorFactory()
         validator->setLocale(QLocale::C);
         lineEdit->setValidator(validator);
 
+        propertyObject->setProperty(property.name(), lineEdit->text().toDouble());
         QObject::connect(lineEdit, &QLineEdit::textChanged, propertyObject, [property, propertyObject](const QString& newText)
         {
             propertyObject->setProperty(property.name(), newText.toDouble());
@@ -142,6 +144,7 @@ PropertyEditorFactory::PropertyEditorFactory()
         checkBox->setCheckState(property.read(propertyObject).toBool() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
         checkBox->setLayoutDirection(Qt::LayoutDirection::RightToLeft);
 
+        propertyObject->setProperty(property.name(), checkBox->checkState() == Qt::CheckState::Checked);
         QObject::connect(checkBox, &QCheckBox::checkStateChanged, propertyObject, [property, propertyObject](Qt::CheckState newCheckState)
         {
             propertyObject->setProperty(property.name(), newCheckState == Qt::CheckState::Checked);
@@ -155,6 +158,7 @@ PropertyEditorFactory::PropertyEditorFactory()
         QLineEdit* lineEdit = new QLineEdit(parent);
         lineEdit->setText(property.read(propertyObject).toString());
 
+        propertyObject->setProperty(property.name(), lineEdit->text());
         QObject::connect(lineEdit, &QLineEdit::textChanged, propertyObject, [property, propertyObject](const QString& newText)
         {
             propertyObject->setProperty(property.name(), newText);

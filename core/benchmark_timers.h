@@ -10,7 +10,14 @@
 
 class Algorithm;
 
-#define BENCHMARK_SCOPED_TIMER(name, color, additive) BenchmarkScopedTimer scopedTimer##__LINE__(this, name, color, additive);
+#define BENCHMARK_SCOPED_TIMER(name, color, aggregationMode) BenchmarkScopedTimer scopedTimer##__LINE__(this, name, color, aggregationMode);
+
+enum class AggregationMode
+{
+    Sum,   // total accumulated time across all iterations
+    Min,   // the shortest single iteration time
+    Max    // the longest single iteration time
+};
 
 struct SubSeriesData
 {
@@ -56,13 +63,13 @@ private:
 class BenchmarkScopedTimer
 {
 public:
-    BenchmarkScopedTimer(const Algorithm* inAlgorithm, const QString &inName, const QColor &inColor, bool inAdditive);
+    BenchmarkScopedTimer(const Algorithm* inAlgorithm, const QString &inName, const QColor &inColor, AggregationMode inAggregationMode);
     ~BenchmarkScopedTimer();
 
 protected:
     QString name;
     QColor color;
-    bool additive;
+    AggregationMode aggregationMode;
 
 private:
     ULONG64 start;

@@ -26,20 +26,22 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     , graph(nullptr)
     , builderPropertiesWidget(nullptr)
 {
-    complexityList.push_back(qMakePair("O(1)",         [](int I, int V, int E) { return I; }));
-    complexityList.push_back(qMakePair("O(V)",         [](int I, int V, int E) { return V; }));
-    complexityList.push_back(qMakePair("O(E)",         [](int I, int V, int E) { return E; }));
-    complexityList.push_back(qMakePair("O(V+E)",       [](int I, int V, int E) { return V+E; }));
-    complexityList.push_back(qMakePair("O(2*V+E)",     [](int I, int V, int E) { return 2*V+E; }));
-    complexityList.push_back(qMakePair("O(V^2)",       [](int I, int V, int E) { return V*V; }));
-    complexityList.push_back(qMakePair("O(V+E)*logV",  [](int I, int V, int E) { return (V+E)*std::log(V); }));
-    complexityList.push_back(qMakePair("O(V*E)",       [](int I, int V, int E) { return (V*E); }));
-    complexityList.push_back(qMakePair("O(V^3)",       [](int I, int V, int E) { return (V*V*V); }));
-    complexityList.push_back(qMakePair("O(V*(E+1))",   [](int I, int V, int E) { return V*(E+1); }));
-    complexityList.push_back(qMakePair("O(V^2*2^V)",   [](int I, int V, int E) { return V*V*(1<<V); }));
-    complexityList.push_back(qMakePair("O(E*log(E))",  [](int I, int V, int E) { return E * std::log(E); }));
-    complexityList.push_back(qMakePair("O(E*log(V))",  [](int I, int V, int E) { return E * std::log(V); }));
-    complexityList.push_back(qMakePair("O(log(E))",    [](int I, int V, int E) { return std::log(V); }));
+    complexityList.push_back(qMakePair("O(1)",                [](int I, int V, int E) { return I; }));
+    complexityList.push_back(qMakePair("O(V)",                [](int I, int V, int E) { return V; }));
+    complexityList.push_back(qMakePair("O(E)",                [](int I, int V, int E) { return E; }));
+    complexityList.push_back(qMakePair("O(V+E)",              [](int I, int V, int E) { return V+E; }));
+    complexityList.push_back(qMakePair("O(2*V+E)",            [](int I, int V, int E) { return 2*V+E; }));
+    complexityList.push_back(qMakePair("O(V^2)",              [](int I, int V, int E) { return V*V; }));
+    complexityList.push_back(qMakePair("O(V+E)*logV",         [](int I, int V, int E) { return (V+E)*std::log(V); }));
+    complexityList.push_back(qMakePair("O(V*E)",              [](int I, int V, int E) { return (V*E); }));
+    complexityList.push_back(qMakePair("O(V^3)",              [](int I, int V, int E) { return (V*V*V); }));
+    complexityList.push_back(qMakePair("O(V*(E+1))",          [](int I, int V, int E) { return V*(E+1); }));
+    complexityList.push_back(qMakePair("O(V^2*2^V)",          [](int I, int V, int E) { return V*V*(1<<V); }));
+    complexityList.push_back(qMakePair("O(E*log(E))",         [](int I, int V, int E) { return E * std::log(E); }));
+    complexityList.push_back(qMakePair("O(E*log(V))",         [](int I, int V, int E) { return E * std::log(V); }));
+    complexityList.push_back(qMakePair("O(log(E))",           [](int I, int V, int E) { return std::log(E); }));
+    complexityList.push_back(qMakePair("O(log(V))",           [](int I, int V, int E) { return std::log(V); }));
+    complexityList.push_back(qMakePair("O((V+E)*log(V+E))",    [](int I, int V, int E) { return (V+E)*std::log(V+E); }));
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -176,7 +178,7 @@ void GraphAlgorithm::debugRun()
     QScopedPointer<Graph> testGraph(dynamic_cast<Graph*>(new AdjacencyListGraph()));
     graph = testGraph.get();
 
-    for(int i = 0; i < 15; ++i)
+    for(int i = 0; i < 2; ++i)
     {
         testGraph->addNode();
     }
@@ -184,12 +186,20 @@ void GraphAlgorithm::debugRun()
     testGraph->setIsDirected(false);
 
     testGraph->addEdge(0, 1, 1);
-    testGraph->addEdge(0, 2, 15);
-    testGraph->addEdge(0, 3, 6);
-
-    testGraph->addEdge(1, 0, 2);
-    testGraph->addEdge(1, 2, 7);
-    testGraph->addEdge(1, 3, 3);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
+    testGraph->addEdge(0, 1, 1);
 
     execute();
 }
@@ -228,7 +238,7 @@ void BFSIterative::execute()
     };
 
     {
-        BENCHMARK_SCOPED_TIMER("while loop + get edges num", Qt::green, true)
+        BENCHMARK_SCOPED_TIMER("while loop + get edges num", Qt::green, AggregationMode::Sum)
 
         while(!nodeQueue.empty())
         {
@@ -1192,7 +1202,7 @@ void EulerianPathAlgorithm::execute()
     QList<int> inDegrees;
     QList<int> outDegrees;
     {
-        BENCHMARK_SCOPED_TIMER("getNodeDegrees", Qt::green, false)
+        BENCHMARK_SCOPED_TIMER("getNodeDegrees", Qt::green, AggregationMode::Sum)
 
         graph->getNodeDegrees(inDegrees, outDegrees);
     }
@@ -1221,7 +1231,7 @@ void EulerianPathAlgorithm::execute()
         }
 
         {
-            BENCHMARK_SCOPED_TIMER("DFSHelper", Qt::red, false)
+            BENCHMARK_SCOPED_TIMER("DFSHelper", Qt::red, AggregationMode::Sum)
 
             EdgeList visitedUndirectedEdges; // It is only used with an undirected graph
             DFSHelper(start, outDegrees, eulerianPath, visitedUndirectedEdges);
@@ -1367,22 +1377,25 @@ void PrimMinimumSpanningTreeAlgorithm::execute()
 
     QList<bool> visited(nodesNum, false);
 
-    PriorityQueue nodesPq;
-    nodesPq.insert(0, 0);
+    PriorityQueue edgesPq;
+    edgesPq.insert(0, 0);
 
     auto forEachNeighbour = [&](int value, int neighbour, int weight)
     {
-        nodesPq.insert(neighbour, weight);
+        if(!visited[neighbour])
+        {
+            edgesPq.insert(neighbour, weight);
+        }
         return true;
     };
 
-    while(!nodesPq.empty())
+    while(!edgesPq.empty() && spanningTree.size() < nodesNum)
     {
         int first;
         {
-            BENCHMARK_SCOPED_TIMER("nodesPq.extract().first", Qt::red, true)
+            BENCHMARK_SCOPED_TIMER("edgesPq.extract().first", Qt::red, AggregationMode::Max)
 
-            first = nodesPq.extract().first;
+            first = edgesPq.extract().first;
         }
 
         if(visited[first])
@@ -1395,9 +1408,14 @@ void PrimMinimumSpanningTreeAlgorithm::execute()
         spanningTree.append(first);
 
         {
-            BENCHMARK_SCOPED_TIMER("forEachNeighbour", Qt::blue, true)
+            BENCHMARK_SCOPED_TIMER("forEachNeighbour", Qt::blue, AggregationMode::Max)
 
             graph->forEachNeighbour(first, forEachNeighbour);
         }
+    }
+
+    if(spanningTree.size() != nodesNum)
+    {
+        spanningTree.clear();
     }
 }
