@@ -8,6 +8,7 @@
 #include <QSet>
 #include <QWeakPointer>
 
+class ResidualGraph;
 class QComboBox;
 class DataStructure;
 class GraphNode;
@@ -282,6 +283,22 @@ public:
 protected:
     void execute() override;
 
+};
+
+class MaxNetworkFlowFordFulkersonAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit MaxNetworkFlowFordFulkersonAlgorithm(QObject* parent = nullptr);
+
+    bool canRunAlgorithm(QString& outInfo) const override;
+
+protected:
+    void execute() override;
+
+    int DFS(int from, int flow, int visitedToken, QList<int>& visited);
+
+    const ResidualGraph* residualGraph;
 };
 
 

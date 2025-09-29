@@ -128,4 +128,64 @@ private:
     GraphContainer adjMatrix;
 };
 
+class ResidualGraph : public Graph
+{
+    Q_OBJECT
+public:
+    explicit ResidualGraph(QObject *parent = nullptr);
+
+    void addNode() override;
+    void addEdge(int from, int to, int weight = 1) override;
+    void removeEdge(int from, int to) override;
+    int getEdgeWeight(int from, int to) const override;
+    bool hasEdgeTo(int from, int to) override;
+    qsizetype getEdgesNum() const override;
+    qsizetype getNodesNum() const override;
+    void clear() override;
+    int getRandomValue(bool* found = nullptr) const override;
+    void forEachEdge(std::function<bool(int, int, int)> func) override;
+    void forEachNeighbour(int node, std::function<bool(int, int, int)> func) override;
+    qsizetype getNeighboursNum(int node) const override;
+    int getNeighbourAt(int node, int at) const override;
+
+    struct Edge
+    {
+    public:
+        explicit Edge(int inFrom, int inTo, int inCapacity)
+            : from(inFrom)
+            , to(inTo)
+            , capacity(inCapacity)
+            , flow(0)
+            , residualEdge(nullptr)
+        {
+        }
+
+        int from;
+        int to;
+        int capacity;
+        int flow;
+        Edge* residualEdge;
+
+        void augment(int bottleNeck)
+        {
+            flow+=bottleNeck;
+            residualEdge->flow-=bottleNeck;
+        }
+
+        int getRemainingCapacity() const
+        {
+            return capacity - flow;
+        }
+    };
+
+private:
+    using Neighbours = QList<QSharedPointer<Edge>>;
+    using GraphContainer = QList<Neighbours>;
+
+    GraphContainer adjList;
+
+public:
+    const GraphContainer& getGraphContainer() const;
+};
+
 #endif // GRAPH_H

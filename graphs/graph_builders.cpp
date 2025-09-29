@@ -9,6 +9,8 @@
 GraphBuilder::GraphBuilder(QObject *parent)
     : DataStructureBuilder(parent)
     , buildIterations(100)
+    , minWeight(1)
+    , maxWeight(100)
 {
     dataStructures.push_back(qMakePair("Adjacency List",   []() {return new AdjacencyListGraph; }));
     dataStructures.push_back(qMakePair("Adjacency Matrix", []() {return new AdjacencyMatrixGraph; }));
@@ -73,11 +75,41 @@ void GraphBuilder::setIsGraphDirected(bool newIsGraphDirected)
     emit isGraphDirectedChanged();
 }
 
+int GraphBuilder::getMinWeight() const
+{
+    return minWeight;
+}
+
+void GraphBuilder::setMinWeight(int newMinWeight)
+{
+    if (minWeight == newMinWeight)
+    {
+        return;
+    }
+
+    minWeight = newMinWeight;
+    emit minWeightChanged();
+}
+
+int GraphBuilder::getMaxWeight() const
+{
+    return maxWeight;
+}
+
+void GraphBuilder::setMaxWeight(int newMaxWeight)
+{
+    if (maxWeight == newMaxWeight)
+    {
+        return;
+    }
+
+    maxWeight = newMaxWeight;
+    emit maxWeightChanged();
+}
+
 GeneralGraphBuilder::GeneralGraphBuilder(QObject *parent)
     : GraphBuilder(parent)
     , addEdgePropability(0.5)
-    , minWeight(1)
-    , maxWeight(100)
 {
     setObjectName("General Graph");
 }
@@ -112,38 +144,6 @@ void GeneralGraphBuilder::setAddEdgePropability(double newAddEdgePropability)
     emit addEdgePropabilityChanged();
 }
 
-int GeneralGraphBuilder::getMinWeight() const
-{
-    return minWeight;
-}
-
-void GeneralGraphBuilder::setMinWeight(int newMinWeight)
-{
-    if (minWeight == newMinWeight)
-    {
-        return;
-    }
-
-    minWeight = newMinWeight;
-    emit minWeightChanged();
-}
-
-int GeneralGraphBuilder::getMaxWeight() const
-{
-    return maxWeight;
-}
-
-void GeneralGraphBuilder::setMaxWeight(int newMaxWeight)
-{
-    if (maxWeight == newMaxWeight)
-    {
-        return;
-    }
-
-    maxWeight = newMaxWeight;
-    emit maxWeightChanged();
-}
-
 GridGraphBuilder::GridGraphBuilder(QObject *parent)
     : GraphBuilder(parent)
 {
@@ -165,12 +165,12 @@ DataStructure *GridGraphBuilder::createDataStructure()
 
             if(j > 0)
             {
-                graph->addEdge(prevValue, value);
+                graph->addEdge(prevValue, value, QRandomGenerator::global()->bounded(minWeight, maxWeight + 1));
             }
 
             if(i > 0)
             {
-                graph->addEdge(prevRow[j], value);
+                graph->addEdge(prevRow[j], value, QRandomGenerator::global()->bounded(minWeight, maxWeight + 1));
             }
 
             prevRow[j] = value;
@@ -200,11 +200,42 @@ DataStructure *TreeGraphBuilder::createDataStructure()
 
     for(int i = 1; i <= buildIterations * 2; i+=2)
     {
-        graph->addEdge(i, parent);
-        graph->addEdge(i + 1, parent);
+        graph->addEdge(i, parent, QRandomGenerator::global()->bounded(minWeight, maxWeight + 1));
+        graph->addEdge(i + 1, parent, QRandomGenerator::global()->bounded(minWeight, maxWeight + 1));
 
         parent = i;
     }
 
     return graph;
+}
+
+GeneralResidualGraphBuilder::GeneralResidualGraphBuilder(QObject *parent)
+    : GeneralGraphBuilder(parent)
+{
+    setObjectName("General Residual Builder");
+
+    dataStructures.clear();
+    dataStructures.push_back(qMakePair("Residual Graph",   []() {return new ResidualGraph; }));
+
+    hiddenProperties.push_back("isGraphDirected");
+}
+
+GridResidualGraphBuilder::GridResidualGraphBuilder(QObject *parent)
+    : GridGraphBuilder(parent)
+{
+    setObjectName("Grid Residual Builder");
+
+    dataStructures.clear();
+    dataStructures.push_back(qMakePair("Residual Graph",   []() {return new ResidualGraph; }));
+
+    hiddenProperties.push_back("isGraphDirected");
+}
+
+TreeResidualGraphBuilder::TreeResidualGraphBuilder(QObject *parent)
+    : TreeGraphBuilder(parent)
+{
+    setObjectName("Tree Residual Builder");
+
+    dataStructures.clear();
+    dataStructures.push_back(qMakePair("Residual Graph",   []() {return new ResidualGraph; }));
 }

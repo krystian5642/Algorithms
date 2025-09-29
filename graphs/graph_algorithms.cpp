@@ -41,8 +41,9 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     complexityList.push_back(qMakePair("O(E*log(V))",         [](int I, int V, int E) { return E * std::log(V); }));
     complexityList.push_back(qMakePair("O(log(E))",           [](int I, int V, int E) { return std::log(E); }));
     complexityList.push_back(qMakePair("O(log(V))",           [](int I, int V, int E) { return std::log(V); }));
-    complexityList.push_back(qMakePair("O((V+E)*log(V+E))",    [](int I, int V, int E) { return (V+E)*std::log(V+E); }));
-    complexityList.push_back(qMakePair("O(V*log(V))",    [](int I, int V, int E) { return V*std::log(V); }));
+    complexityList.push_back(qMakePair("O((V+E)*log(V+E))",   [](int I, int V, int E) { return (V+E)*std::log(V+E); }));
+    complexityList.push_back(qMakePair("O(V*log(V))",         [](int I, int V, int E) { return V*std::log(V); }));
+    complexityList.push_back(qMakePair("O(E*I)",              [](int I, int V, int E) { return E*I; }));
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -1491,6 +1492,82 @@ void EagerPrimMinimumSpanningTreeAlgorithm::execute()
         spanningTree.clear();
     }
 }
+
+MaxNetworkFlowFordFulkersonAlgorithm::MaxNetworkFlowFordFulkersonAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Max Network Flow Ford Fulkerson Algorithm");
+
+    dataStructureBuilders.clear();
+
+    dataStructureBuilders.push_back(new GeneralResidualGraphBuilder(this));
+    dataStructureBuilders.push_back(new TreeResidualGraphBuilder(this));
+    dataStructureBuilders.push_back(new GridResidualGraphBuilder(this));
+}
+
+bool MaxNetworkFlowFordFulkersonAlgorithm::canRunAlgorithm(QString &outInfo) const
+{
+    const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    if(graphBuilder->getIsGraphDirected())
+    {
+        return true;
+    }
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
+    return false;
+}
+
+void MaxNetworkFlowFordFulkersonAlgorithm::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+    if(nodesNum > 1)
+    {
+        residualGraph = static_cast<const ResidualGraph*>(graph);
+
+        int maxFlow = 0;
+        int visitedToken = -1;
+
+        QList<int> visited(nodesNum, 0);
+
+        for(int flow = DFS(0, INF, visitedToken, visited); flow != 0; flow = DFS(0, INF, visitedToken, visited))
+        {
+            maxFlow+=flow;
+            visitedToken++;
+        }
+    }
+}
+
+int MaxNetworkFlowFordFulkersonAlgorithm::DFS(int from, int flow, int visitedToken, QList<int>& visited)
+{
+    if(from == residualGraph->getNodesNum() - 1)
+    {
+        return flow;
+    }
+
+    const auto& graphContainer = residualGraph->getGraphContainer();
+    const auto& neighbours = graphContainer[from];
+
+    for(const auto& edge : neighbours)
+    {
+        if(visited[edge->to] != visitedToken && edge->getRemainingCapacity() > 0)
+        {
+            visited[edge->to] = visitedToken;
+            const int bottleNeck = DFS(edge->to, std::min(flow, edge->getRemainingCapacity()), visitedToken, visited);
+
+            if(bottleNeck > 0)
+            {
+                edge->augment(bottleNeck);
+                return bottleNeck;
+            }
+        }
+    }
+    return 0;
+}
+
+
+
+
+
 
 
 

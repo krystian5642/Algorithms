@@ -469,6 +469,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new LazyPrimMinimumSpanningTreeAlgorithm);
     algorithmsList.append(new EagerPrimMinimumSpanningTreeAlgorithm);
 
+    algorithmsList.append(new MaxNetworkFlowFordFulkersonAlgorithm);
+
     for(auto* algorithm : algorithmsList)
     {
         connect(algorithm, &Algorithm::started, this, &AlgorithmBenchmarkWindow::onAlgorithmStarted);

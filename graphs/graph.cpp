@@ -214,46 +214,46 @@ void AdjacencyListGraph::addNode()
     emit onNodeAdded();
 }
 
-void AdjacencyListGraph::addEdge(int start, int end, int weight)
+void AdjacencyListGraph::addEdge(int from, int to, int weight)
 {
-    if(start < 0 || end < 0 || hasEdgeTo(start, end))
+    if(from < 0 || to < 0 || hasEdgeTo(from, to))
     {
         return;
     }
 
-    if(start >= adjList.size())
+    if(from >= adjList.size())
     {
         addNode();
     }
 
-    adjList[start].push_back(Edge{end, weight});
+    adjList[from].push_back(Edge{to, weight});
     emit onEdgeAdded();
 
-    if(!isDirected && !hasEdgeTo(end, start))
+    if(!isDirected && !hasEdgeTo(to, from))
     {
-        if(end >= adjList.size())
+        if(to >= adjList.size())
         {
             addNode();
         }
 
-        adjList[end].push_back(Edge{start, weight});
+        adjList[to].push_back(Edge{from, weight});
         emit onEdgeAdded();
     }
 }
 
-void AdjacencyListGraph::removeEdge(int start, int end)
+void AdjacencyListGraph::removeEdge(int from, int to)
 {
-    if(start < 0 || end < 0)
+    if(from < 0 || to < 0)
     {
         return;
     }
 
-    Utils::eraseIf(adjList[start], [end](const Edge& edge) { return end == edge.endValue; });
+    Utils::eraseIf(adjList[from], [to](const Edge& edge) { return to == edge.endValue; });
     emit onEdgeRemoved();
 
     if(!isDirected)
     {
-        Utils::eraseIf(adjList[end], [start](const Edge& edge) { return start == edge.endValue; });
+        Utils::eraseIf(adjList[to], [from](const Edge& edge) { return from == edge.endValue; });
         emit onEdgeRemoved();
     }
 }
@@ -557,4 +557,179 @@ int AdjacencyMatrixGraph::getNeighbourAt(int node, int at) const
         return -1;
     }
     return adjMatrix[node][at];
+}
+
+ResidualGraph::ResidualGraph(QObject *parent)
+    : Graph(parent)
+{
+    // it always should be true in this graph
+    isDirected = true;
+}
+
+void ResidualGraph::addNode()
+{
+    const qsizetype oldSize = adjList.size();
+    adjList.resize(oldSize + 1);
+    adjList[oldSize] = QList<QSharedPointer<Edge>>();
+
+    emit onNodeAdded();
+}
+
+void ResidualGraph::addEdge(int from, int to, int weight)
+{
+    if(from < 0 || to < 0 || hasEdgeTo(from, to))
+    {
+        return;
+    }
+
+    if(from >= adjList.size())
+    {
+        addNode();
+    }
+
+    auto edge = QSharedPointer<Edge>::create(from, to, weight);
+    auto residualEdge = QSharedPointer<Edge>::create(from, to, 0);
+
+    edge->residualEdge = residualEdge.get();
+    residualEdge->residualEdge = edge.get();
+
+    adjList[from].push_back(edge);
+    emit onEdgeAdded();
+
+    adjList[to].push_back(residualEdge);
+    emit onEdgeAdded();
+}
+
+void ResidualGraph::removeEdge(int from, int to)
+{
+    if(from < 0 || to < 0)
+    {
+        return;
+    }
+
+    Utils::eraseIf(adjList[from], [to](const auto& edge) { return to == edge->to; });
+    emit onEdgeRemoved();
+
+    Utils::eraseIf(adjList[to], [from](const auto& edge) { return from == edge->from; });
+    emit onEdgeRemoved();
+}
+
+int ResidualGraph::getEdgeWeight(int from, int to) const
+{
+    if(from < 0 || to < 0 || from > adjList.size() || to > adjList.size())
+    {
+        return INF;
+    }
+
+    const Neighbours& neighbours = adjList[from];
+    for(const auto& edge : neighbours)
+    {
+        if(edge->to == to)
+        {
+            return edge->capacity;
+        }
+    }
+
+    return INF;
+}
+
+bool ResidualGraph::hasEdgeTo(int from, int to)
+{
+    if(adjList.size() > from)
+    {
+        return std::any_of(adjList[from].begin(), adjList[from].end(), [to](const auto& edge)
+        {
+            return edge->to == to;
+        });
+    }
+    return false;
+}
+
+qsizetype ResidualGraph::getEdgesNum() const
+{
+    qsizetype edgesNum = 0;
+    for(const auto& neighbours : adjList)
+    {
+        edgesNum += neighbours.size();
+    }
+
+    return edgesNum;
+}
+
+qsizetype ResidualGraph::getNodesNum() const
+{
+    return adjList.size();
+}
+
+void ResidualGraph::clear()
+{
+    adjList.clear();
+}
+
+int ResidualGraph::getRandomValue(bool *found) const
+{
+    if (!adjList.isEmpty())
+    {
+        if (found)
+        {
+            *found = true;
+        }
+
+        return QRandomGenerator::global()->bounded(adjList.size());
+    }
+    else if (found)
+    {
+        *found = false;
+    }
+    return 0;
+}
+
+void ResidualGraph::forEachEdge(std::function<bool (int, int, int)> func)
+{
+    for(int i = 0; i < adjList.size(); ++i)
+    {
+        for(const auto& edge : adjList[i])
+        {
+            if(!func(i, edge->to, edge->capacity))
+            {
+                return;
+            }
+        }
+    }
+}
+
+void ResidualGraph::forEachNeighbour(int node, std::function<bool (int, int, int)> func)
+{
+    for(const auto& edge : adjList[node])
+    {
+        if(!func(node, edge->to, edge->capacity))
+        {
+            return;
+        }
+    }
+}
+
+qsizetype ResidualGraph::getNeighboursNum(int node) const
+{
+    if(adjList.size() <= node)
+    {
+        return 0;
+    }
+
+    return adjList[node].size();
+}
+
+int ResidualGraph::getNeighbourAt(int node, int at) const
+{
+    if(adjList.size() <= node && adjList[node].size() <= at)
+    {
+        return -1;
+    }
+
+    return adjList[node][at]->to;
+}
+
+const ResidualGraph::GraphContainer &ResidualGraph::getGraphContainer() const
+{
+    return adjList;
 }
