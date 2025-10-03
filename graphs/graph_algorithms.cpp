@@ -44,6 +44,8 @@ GraphAlgorithm::GraphAlgorithm(QObject *parent)
     complexityList.push_back(qMakePair("O((V+E)*log(V+E))",   [](int I, int V, int E) { return (V+E)*std::log(V+E); }));
     complexityList.push_back(qMakePair("O(V*log(V))",         [](int I, int V, int E) { return V*std::log(V); }));
     complexityList.push_back(qMakePair("O(E*I)",              [](int I, int V, int E) { return E*I; }));
+    complexityList.push_back(qMakePair("O(V*E^2)",              [](int I, int V, int E) { return V*E*E; }));
+
 
     dataStructureBuilders.push_back(new GeneralGraphBuilder(this));
     dataStructureBuilders.push_back(new GridGraphBuilder(this));
@@ -1529,11 +1531,13 @@ void MaxNetworkFlowFordFulkersonAlgorithm::execute()
 
         QList<int> visited(nodesNum, 0);
 
-        for(int flow = DFS(0, INF, visitedToken, visited); flow != 0; flow = DFS(0, INF, visitedToken, visited))
+        int flow = INF;
+        do
         {
+            flow = DFS(0, INF, visitedToken, visited);
             maxFlow+=flow;
             visitedToken++;
-        }
+        } while(flow != 0);
     }
 }
 
@@ -1543,6 +1547,8 @@ int MaxNetworkFlowFordFulkersonAlgorithm::DFS(int from, int flow, int visitedTok
     {
         return flow;
     }
+
+    visited[from] = visitedToken;
 
     const auto& graphContainer = residualGraph->getGraphContainer();
     const auto& neighbours = graphContainer[from];
@@ -1564,9 +1570,105 @@ int MaxNetworkFlowFordFulkersonAlgorithm::DFS(int from, int flow, int visitedTok
     return 0;
 }
 
+MaxNetworkFlowEdmondsKarpAlgorithm::MaxNetworkFlowEdmondsKarpAlgorithm(QObject *parent)
+    : GraphAlgorithm(parent)
+{
+    setObjectName("Max Network Edmonds Karp Algorithm");
 
+    dataStructureBuilders.clear();
 
+    dataStructureBuilders.push_back(new GeneralResidualGraphBuilder(this));
+    dataStructureBuilders.push_back(new TreeResidualGraphBuilder(this));
+    dataStructureBuilders.push_back(new GridResidualGraphBuilder(this));
+}
 
+bool MaxNetworkFlowEdmondsKarpAlgorithm::canRunAlgorithm(QString &outInfo) const
+{
+    const GraphBuilder* graphBuilder = qobject_cast<GraphBuilder*>(getSelectedBuilder());
+    if(graphBuilder->getIsGraphDirected())
+    {
+        return true;
+    }
+
+    outInfo = GraphTexts::UndirectedGraphIsNotSupported;
+    return false;
+}
+
+void MaxNetworkFlowEdmondsKarpAlgorithm::execute()
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+    if(nodesNum > 1)
+    {
+        residualGraph = static_cast<const ResidualGraph*>(graph);
+
+        int maxFlow = 0;
+        int visitedToken = -1;
+
+        QList<int> visited(nodesNum, 0);
+
+        int flow = INF;
+        do
+        {
+            flow = BFS(visitedToken, visited);
+            maxFlow+=flow;
+            visitedToken++;
+        } while(flow != 0);
+    }
+}
+
+int MaxNetworkFlowEdmondsKarpAlgorithm::BFS(int visitedToken, QList<int>& visited)
+{
+    const qsizetype nodesNum = graph->getNodesNum();
+
+    QQueue<int> nodeQueue;
+    nodeQueue.enqueue(0);
+
+    visited[0] = visitedToken;
+
+    const auto& graphContainer = residualGraph->getGraphContainer();
+
+    const int t = nodesNum - 1;
+
+    QList<ResidualGraph::Edge*> prevEdges (nodesNum, nullptr);
+
+    while(!nodeQueue.empty())
+    {
+        const int from = nodeQueue.dequeue();
+        if(from == t)
+        {
+            break;
+        }
+
+        for(const auto& edge : graphContainer[from])
+        {
+            if(visited[edge->to] != visitedToken && edge->getRemainingCapacity() > 0)
+            {
+                visited[edge->to] = visitedToken;
+                prevEdges[edge->to] = edge.get();
+
+                nodeQueue.enqueue(edge->to);
+            }
+        }
+    }
+
+    if(!prevEdges[t])
+    {
+        return 0;
+    }
+
+    int flow = INF;
+    for(ResidualGraph::Edge* edge = prevEdges[t]; edge; edge = prevEdges[edge->from])
+    {
+        flow = std::min(flow, edge->getRemainingCapacity());
+    }
+
+    for(ResidualGraph::Edge* edge = prevEdges[t]; edge; edge = prevEdges[edge->from])
+    {
+        edge->augment(flow);
+    }
+
+    return flow;
+}
 
 
 

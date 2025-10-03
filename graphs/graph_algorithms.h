@@ -301,5 +301,21 @@ protected:
     const ResidualGraph* residualGraph;
 };
 
+class MaxNetworkFlowEdmondsKarpAlgorithm : public GraphAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit MaxNetworkFlowEdmondsKarpAlgorithm(QObject* parent = nullptr);
+
+    bool canRunAlgorithm(QString& outInfo) const override;
+
+protected:
+    void execute() override;
+
+    int BFS(int visitedToken, QList<int>& visited);
+
+    const ResidualGraph* residualGraph;
+};
+
 
 #endif // GRAPH_AlGORITHMS_H

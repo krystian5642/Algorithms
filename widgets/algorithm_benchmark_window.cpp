@@ -471,6 +471,8 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
 
     algorithmsList.append(new MaxNetworkFlowFordFulkersonAlgorithm);
 
+    algorithmsList.append(new MaxNetworkFlowEdmondsKarpAlgorithm);
+
     for(auto* algorithm : algorithmsList)
     {
         connect(algorithm, &Algorithm::started, this, &AlgorithmBenchmarkWindow::onAlgorithmStarted);
