@@ -470,8 +470,9 @@ void AlgorithmBenchmarkWindow::registerAlgorithms()
     algorithmsList.append(new EagerPrimMinimumSpanningTreeAlgorithm);
 
     algorithmsList.append(new MaxNetworkFlowFordFulkersonAlgorithm);
-
     algorithmsList.append(new MaxNetworkFlowEdmondsKarpAlgorithm);
+    algorithmsList.append(new MaxNetworkFlowCapacityScalingAlgorithm);
+    algorithmsList.append(new MaxNetworkFlowDinicAlgorithm);
 
     for(auto* algorithm : algorithmsList)
     {

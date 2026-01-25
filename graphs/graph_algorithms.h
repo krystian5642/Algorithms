@@ -6,7 +6,6 @@
 
 #include <QQueue>
 #include <QSet>
-#include <QWeakPointer>
 
 class ResidualGraph;
 class QComboBox;
@@ -285,37 +284,67 @@ protected:
 
 };
 
-class MaxNetworkFlowFordFulkersonAlgorithm : public GraphAlgorithm
+class MaxNetworkFlowAlgorithm : public GraphAlgorithm
+{
+public:
+    explicit MaxNetworkFlowAlgorithm(QObject* parent = nullptr);
+    virtual ~MaxNetworkFlowAlgorithm() = 0;
+
+    bool canRunAlgorithm(QString& outInfo) const override;
+
+protected:
+     const ResidualGraph* residualGraph;
+};
+
+class MaxNetworkFlowFordFulkersonAlgorithm : public MaxNetworkFlowAlgorithm
 {
     Q_OBJECT
 public:
     explicit MaxNetworkFlowFordFulkersonAlgorithm(QObject* parent = nullptr);
 
-    bool canRunAlgorithm(QString& outInfo) const override;
-
 protected:
     void execute() override;
 
     int DFS(int from, int flow, int visitedToken, QList<int>& visited);
-
-    const ResidualGraph* residualGraph;
 };
 
-class MaxNetworkFlowEdmondsKarpAlgorithm : public GraphAlgorithm
+class MaxNetworkFlowEdmondsKarpAlgorithm : public MaxNetworkFlowAlgorithm
 {
     Q_OBJECT
 public:
     explicit MaxNetworkFlowEdmondsKarpAlgorithm(QObject* parent = nullptr);
 
-    bool canRunAlgorithm(QString& outInfo) const override;
-
 protected:
     void execute() override;
 
     int BFS(int visitedToken, QList<int>& visited);
+};
+
+class MaxNetworkFlowCapacityScalingAlgorithm : public MaxNetworkFlowAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit MaxNetworkFlowCapacityScalingAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+
+    int DFS(int from, int flow, int visitedToken, QList<int>& visited, int delta);
 
     const ResidualGraph* residualGraph;
 };
 
+class MaxNetworkFlowDinicAlgorithm : public MaxNetworkFlowAlgorithm
+{
+    Q_OBJECT
+public:
+    explicit MaxNetworkFlowDinicAlgorithm(QObject* parent = nullptr);
+
+protected:
+    void execute() override;
+
+    bool BFS(QList<int>& level);
+    int DFS(int from, int flow, QList<int>& next, QList<int>& level);
+};
 
 #endif // GRAPH_AlGORITHMS_H
