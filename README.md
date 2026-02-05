@@ -18,6 +18,8 @@ The application is built in Qt for studying time complexity of graph algorithms 
 
 This tab consists of two main parts: an algorithms panel on the left and a main panel for creating graphs on the right.
 
+![Visualization Tab](images/visualization.jpg)
+
 ## How it works
 
 Firstly, you need to choose an algorithm by clicking on it. After clicking, a new panel shows up below the algorithms list. The panel contains all the chosen algorithm's properties such as step time, start, end, etc. The panel is automatically generated using Qt meta-system.
@@ -51,6 +53,8 @@ To start an algorithm, you need a non-empty graph. To create a graph, you have t
 # Benchmark Tab
 
 This tab is designed for testing the time complexity of algorithms.
+
+![Benchmark Tab](images/benchmark.jpg)
 
 ## How it works
 
